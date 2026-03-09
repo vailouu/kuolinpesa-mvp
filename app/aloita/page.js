@@ -89,14 +89,14 @@ export default function Aloita() {
           <button
             style={{backgroundColor: '#C9A84C', color: '#0F1E3C'}}
             className="w-full py-4 font-bold rounded mt-2 hover:opacity-90"
-            onClick={() => alert('Tili luotu! Dashboard tulossa pian.')}
+            onClick={() => router.push('/dashboard')}
           >
             Luo kuolinpesä →
           </button>
 
         </div>
 
-        <p className="text-center mt-6 text-xs" style={{color: '#4A5568'}}>
+        <p className="text-center mt-6 text-s" style={{color: '#4A5568'}}>
           Tietosi ovat turvassa. Emme jaa tietojasi kolmansille osapuolille.
         </p>
 
