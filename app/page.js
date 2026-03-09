@@ -33,9 +33,9 @@ export default function Home() {
             <div style={{color: '#C9A84C'}} className="text-4xl mb-4">📋</div>
             <h2 className="text-white text-xl font-bold mb-3">Aloita kuolinpesän hoito</h2>
             <p style={{color: '#A0AEC0'}} className="text-sm mb-6">Läheinen on menehtynyt ja haluat aloittaa asioiden hoitamisen.</p>
-            <button style={{backgroundColor: '#C9A84C', color: '#0F1E3C'}} className="w-full py-3 font-bold rounded">
-              Aloita tästä →
-            </button>
+            <a href="/aloita" style={{backgroundColor: '#C9A84C', color: '#0F1E3C'}} className="w-full py-3 font-bold rounded block text-center">
+  Aloita tästä →
+</a>
           </div>
 
           <div style={{backgroundColor: '#1B2A4A', border: '1px solid #C9A84C'}} className="rounded-lg p-8 flex flex-col items-center text-center cursor-pointer hover:opacity-90">
