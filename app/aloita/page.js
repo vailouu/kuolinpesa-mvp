@@ -1,7 +1,7 @@
 'use client'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-
+import { supabase } from '../supabase'
 export default function Aloita() {
   const router = useRouter()
   const [vaihe, setVaihe] = useState(1)
@@ -89,7 +89,20 @@ export default function Aloita() {
           <button
             style={{backgroundColor: '#C9A84C', color: '#0F1E3C'}}
             className="w-full py-4 font-bold rounded mt-2 hover:opacity-90"
-            onClick={() => router.push('/dashboard')}
+            onClick={async () => {
+  const { error } = await supabase
+    .from('kuolinpesat')
+    .insert({
+      vainajan_nimi: tiedot.vainajanNimi,
+      kuolinpaiva: tiedot.kuolinpaiva || null,
+      kayttaja_email: tiedot.sahkoposti
+    })
+  if (error) {
+    alert('Virhe: ' + error.message)
+  } else {
+    router.push('/dashboard')
+  }
+}}
           >
             Luo kuolinpesä →
           </button>
