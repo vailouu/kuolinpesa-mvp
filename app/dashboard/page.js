@@ -194,7 +194,82 @@ export default function Dashboard() {
           )}
         </div>
 
+   {/* Tiimi-osio */}
+        <div className="rounded-lg p-6 mt-6" style={{backgroundColor: '#1B2A4A', border: '1px solid #2D3E5C'}}>
+          <h2 className="text-white font-bold text-lg mb-6">Tiimi</h2>
+          <KutsuJasen kuolinpesaId={kuolinpesa?.id} />
+        </div>
+
       </div>
+    </div>
+  )
+}
+
+function KutsuJasen({ kuolinpesaId }) {
+  const [email, setEmail] = useState('')
+  const [viesti, setViesti] = useState('')
+  const [jasenet, setJasenet] = useState([])
+
+  useEffect(() => {
+    if (!kuolinpesaId) return
+    const haeJasenet = async () => {
+      const { data } = await supabase
+        .from('jasenet')
+        .select('*')
+        .eq('kuolinpesa_id', kuolinpesaId)
+      if (data) setJasenet(data)
+    }
+    haeJasenet()
+  }, [kuolinpesaId])
+
+  const kutsuJasen = async () => {
+    if (!email) return
+    const { error } = await supabase
+      .from('jasenet')
+      .insert({ kuolinpesa_id: kuolinpesaId, email: email, rooli: 'osakas' })
+    if (error) {
+      setViesti('Virhe: ' + error.message)
+    } else {
+      setViesti('Jäsen lisätty!')
+      setJasenet([...jasenet, { email, rooli: 'osakas' }])
+      setEmail('')
+    }
+  }
+
+  return (
+    <div>
+      <div className="flex gap-3 mb-6">
+        <input
+          type="email"
+          placeholder="sahkoposti@email.fi"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          className="flex-1 px-4 py-3 rounded text-white placeholder-gray-500 outline-none"
+          style={{backgroundColor: '#0F1E3C', border: '1px solid #2D3E5C'}}
+        />
+        <button
+          onClick={kutsuJasen}
+          style={{backgroundColor: '#C9A84C', color: '#0F1E3C'}}
+          className="px-6 py-3 font-bold rounded hover:opacity-90"
+        >
+          Lisää →
+        </button>
+      </div>
+
+      {viesti && (
+        <p className="text-sm mb-4" style={{color: '#C9A84C'}}>{viesti}</p>
+      )}
+
+      {jasenet.length > 0 && (
+        <div className="flex flex-col gap-2">
+          {jasenet.map((j, i) => (
+            <div key={i} className="flex items-center justify-between p-3 rounded" style={{backgroundColor: '#0F1E3C', border: '1px solid #2D3E5C'}}>
+              <span className="text-white text-sm">{j.email}</span>
+              <span className="text-xs px-2 py-1 rounded" style={{backgroundColor: '#1B2A4A', color: '#C9A84C'}}>{j.rooli}</span>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   )
 }
