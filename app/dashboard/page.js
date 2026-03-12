@@ -29,14 +29,20 @@ export default function Dashboard() {
 
   useEffect(() => {
     const haeViimeisin = async () => {
-      const { data, error } = await supabase
-        .from('kuolinpesat')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .single()
-      if (data) setKuolinpesa(data)
-    }
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) {
+    router.push('/kirjaudu')
+    return
+  }
+  const { data, error } = await supabase
+    .from('kuolinpesat')
+    .select('*')
+    .eq('kayttaja_email', user.email)
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .single()
+  if (data) setKuolinpesa(data)
+}
     haeViimeisin()
   }, [])
 
@@ -57,9 +63,21 @@ export default function Dashboard() {
         <div style={{color: '#C9A84C'}} className="text-xl font-bold tracking-widest uppercase">
           Pesänhoitaja
         </div>
-        <div className="text-white text-sm">
-          {kuolinpesa?.kayttaja_email || ''}
-        </div>
+      <div className="flex items-center gap-4">
+  <div className="text-white text-sm">
+    {kuolinpesa?.kayttaja_email || ''}
+  </div>
+  <button
+    onClick={async () => {
+      await supabase.auth.signOut()
+      router.push('/')
+    }}
+    style={{color: '#C9A84C', border: '1px solid #C9A84C'}}
+    className="px-3 py-1 text-sm rounded hover:opacity-75"
+  >
+    Kirjaudu ulos
+  </button>
+</div>
       </nav>
 
       <div className="max-w-5xl mx-auto px-6 py-10">
