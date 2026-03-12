@@ -90,18 +90,27 @@ export default function Aloita() {
             style={{backgroundColor: '#C9A84C', color: '#0F1E3C'}}
             className="w-full py-4 font-bold rounded mt-2 hover:opacity-90"
             onClick={async () => {
-  const { error } = await supabase
-    .from('kuolinpesat')
-    .insert({
-      vainajan_nimi: tiedot.vainajanNimi,
-      kuolinpaiva: tiedot.kuolinpaiva || null,
-      kayttaja_email: tiedot.sahkoposti
-    })
-  if (error) {
-    alert('Virhe: ' + error.message)
-  } else {
-    router.push('/dashboard')
-  }
+  const { error: authError } = await supabase.auth.signUp({
+  email: tiedot.sahkoposti,
+  password: tiedot.salasana
+})
+if (authError) {
+  alert('Virhe: ' + authError.message)
+  return
+}
+
+const { error } = await supabase
+  .from('kuolinpesat')
+  .insert({
+    vainajan_nimi: tiedot.vainajanNimi,
+    kuolinpaiva: tiedot.kuolinpaiva || null,
+    kayttaja_email: tiedot.sahkoposti
+  })
+if (error) {
+  alert('Virhe: ' + error.message)
+} else {
+  router.push('/dashboard')
+}
 }}
           >
             Luo kuolinpesä →

@@ -7,9 +7,9 @@ export default function Home() {
         <div style={{color: '#C9A84C'}} className="text-xl font-bold tracking-widest uppercase">
           Pesänhoitaja
         </div>
-        <button style={{backgroundColor: '#C9A84C', color: '#0F1E3C'}} className="px-5 py-2 text-sm font-bold rounded">
-          Kirjaudu sisään
-        </button>
+<a href="/kirjaudu" style={{backgroundColor: '#C9A84C', color: '#0F1E3C'}} className="px-5 py-2 text-sm font-bold rounded">
+  Kirjaudu sisään
+</a>
       </nav>
 
       {/* Hero */}
