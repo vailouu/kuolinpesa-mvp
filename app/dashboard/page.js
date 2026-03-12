@@ -1,10 +1,12 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { supabase } from '../supabase'
 
 export default function Dashboard() {
   const router = useRouter()
   const [aktiivisuVaihe, setAktiivinenVaihe] = useState(1)
+  const [kuolinpesa, setKuolinpesa] = useState(null)
 
   const vaiheet = [
     { numero: 1, nimi: 'Ensitoimet' },
@@ -25,6 +27,19 @@ export default function Dashboard() {
 
   const [tehtavaLista, setTehtavaLista] = useState(tehtavat)
 
+  useEffect(() => {
+    const haeViimeisin = async () => {
+      const { data, error } = await supabase
+        .from('kuolinpesat')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single()
+      if (data) setKuolinpesa(data)
+    }
+    haeViimeisin()
+  }, [])
+
   const merkitseTehdyksi = (id) => {
     setTehtavaLista(tehtavaLista.map(t => 
       t.id === id ? {...t, tehty: !t.tehty} : t
@@ -38,28 +53,29 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen" style={{backgroundColor: '#0F1E3C'}}>
 
-      {/* Navigaatio */}
       <nav style={{borderBottom: '1px solid #C9A84C'}} className="px-8 py-4 flex items-center justify-between">
         <div style={{color: '#C9A84C'}} className="text-xl font-bold tracking-widest uppercase">
           Pesänhoitaja
         </div>
         <div className="text-white text-sm">
-          Matti Virtanen
+          {kuolinpesa?.kayttaja_email || ''}
         </div>
       </nav>
 
       <div className="max-w-5xl mx-auto px-6 py-10">
 
-        {/* Otsikko */}
         <div className="mb-8">
           <div style={{color: '#C9A84C', letterSpacing: '3px'}} className="text-xs uppercase mb-2">
             — Kuolinpesä —
           </div>
-          <h1 className="text-white text-3xl font-bold">Matti Virtanen</h1>
-          <p style={{color: '#A0AEC0'}} className="text-sm mt-1">Kuolinpesän hallinta</p>
+          <h1 className="text-white text-3xl font-bold">
+            {kuolinpesa?.vainajan_nimi || 'Ladataan...'}
+          </h1>
+          <p style={{color: '#A0AEC0'}} className="text-sm mt-1">
+            {kuolinpesa?.kuolinpaiva ? `Kuolinpäivä: ${kuolinpesa.kuolinpaiva}` : 'Kuolinpesän hallinta'}
+          </p>
         </div>
 
-        {/* Edistymispalkki */}
         <div className="mb-10 p-6 rounded-lg" style={{backgroundColor: '#1B2A4A', border: '1px solid #2D3E5C'}}>
           <div className="flex items-center justify-between mb-4">
             <span className="text-white font-bold">Edistyminen</span>
@@ -73,7 +89,6 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Vaihepalkki */}
         <div className="flex gap-2 mb-8 overflow-x-auto">
           {vaiheet.map(v => (
             <button
@@ -92,7 +107,6 @@ export default function Dashboard() {
           ))}
         </div>
 
-        {/* Tehtävälista */}
         <div className="rounded-lg p-6" style={{backgroundColor: '#1B2A4A', border: '1px solid #2D3E5C'}}>
           <h2 className="text-white font-bold text-lg mb-6">
             Vaihe {aktiivisuVaihe}: {vaiheet[aktiivisuVaihe-1].nimi}
