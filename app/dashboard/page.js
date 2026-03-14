@@ -28,6 +28,7 @@ export default function Dashboard() {
     { nimi: 'Tilaa virkatodistus', vaihe: 1 },
     { nimi: 'Ilmoita pankeille', vaihe: 1 },
     { nimi: 'Ilmoita Kelalle', vaihe: 1 },
+    { nimi: 'Hae henkivakuutuskorvaus', vaihe: 1 },
     { nimi: 'Ilmoita työnantajalle ja taloyhtiölle', vaihe: 1 },
     { nimi: 'Ohjaa posti uuteen osoitteeseen', vaihe: 1 },
     { nimi: 'Irtisano palvelusopimukset', vaihe: 2 },
@@ -136,13 +137,11 @@ export default function Dashboard() {
           </p>
         </div>
 
-        {/* Esitarkistukset */}
         {!kaikkiEsiTarkistuksetTehty && (
           <div className="mb-8 p-6 rounded-lg" style={{backgroundColor: '#1B2A4A', border: '1px solid #C9A84C'}}>
             <div style={{color: '#C9A84C', letterSpacing: '3px'}} className="text-xs uppercase mb-2">— Ennen kuin aloitat —</div>
             <h2 className="text-white font-bold text-lg mb-2">Oletko hoitanut nämä?</h2>
             <p style={{color: '#A0AEC0'}} className="text-sm mb-6">Nämä asiat hoidetaan yleensä ensimmäisten päivien aikana. Ruksaa ne jos ne on jo hoidettu.</p>
-
             <div className="flex flex-col gap-3">
               {[
                 { kentta: 'hautajaiset', teksti: 'Hautajaiset on järjestetty', kuvaus: 'Hautaustoimisto tai seurakunta on yleensä auttanut tässä.' },
@@ -171,14 +170,12 @@ export default function Dashboard() {
                 </div>
               ))}
             </div>
-
             <p style={{color: '#4A5568'}} className="text-xs mt-6 text-center">
               Suorita ensin yllä olevat kohdat jatkaaksesi
             </p>
           </div>
         )}
 
-        {/* Edistymispalkki */}
         <div
           className="mb-10 p-6 rounded-lg transition-all"
           style={{
@@ -200,7 +197,6 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Vaihepalkki */}
         <div
           className="flex gap-2 mb-8 overflow-x-auto transition-all"
           style={{
@@ -225,7 +221,6 @@ export default function Dashboard() {
           ))}
         </div>
 
-        {/* Tehtävälista */}
         <div
           className="rounded-lg p-6 transition-all"
           style={{
@@ -243,43 +238,164 @@ export default function Dashboard() {
           ) : (
             <div className="flex flex-col gap-3">
               {nykyisetTehtavat.map(tehtava => (
-                <div
+                <TehtavaKortti
                   key={tehtava.id}
-                  onClick={() => merkitseTehdyksi(tehtava.id, tehtava.tehty)}
-                  className="flex items-center gap-4 p-4 rounded cursor-pointer hover:opacity-80"
-                  style={{backgroundColor: '#0F1E3C', border: `1px solid ${tehtava.tehty ? '#C9A84C' : '#2D3E5C'}`}}
-                >
-                  <div
-                    className="w-6 h-6 rounded flex items-center justify-center flex-shrink-0"
-                    style={{
-                      backgroundColor: tehtava.tehty ? '#C9A84C' : 'transparent',
-                      border: `2px solid ${tehtava.tehty ? '#C9A84C' : '#4A5568'}`
-                    }}
-                  >
-                    {tehtava.tehty && <span style={{color: '#0F1E3C'}} className="text-xs font-bold">✓</span>}
-                  </div>
-                  <span
-                    className="text-sm"
-                    style={{
-                      color: tehtava.tehty ? '#C9A84C' : 'white',
-                      textDecoration: tehtava.tehty ? 'line-through' : 'none'
-                    }}
-                  >
-                    {tehtava.nimi}
-                  </span>
-                </div>
+                  tehtava={tehtava}
+                  onMerkitse={() => merkitseTehdyksi(tehtava.id, tehtava.tehty)}
+                />
               ))}
             </div>
           )}
         </div>
 
-        {/* Tiimi */}
         <div className="rounded-lg p-6 mt-6" style={{backgroundColor: '#1B2A4A', border: '1px solid #2D3E5C'}}>
           <h2 className="text-white font-bold text-lg mb-6">Tiimi</h2>
           <KutsuJasen kuolinpesaId={kuolinpesa?.id} />
         </div>
 
       </div>
+    </div>
+  )
+}
+
+function TehtavaKortti({ tehtava, onMerkitse }) {
+  const [auki, setAuki] = useState(false)
+
+  const ohjeet = {
+    'Tilaa virkatodistus': {
+      kiireellinen: true,
+      miksi: 'Toimituksessa kestää 4-10 viikkoa — tarvitaan pankeissa, vakuutuksissa ja perunkirjoituksessa. Tee tämä ensimmäisenä.',
+      miten: [
+        'Jos vainaja kuului ev.lut. kirkkoon → mene osoitteeseen tilaavirkatodistus.fi',
+        'Jos vainaja ei kuulunut kirkkoon → mene osoitteeseen dvv.fi',
+        'Tilaa useampi kopio kerralla — tarvitset niitä monessa paikassa',
+        'Hinta noin 35-100 €'
+      ]
+    },
+    'Ilmoita pankeille': {
+      kiireellinen: false,
+      miksi: 'Pankki jäädyttää tilit automaattisesti mutta oma ilmoitus nopeuttaa asioita. Samalla sovitaan kuka hoitaa kuolinpesän pankkiasioita.',
+      miten: [
+        'Soita vainajan pankin asiakaspalveluun',
+        'Ilmoita vainajan nimi ja henkilötunnus',
+        'Kerro kuka toimii kuolinpesän hoitajana',
+        'Pankki antaa ohjeet kirjallisen ilmoituksen tekemiseen',
+        'Huom: Vainajan tililtä voi silti maksaa arjen laskuja ennen perunkirjoitusta'
+      ]
+    },
+    'Ilmoita Kelalle': {
+      kiireellinen: false,
+      miksi: 'Jos vainaja sai Kela-etuuksia, ilmoita pian — muuten ylimääräiset maksut peritään takaisin. Selvitä samalla onko sinulla oikeus leskeneläkkeeseen.',
+      miten: [
+        'Soita Kelan palvelunumeroon 020 692 201 (ma-pe 9-16)',
+        'Kysy onko sinulla oikeus leskeneläkkeeseen tai lapseneläkkeeseen',
+        'Jos sinulla on alle 17-vuotiaita lapsia, kysy lapsilisän yksinhuoltajakorotuksesta'
+      ]
+    },
+    'Hae henkivakuutuskorvaus': {
+      kiireellinen: false,
+      miksi: 'Henkivakuutuskorvaus ei tule automaattisesti — se pitää hakea erikseen. Voidaan hakea jo ennen perunkirjoitusta ja summa voi olla merkittävä.',
+      miten: [
+        'Selvitä oliko vainajalla henkivakuutus — tarkista vakuutuskirjoista tai kysy vakuutusyhtiöltä',
+        'Selvitä myös oliko vainajalla ryhmähenkivakuutus työnantajan kautta',
+        'Ota yhteyttä vakuutusyhtiöön ja pyydä korvaushakemuslomake',
+        'Korvaus maksetaan vakuutuksen edunsaajamääräyksen mukaan'
+      ]
+    },
+    'Ilmoita työnantajalle ja taloyhtiölle': {
+      kiireellinen: false,
+      miksi: 'Työnantajalla voi olla maksamattomia palkkoja tai ryhmähenkivakuutus. Vuokrasopimus ei pääty automaattisesti — se täytyy irtisanoa erikseen.',
+      miten: [
+        'Soita tai kirjoita vainajan viimeiselle työnantajalle — kysy maksamattomista palkoista',
+        'Ilmoita taloyhtiön isännöitsijälle',
+        'Jos vainaja asui vuokralla: irtisano vuokrasopimus kirjallisesti — tähän tarvitaan kaikkien osakkaiden allekirjoitukset'
+      ]
+    },
+    'Ohjaa posti uuteen osoitteeseen': {
+      kiireellinen: false,
+      miksi: 'Vainajalle tuleva posti paljastaa missä palveluissa hän oli asiakkaana — tästä on hyötyä kun aletaan kartoittamaan sopimuksia.',
+      miten: [
+        'Tee muuttoilmoitus osoitteessa muuttoilmoitus.fi tai Postin toimipisteessä',
+        'Ohjaa posti kuolinpesän hoitajan osoitteeseen',
+        'Ilmoita uusi osoite myös Verohallinnolle kirjallisesti — tähän tarvitaan kaikkien osakkaiden hyväksyntä'
+      ]
+    },
+  }
+
+  const ohje = ohjeet[tehtava.nimi]
+
+  return (
+    <div
+      className="rounded transition-all"
+      style={{
+        backgroundColor: '#0F1E3C',
+        border: `1px solid ${auki ? '#C9A84C' : tehtava.tehty ? '#C9A84C' : '#2D3E5C'}`
+      }}
+    >
+      <div
+        className="flex items-center gap-4 p-4 cursor-pointer hover:opacity-80"
+        onClick={() => setAuki(!auki)}
+      >
+        <div
+          onClick={(e) => { e.stopPropagation(); onMerkitse() }}
+          className="w-6 h-6 rounded flex items-center justify-center flex-shrink-0"
+          style={{
+            backgroundColor: tehtava.tehty ? '#C9A84C' : 'transparent',
+            border: `2px solid ${tehtava.tehty ? '#C9A84C' : '#4A5568'}`
+          }}
+        >
+          {tehtava.tehty && <span style={{color: '#0F1E3C'}} className="text-xs font-bold">✓</span>}
+        </div>
+
+        <div className="flex-1 flex items-center gap-3">
+          <span
+            className="text-sm font-medium"
+            style={{
+              color: tehtava.tehty ? '#C9A84C' : 'white',
+              textDecoration: tehtava.tehty ? 'line-through' : 'none'
+            }}
+          >
+            {tehtava.nimi}
+          </span>
+          {ohje?.kiireellinen && (
+            <span className="text-xs px-2 py-0.5 rounded" style={{backgroundColor: '#7C3333', color: '#FCA5A5'}}>
+              ⏰ Kiireellinen
+            </span>
+          )}
+        </div>
+
+        <span style={{color: '#C9A84C'}} className="text-xs">
+          {auki ? '▲ Piilota' : '▼ Näytä ohjeet'}
+        </span>
+      </div>
+
+      {auki && ohje && (
+        <div className="px-4 pb-4 border-t" style={{borderColor: '#2D3E5C'}}>
+          <div className="mt-4 mb-4">
+            <p style={{color: '#A0AEC0'}} className="text-sm">{ohje.miksi}</p>
+          </div>
+          <div style={{color: '#C9A84C'}} className="text-xs uppercase tracking-widest mb-2">
+            Miten tehdään
+          </div>
+          <ul className="flex flex-col gap-2 mb-6">
+            {ohje.miten.map((askel, i) => (
+              <li key={i} className="flex gap-3 text-sm" style={{color: 'white'}}>
+                <span style={{color: '#C9A84C'}} className="flex-shrink-0">{i + 1}.</span>
+                {askel}
+              </li>
+            ))}
+          </ul>
+          <div style={{color: '#C9A84C'}} className="text-xs uppercase tracking-widest mb-2">
+            💬 Kommentit tiimille
+          </div>
+          <textarea
+            placeholder="Kirjoita kommentti tai muistiinpano tiimille..."
+            className="w-full px-3 py-2 rounded text-sm text-white placeholder-gray-500 outline-none resize-none"
+            style={{backgroundColor: '#1B2A4A', border: '1px solid #2D3E5C'}}
+            rows={2}
+          />
+        </div>
+      )}
     </div>
   )
 }
