@@ -8,6 +8,13 @@ export default function Dashboard() {
   const [aktiivisuVaihe, setAktiivinenVaihe] = useState(1)
   const [kuolinpesa, setKuolinpesa] = useState(null)
   const [tehtavaLista, setTehtavaLista] = useState([])
+  const [esiTarkistukset, setEsiTarkistukset] = useState({
+    hautajaiset: false,
+    kuolintodistus: false,
+    laheiset: false
+  })
+
+  const kaikkiEsiTarkistuksetTehty = Object.values(esiTarkistukset).every(v => v === true)
 
   const vaiheet = [
     { numero: 1, nimi: 'Ensitoimet' },
@@ -18,10 +25,11 @@ export default function Dashboard() {
   ]
 
   const oletusTehtavat = [
-    { nimi: 'Ilmoita kuolemasta Digi- ja väestötietovirastolle', vaihe: 1 },
-    { nimi: 'Järjestä perunkirjoitus', vaihe: 1 },
+    { nimi: 'Tilaa virkatodistus', vaihe: 1 },
     { nimi: 'Ilmoita pankeille', vaihe: 1 },
-    { nimi: 'Tarkista vakuutukset', vaihe: 1 },
+    { nimi: 'Ilmoita Kelalle', vaihe: 1 },
+    { nimi: 'Ilmoita työnantajalle ja taloyhtiölle', vaihe: 1 },
+    { nimi: 'Ohjaa posti uuteen osoitteeseen', vaihe: 1 },
     { nimi: 'Irtisano palvelusopimukset', vaihe: 2 },
     { nimi: 'Selvitä varat ja velat', vaihe: 2 },
   ]
@@ -44,6 +52,9 @@ export default function Dashboard() {
 
       if (pesaData) {
         setKuolinpesa(pesaData)
+        if (pesaData.esi_tarkistukset) {
+          setEsiTarkistukset(pesaData.esi_tarkistukset)
+        }
 
         const { data: tehtavatData } = await supabase
           .from('tehtavat')
@@ -69,6 +80,17 @@ export default function Dashboard() {
     haeData()
   }, [])
 
+  const paivitaEsiTarkistus = async (kentta) => {
+    const uudet = { ...esiTarkistukset, [kentta]: !esiTarkistukset[kentta] }
+    setEsiTarkistukset(uudet)
+    if (kuolinpesa) {
+      await supabase
+        .from('kuolinpesat')
+        .update({ esi_tarkistukset: uudet })
+        .eq('id', kuolinpesa.id)
+    }
+  }
+
   const merkitseTehdyksi = async (id, nykyinenTila) => {
     const { data } = await supabase
       .from('tehtavat')
@@ -82,8 +104,8 @@ export default function Dashboard() {
   }
 
   const nykyisetTehtavat = tehtavaLista.filter(t => t.vaihe === aktiivisuVaihe)
-  const valmiit = tehtavaLista.filter(t => t.tehty).length
-  const kaikki = tehtavaLista.length
+  const valmiit = tehtavaLista.filter(t => t.vaihe === aktiivisuVaihe && t.tehty).length
+  const kaikki = tehtavaLista.filter(t => t.vaihe === aktiivisuVaihe).length
 
   return (
     <div className="min-h-screen" style={{backgroundColor: '#0F1E3C'}}>
@@ -93,14 +115,9 @@ export default function Dashboard() {
           Pesänhoitaja
         </div>
         <div className="flex items-center gap-4">
-          <div className="text-white text-sm">
-            {kuolinpesa?.kayttaja_email || ''}
-          </div>
+          <div className="text-white text-sm">{kuolinpesa?.kayttaja_email || ''}</div>
           <button
-            onClick={async () => {
-              await supabase.auth.signOut()
-              router.push('/')
-            }}
+            onClick={async () => { await supabase.auth.signOut(); router.push('/') }}
             style={{color: '#C9A84C', border: '1px solid #C9A84C'}}
             className="px-3 py-1 text-sm rounded hover:opacity-75"
           >
@@ -112,18 +129,65 @@ export default function Dashboard() {
       <div className="max-w-5xl mx-auto px-6 py-10">
 
         <div className="mb-8">
-          <div style={{color: '#C9A84C', letterSpacing: '3px'}} className="text-xs uppercase mb-2">
-            — Kuolinpesä —
-          </div>
-          <h1 className="text-white text-3xl font-bold">
-            {kuolinpesa?.vainajan_nimi || 'Ladataan...'}
-          </h1>
+          <div style={{color: '#C9A84C', letterSpacing: '3px'}} className="text-xs uppercase mb-2">— Kuolinpesä —</div>
+          <h1 className="text-white text-3xl font-bold">{kuolinpesa?.vainajan_nimi || 'Ladataan...'}</h1>
           <p style={{color: '#A0AEC0'}} className="text-sm mt-1">
             {kuolinpesa?.kuolinpaiva ? `Kuolinpäivä: ${kuolinpesa.kuolinpaiva}` : 'Kuolinpesän hallinta'}
           </p>
         </div>
 
-        <div className="mb-10 p-6 rounded-lg" style={{backgroundColor: '#1B2A4A', border: '1px solid #2D3E5C'}}>
+        {/* Esitarkistukset */}
+        {!kaikkiEsiTarkistuksetTehty && (
+          <div className="mb-8 p-6 rounded-lg" style={{backgroundColor: '#1B2A4A', border: '1px solid #C9A84C'}}>
+            <div style={{color: '#C9A84C', letterSpacing: '3px'}} className="text-xs uppercase mb-2">— Ennen kuin aloitat —</div>
+            <h2 className="text-white font-bold text-lg mb-2">Oletko hoitanut nämä?</h2>
+            <p style={{color: '#A0AEC0'}} className="text-sm mb-6">Nämä asiat hoidetaan yleensä ensimmäisten päivien aikana. Ruksaa ne jos ne on jo hoidettu.</p>
+
+            <div className="flex flex-col gap-3">
+              {[
+                { kentta: 'hautajaiset', teksti: 'Hautajaiset on järjestetty', kuvaus: 'Hautaustoimisto tai seurakunta on yleensä auttanut tässä.' },
+                { kentta: 'kuolintodistus', teksti: 'Kuolintodistus on hankittu', kuvaus: 'Sairaala tai lääkäri on laatinut sen automaattisesti. Muista hankkia useampi kopio.' },
+                { kentta: 'laheiset', teksti: 'Läheiset ja sukulaiset on ilmoitettu', kuvaus: 'Tämä on henkilökohtainen asia jonka jokainen hoitaa omalla tavallaan.' },
+              ].map(({ kentta, teksti, kuvaus }) => (
+                <div
+                  key={kentta}
+                  onClick={() => paivitaEsiTarkistus(kentta)}
+                  className="flex items-start gap-4 p-4 rounded cursor-pointer hover:opacity-80"
+                  style={{backgroundColor: '#0F1E3C', border: `1px solid ${esiTarkistukset[kentta] ? '#C9A84C' : '#2D3E5C'}`}}
+                >
+                  <div
+                    className="w-6 h-6 rounded flex items-center justify-center flex-shrink-0 mt-1"
+                    style={{
+                      backgroundColor: esiTarkistukset[kentta] ? '#C9A84C' : 'transparent',
+                      border: `2px solid ${esiTarkistukset[kentta] ? '#C9A84C' : '#4A5568'}`
+                    }}
+                  >
+                    {esiTarkistukset[kentta] && <span style={{color: '#0F1E3C'}} className="text-xs font-bold">✓</span>}
+                  </div>
+                  <div>
+                    <p className="text-white text-sm font-bold">{teksti}</p>
+                    <p style={{color: '#A0AEC0'}} className="text-xs mt-1">{kuvaus}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <p style={{color: '#4A5568'}} className="text-xs mt-6 text-center">
+              Suorita ensin yllä olevat kohdat jatkaaksesi
+            </p>
+          </div>
+        )}
+
+        {/* Edistymispalkki */}
+        <div
+          className="mb-10 p-6 rounded-lg transition-all"
+          style={{
+            backgroundColor: '#1B2A4A',
+            border: '1px solid #2D3E5C',
+            opacity: kaikkiEsiTarkistuksetTehty ? 1 : 0.3,
+            pointerEvents: kaikkiEsiTarkistuksetTehty ? 'auto' : 'none'
+          }}
+        >
           <div className="flex items-center justify-between mb-4">
             <span className="text-white font-bold">Edistyminen</span>
             <span style={{color: '#C9A84C'}} className="text-sm font-bold">{valmiit}/{kaikki} tehtävää</span>
@@ -136,7 +200,14 @@ export default function Dashboard() {
           </div>
         </div>
 
-        <div className="flex gap-2 mb-8 overflow-x-auto">
+        {/* Vaihepalkki */}
+        <div
+          className="flex gap-2 mb-8 overflow-x-auto transition-all"
+          style={{
+            opacity: kaikkiEsiTarkistuksetTehty ? 1 : 0.3,
+            pointerEvents: kaikkiEsiTarkistuksetTehty ? 'auto' : 'none'
+          }}
+        >
           {vaiheet.map(v => (
             <button
               key={v.numero}
@@ -154,11 +225,19 @@ export default function Dashboard() {
           ))}
         </div>
 
-        <div className="rounded-lg p-6" style={{backgroundColor: '#1B2A4A', border: '1px solid #2D3E5C'}}>
+        {/* Tehtävälista */}
+        <div
+          className="rounded-lg p-6 transition-all"
+          style={{
+            backgroundColor: '#1B2A4A',
+            border: '1px solid #2D3E5C',
+            opacity: kaikkiEsiTarkistuksetTehty ? 1 : 0.3,
+            pointerEvents: kaikkiEsiTarkistuksetTehty ? 'auto' : 'none'
+          }}
+        >
           <h2 className="text-white font-bold text-lg mb-6">
             Vaihe {aktiivisuVaihe}: {vaiheet[aktiivisuVaihe-1].nimi}
           </h2>
-
           {nykyisetTehtavat.length === 0 ? (
             <p style={{color: '#4A5568'}} className="text-sm">Ei tehtäviä tässä vaiheessa vielä.</p>
           ) : (
@@ -194,7 +273,7 @@ export default function Dashboard() {
           )}
         </div>
 
-   {/* Tiimi-osio */}
+        {/* Tiimi */}
         <div className="rounded-lg p-6 mt-6" style={{backgroundColor: '#1B2A4A', border: '1px solid #2D3E5C'}}>
           <h2 className="text-white font-bold text-lg mb-6">Tiimi</h2>
           <KutsuJasen kuolinpesaId={kuolinpesa?.id} />
@@ -255,11 +334,7 @@ function KutsuJasen({ kuolinpesaId }) {
           Lisää →
         </button>
       </div>
-
-      {viesti && (
-        <p className="text-sm mb-4" style={{color: '#C9A84C'}}>{viesti}</p>
-      )}
-
+      {viesti && <p className="text-sm mb-4" style={{color: '#C9A84C'}}>{viesti}</p>}
       {jasenet.length > 0 && (
         <div className="flex flex-col gap-2">
           {jasenet.map((j, i) => (
