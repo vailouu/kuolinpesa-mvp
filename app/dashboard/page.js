@@ -13,7 +13,7 @@ export default function Dashboard() {
     kuolintodistus: false,
     laheiset: false
   })
-
+const [ladataan, setLadataan] = useState(true)
   const kaikkiEsiTarkistuksetTehty = Object.values(esiTarkistukset).every(v => v === true)
 
   const vaiheet = [
@@ -40,6 +40,7 @@ export default function Dashboard() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) {
         router.push('/kirjaudu')
+        setLadataan(false)
         return
       }
 
@@ -56,7 +57,7 @@ export default function Dashboard() {
         if (pesaData.esi_tarkistukset) {
           setEsiTarkistukset(pesaData.esi_tarkistukset)
         }
-
+        setLadataan(false)
         const { data: tehtavatData } = await supabase
           .from('tehtavat')
           .select('*')
@@ -137,7 +138,7 @@ export default function Dashboard() {
           </p>
         </div>
 
-        {!kaikkiEsiTarkistuksetTehty && (
+        {!ladataan && !kaikkiEsiTarkistuksetTehty && (
           <div className="mb-8 p-6 rounded-lg" style={{backgroundColor: '#1B2A4A', border: '1px solid #C9A84C'}}>
             <div style={{color: '#C9A84C', letterSpacing: '3px'}} className="text-xs uppercase mb-2">— Ennen kuin aloitat —</div>
             <h2 className="text-white font-bold text-lg mb-2">Oletko hoitanut nämä?</h2>
