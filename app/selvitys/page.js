@@ -792,36 +792,24 @@ export default function Selvitys() {
 
                               <div className="flex gap-2 flex-shrink-0">
                                 {!onHoidettu && (
-                                  <>
-                                    <button
-                                      onClick={() => paivitaTila(sopimus.nimi, 'avoinna', kategoria.id)}
-                                      className="text-xs px-3 py-1 rounded whitespace-nowrap"
-                                      style={{
-                                        backgroundColor: onAvoinna ? '#2D4A7A' : '#1B2A4A',
-                                        color: onAvoinna ? 'white' : '#6B7280',
-                                        border: `1px solid ${onAvoinna ? '#4A7ACC' : '#2D3E5C'}`
-                                      }}
-                                    >
-                                      {onAvoinna ? '✓ Löytyi' : 'Löytyi'}
-                                    </button>
-                                    <button
-                                      onClick={() => paivitaTila(sopimus.nimi, 'hoidettu', kategoria.id)}
-                                      className="text-xs px-3 py-1 rounded whitespace-nowrap"
-                                      style={{ backgroundColor: '#1B2A4A', color: '#6B7280', border: '1px solid #2D3E5C' }}
-                                    >
-                                     Ei löytynyt
-                                    </button>
-                                    {onAvoinna && (
-                                      <button
-                                        onClick={() => toggleSopimus(sopimus.nimi)}
-                                        className="text-xs px-3 py-1 rounded whitespace-nowrap"
-                                        style={{ backgroundColor: '#1B2A4A', color: '#C9A84C', border: '1px solid #C9A84C' }}
-                                      >
-                                        {avatutSopimukset[sopimus.nimi] ? 'Piilota ohjeet' : 'Ohjeet →'}
-                                      </button>
-                                    )}
-                                  </>
-                                )}
+  <>
+    <button onClick={() => paivitaTila(sopimus.nimi, 'avoinna', kategoria.id)}
+      className="text-xs px-3 py-1 rounded whitespace-nowrap"
+      style={{backgroundColor: onAvoinna ? '#2D4A7A' : '#0F1E3C', color: onAvoinna ? 'white' : '#6B7280', border: `1px solid ${onAvoinna ? '#4A7ACC' : '#2D3E5C'}`}}>
+      {onAvoinna ? '✓ Oli vainajalla' : 'Oli vainajalla'}
+    </button>
+    <button onClick={() => paivitaTila(sopimus.nimi, 'hoidettu', kategoria.id)}
+      className="text-xs px-3 py-1 rounded whitespace-nowrap"
+      style={{backgroundColor: '#0F1E3C', color: '#6B7280', border: '1px solid #2D3E5C'}}>
+      Ei ollut
+    </button>
+    <button onClick={() => toggleSopimus(sopimus.nimi)}
+      className="text-xs px-3 py-1 rounded whitespace-nowrap"
+      style={{backgroundColor: '#0F1E3C', color: '#C9A84C', border: '1px solid #C9A84C'}}>
+      {ohjeAuki ? 'Piilota' : 'Ohjeet →'}
+    </button>
+  </>
+)}
                                 {onHoidettu && (
                                   <button
                                     onClick={() => paivitaTila(sopimus.nimi, null, kategoria.id)}
