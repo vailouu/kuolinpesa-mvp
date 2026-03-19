@@ -48,7 +48,7 @@ const kategoriat = [
   {
     id: 'tilaukset-media', nimi: 'Tilaukset ja media', ikoni: '📺',
     sopimukset: [
-      { nimi: 'Puhelinliittymät', miksi: 'Puhelinliittymä ei pääty automaattisesti. Tarkista onko vainajalla useampia liittymiä (puhelin, tabletti). Kuolemantapauksessa myös määräaikainen liittymä voidaan irtisanoa.', miten: ['Ota yhteyttä operaattorin asiakaspalveluun puhelimitse tai myymälässä','Ilmoita vainajan nimi ja kuolinpäivä','Pyydä listaus kaikista liittymistä saman asiakkaan nimissä','Irtisano kaikki liittymät'] },
+      { nimi: 'Puhelinliittymät', miksi: 'Puhelinliittymä ei pääty automaattisesti. Tarkista onko vainajalla useampia liittymiä. Kuolemantapauksessa myös määräaikainen liittymä voidaan irtisanoa.', miten: ['Ota yhteyttä operaattorin asiakaspalveluun puhelimitse tai myymälässä','Ilmoita vainajan nimi ja kuolinpäivä','Pyydä listaus kaikista liittymistä saman asiakkaan nimissä','Irtisano kaikki liittymät'] },
       { nimi: 'Lehtitilaukset', miksi: 'Sanomalehdet jatkuvat kunnes irtisanotaan. Käännetty posti paljastaa usein mitkä lehdet vainajalla oli.', miten: ['Ota yhteyttä kustantajaan puhelimitse tai verkkosivujen kautta','Ilmoita kuolemasta ja pyydä tilauksen päättämistä'] },
       { nimi: 'Aikakauslehdet', miksi: 'Vuositilaukset uusiutuvat automaattisesti ellei niitä irtisanota.', miten: ['Ota yhteyttä kustantajaan','Irtisano tilaus'] },
       { nimi: 'Netflix', miksi: 'Kuukausittain laskutettava tilaus jatkuu kunnes peruutetaan.', miten: ['Kirjaudu Netflix-tilille jos tiedät salasanan ja peruuta tilaus asetuksista','Jos salasana ei ole tiedossa — kuoleta luottokortti jolla Netflix laskutetaan'] },
@@ -123,15 +123,8 @@ const varatJaVelatMuistilista = {
 
 export default function Dashboard() {
   const router = useRouter()
-const [aktiivinenVaihe, setAktiivinenVaihe] = useState(1)
-const [aktiivinenAlivaihe, setAktiivinenAlivaihe] = useState(1)
-
-useEffect(() => {
-  const tallennettuVaihe = localStorage.getItem('aktiivinenVaihe')
-  const tallennettuAlivaihe = localStorage.getItem('aktiivinenAlivaihe')
-  if (tallennettuVaihe) setAktiivinenVaihe(parseInt(tallennettuVaihe))
-  if (tallennettuAlivaihe) setAktiivinenAlivaihe(parseInt(tallennettuAlivaihe))
-}, [])
+  const [aktiivinenVaihe, setAktiivinenVaihe] = useState(1)
+  const [aktiivinenAlivaihe, setAktiivinenAlivaihe] = useState(1)
   const [kuolinpesa, setKuolinpesa] = useState(null)
   const [tehtavaLista, setTehtavaLista] = useState([])
   const [esiTarkistukset, setEsiTarkistukset] = useState({ hautajaiset: false, kuolintodistus: false, laheiset: false })
@@ -156,14 +149,21 @@ useEffect(() => {
     { numero: 3, nimi: 'Yhteenveto' },
   ]
 
- const oletusTehtavat = [
-  { nimi: 'Tilaa virkatodistus', vaihe: 1, jarjestys: 1 },
-  { nimi: 'Ilmoita pankeille', vaihe: 1, jarjestys: 2 },
-  { nimi: 'Ilmoita Kelalle', vaihe: 1, jarjestys: 3 },
-  { nimi: 'Ilmoita työnantajalle ja taloyhtiölle', vaihe: 1, jarjestys: 4 },
-  { nimi: 'Ohjaa posti uuteen osoitteeseen', vaihe: 1, jarjestys: 5 },
-  { nimi: 'Hae henkivakuutuskorvaus', vaihe: 1, jarjestys: 6 },
-]
+  const oletusTehtavat = [
+    { nimi: 'Tilaa virkatodistus', vaihe: 1 },
+    { nimi: 'Ilmoita pankeille', vaihe: 1 },
+    { nimi: 'Ilmoita Kelalle', vaihe: 1 },
+    { nimi: 'Ilmoita työnantajalle ja taloyhtiölle', vaihe: 1 },
+    { nimi: 'Ohjaa posti uuteen osoitteeseen', vaihe: 1 },
+    { nimi: 'Hae henkivakuutuskorvaus', vaihe: 1 },
+  ]
+
+  useEffect(() => {
+    const tallennettuVaihe = localStorage.getItem('aktiivinenVaihe')
+    const tallennettuAlivaihe = localStorage.getItem('aktiivinenAlivaihe')
+    if (tallennettuVaihe) setAktiivinenVaihe(parseInt(tallennettuVaihe))
+    if (tallennettuAlivaihe) setAktiivinenAlivaihe(parseInt(tallennettuAlivaihe))
+  }, [])
 
   useEffect(() => {
     const haeData = async () => {
@@ -196,8 +196,18 @@ useEffect(() => {
   }
 
   const merkitseTehdyksi = async (id, nykyinenTila) => {
+    const { data: { user } } = await supabase.auth.getUser()
+    const tehtava = tehtavaLista.find(t => t.id === id)
     const { data } = await supabase.from('tehtavat').update({ tehty: !nykyinenTila }).eq('id', id).select().single()
-    if (data) setTehtavaLista(tehtavaLista.map(t => t.id === id ? data : t))
+    if (data) {
+      setTehtavaLista(tehtavaLista.map(t => t.id === id ? data : t))
+      // Kirjaa tapahtuma
+      await supabase.from('tapahtumat').insert({
+        kuolinpesa_id: kuolinpesa.id,
+        teksti: `${!nykyinenTila ? 'Merkitsi hoidetuksi' : 'Poisti merkinnän'}: ${tehtava?.nimi}`,
+        kirjoittaja_email: user?.email
+      })
+    }
   }
 
   const toggleVaraRasti = async (id) => {
@@ -211,143 +221,260 @@ useEffect(() => {
     if (kuolinpesa) await supabase.from('kuolinpesat').update({ varat_velat_teksti: teksti }).eq('id', kuolinpesa.id)
   }
 
- const jarjestys = ['Tilaa virkatodistus', 'Ilmoita pankeille', 'Ilmoita Kelalle', 'Ilmoita työnantajalle ja taloyhtiölle', 'Ohjaa posti uuteen osoitteeseen', 'Hae henkivakuutuskorvaus']
-const nykyisetTehtavat = tehtavaLista
-  .filter(t => t.vaihe === aktiivinenVaihe)
-  .sort((a, b) => jarjestys.indexOf(a.nimi) - jarjestys.indexOf(b.nimi))
+  const jarjestys = ['Tilaa virkatodistus', 'Ilmoita pankeille', 'Ilmoita Kelalle', 'Ilmoita työnantajalle ja taloyhtiölle', 'Ohjaa posti uuteen osoitteeseen', 'Hae henkivakuutuskorvaus']
+  const nykyisetTehtavat = tehtavaLista
+    .filter(t => t.vaihe === aktiivinenVaihe)
+    .sort((a, b) => jarjestys.indexOf(a.nimi) - jarjestys.indexOf(b.nimi))
   const valmiit = tehtavaLista.filter(t => t.vaihe === aktiivinenVaihe && t.tehty).length
   const kaikki = tehtavaLista.filter(t => t.vaihe === aktiivinenVaihe).length
 
   return (
     <div className="min-h-screen" style={{backgroundColor: '#0F1E3C'}}>
       <nav style={{borderBottom: '1px solid #C9A84C'}} className="px-8 py-4 flex items-center justify-between">
-        <div style={{color: '#C9A84C'}} className="text-xl font-bold tracking-widest uppercase">Pesänhoitaja</div>
+        <div className="flex items-center gap-6">
+          <div style={{color: '#C9A84C'}} className="text-xl font-bold tracking-widest uppercase">Pesänhoitaja</div>
+          <button onClick={() => { window.location.href = '/' }} className="px-3 py-2 rounded text-sm font-bold" style={{color: '#0F1E3C', backgroundColor: '#C9A84C'}}>← Etusivu</button>
+        </div>
         <div className="flex items-center gap-4">
           <div className="text-white text-sm">{kuolinpesa?.kayttaja_email || ''}</div>
           <button onClick={async () => { await supabase.auth.signOut(); router.push('/') }} style={{color: '#C9A84C', border: '1px solid #C9A84C'}} className="px-3 py-1 text-sm rounded hover:opacity-75">Kirjaudu ulos</button>
         </div>
       </nav>
 
-      <div className="max-w-5xl mx-auto px-6 py-10">
+      <div className="max-w-7xl mx-auto px-6 py-10">
         <div className="mb-8">
           <div style={{color: '#C9A84C', letterSpacing: '3px'}} className="text-xs uppercase mb-2">— Kuolinpesä —</div>
-          <h1 className="text-white text-3xl font-bold">{kuolinpesa?.vainajan_nimi || 'Ladataan...'}</h1>
+          <h1 className="text-white text-3xl font-bold">{kuolinpesa?.vainajan_nimi || ''}</h1>
           <p style={{color: '#A0AEC0'}} className="text-sm mt-1">{kuolinpesa?.kuolinpaiva ? `Kuolinpäivä: ${kuolinpesa.kuolinpaiva}` : 'Kuolinpesän hallinta'}</p>
         </div>
 
-        {!ladataan && !kaikkiEsiTarkistuksetTehty && (
-          <div className="mb-8 p-6 rounded-lg" style={{backgroundColor: '#1B2A4A', border: '1px solid #C9A84C'}}>
-            <div style={{color: '#C9A84C', letterSpacing: '3px'}} className="text-xs uppercase mb-2">— Ennen kuin aloitat —</div>
-            <h2 className="text-white font-bold text-lg mb-2">Oletko hoitanut nämä?</h2>
-            <p style={{color: '#A0AEC0'}} className="text-sm mb-6">Nämä asiat hoidetaan yleensä ensimmäisten päivien aikana. Ruksaa ne jos ne on jo hoidettu.</p>
-            <div className="flex flex-col gap-3">
-              {[
-                { kentta: 'hautajaiset', teksti: 'Hautajaiset on järjestetty', kuvaus: 'Hautaustoimisto tai seurakunta on yleensä auttanut tässä.' },
-                { kentta: 'kuolintodistus', teksti: 'Kuolintodistus on hankittu', kuvaus: 'Sairaala tai lääkäri on laatinut sen automaattisesti. Muista hankkia useampi kopio.' },
-                { kentta: 'laheiset', teksti: 'Läheiset ja sukulaiset on ilmoitettu', kuvaus: 'Tämä on henkilökohtainen asia jonka jokainen hoitaa omalla tavallaan.' },
-              ].map(({ kentta, teksti, kuvaus }) => (
-                <div key={kentta} onClick={() => paivitaEsiTarkistus(kentta)} className="flex items-start gap-4 p-4 rounded cursor-pointer hover:opacity-80" style={{backgroundColor: '#0F1E3C', border: `1px solid ${esiTarkistukset[kentta] ? '#C9A84C' : '#2D3E5C'}`}}>
-                  <div className="w-6 h-6 rounded flex items-center justify-center flex-shrink-0 mt-1" style={{backgroundColor: esiTarkistukset[kentta] ? '#C9A84C' : 'transparent', border: `2px solid ${esiTarkistukset[kentta] ? '#C9A84C' : '#4A5568'}`}}>
-                    {esiTarkistukset[kentta] && <span style={{color: '#0F1E3C'}} className="text-xs font-bold">✓</span>}
-                  </div>
-                  <div>
-                    <p className="text-white text-sm font-bold">{teksti}</p>
-                    <p style={{color: '#A0AEC0'}} className="text-xs mt-1">{kuvaus}</p>
-                  </div>
+        <div className="flex flex-col lg:flex-row gap-6">
+
+          {/* Vasen pääsisältö */}
+          <div className="flex-1 min-w-0">
+
+            {!ladataan && !kaikkiEsiTarkistuksetTehty && (
+              <div className="mb-8 p-6 rounded-lg" style={{backgroundColor: '#1B2A4A', border: '1px solid #C9A84C'}}>
+                <div style={{color: '#C9A84C', letterSpacing: '3px'}} className="text-xs uppercase mb-2">— Ennen kuin aloitat —</div>
+                <h2 className="text-white font-bold text-lg mb-2">Oletko hoitanut nämä?</h2>
+                <p style={{color: '#A0AEC0'}} className="text-sm mb-6">Nämä asiat hoidetaan yleensä ensimmäisten päivien aikana. Ruksaa ne jos ne on jo hoidettu.</p>
+                <div className="flex flex-col gap-3">
+                  {[
+                    { kentta: 'hautajaiset', teksti: 'Hautajaiset on järjestetty', kuvaus: 'Hautaustoimisto tai seurakunta on yleensä auttanut tässä.' },
+                    { kentta: 'kuolintodistus', teksti: 'Kuolintodistus on hankittu', kuvaus: 'Sairaala tai lääkäri on laatinut sen automaattisesti. Muista hankkia useampi kopio.' },
+                    { kentta: 'laheiset', teksti: 'Läheiset ja sukulaiset on ilmoitettu', kuvaus: 'Tämä on henkilökohtainen asia jonka jokainen hoitaa omalla tavallaan.' },
+                  ].map(({ kentta, teksti, kuvaus }) => (
+                    <div key={kentta} onClick={() => paivitaEsiTarkistus(kentta)} className="flex items-start gap-4 p-4 rounded cursor-pointer hover:opacity-80" style={{backgroundColor: '#0F1E3C', border: `1px solid ${esiTarkistukset[kentta] ? '#C9A84C' : '#2D3E5C'}`}}>
+                      <div className="w-6 h-6 rounded flex items-center justify-center flex-shrink-0 mt-1" style={{backgroundColor: esiTarkistukset[kentta] ? '#C9A84C' : 'transparent', border: `2px solid ${esiTarkistukset[kentta] ? '#C9A84C' : '#4A5568'}`}}>
+                        {esiTarkistukset[kentta] && <span style={{color: '#0F1E3C'}} className="text-xs font-bold">✓</span>}
+                      </div>
+                      <div>
+                        <p className="text-white text-sm font-bold">{teksti}</p>
+                        <p style={{color: '#A0AEC0'}} className="text-xs mt-1">{kuvaus}</p>
+                      </div>
+                    </div>
+                  ))}
                 </div>
+                <p style={{color: '#4A5568'}} className="text-xs mt-6 text-center">Suorita ensin yllä olevat kohdat jatkaaksesi</p>
+              </div>
+            )}
+
+            <div className="mb-10 p-6 rounded-lg transition-all" style={{backgroundColor: '#1B2A4A', border: '1px solid #2D3E5C', opacity: kaikkiEsiTarkistuksetTehty ? 1 : 0.3, pointerEvents: kaikkiEsiTarkistuksetTehty ? 'auto' : 'none'}}>
+              <div className="flex items-center justify-between mb-4">
+                <span className="text-white font-bold">Edistyminen</span>
+                <span style={{color: '#C9A84C'}} className="text-sm font-bold">
+                  {aktiivinenVaihe === 2 ? `${selvitysHoidettu}/${selvitysKaikki} hoidettu` : `${valmiit}/${kaikki} tehtävää`}
+                </span>
+              </div>
+              <div className="w-full rounded-full h-2" style={{backgroundColor: '#0F1E3C'}}>
+                <div className="h-2 rounded-full transition-all" style={{backgroundColor: '#C9A84C', width: aktiivinenVaihe === 2 ? `${(selvitysHoidettu/selvitysKaikki)*100}%` : kaikki > 0 ? `${(valmiit/kaikki)*100}%` : '0%'}} />
+              </div>
+            </div>
+
+            <div className="flex gap-2 mb-8 overflow-x-auto transition-all" style={{opacity: kaikkiEsiTarkistuksetTehty ? 1 : 0.3, pointerEvents: kaikkiEsiTarkistuksetTehty ? 'auto' : 'none'}}>
+              {vaiheet.map(v => (
+                <button key={v.numero} onClick={() => { setAktiivinenVaihe(v.numero); localStorage.setItem('aktiivinenVaihe', v.numero) }} className="flex-1 py-3 px-4 rounded text-sm font-bold whitespace-nowrap"
+                  style={{backgroundColor: aktiivinenVaihe === v.numero ? '#C9A84C' : '#1B2A4A', color: aktiivinenVaihe === v.numero ? '#0F1E3C' : '#A0AEC0', border: '1px solid', borderColor: aktiivinenVaihe === v.numero ? '#C9A84C' : '#2D3E5C'}}>
+                  {v.numero}. {v.nimi}
+                </button>
               ))}
             </div>
-            <p style={{color: '#4A5568'}} className="text-xs mt-6 text-center">Suorita ensin yllä olevat kohdat jatkaaksesi</p>
-          </div>
-        )}
 
-        <div className="mb-10 p-6 rounded-lg transition-all" style={{backgroundColor: '#1B2A4A', border: '1px solid #2D3E5C', opacity: kaikkiEsiTarkistuksetTehty ? 1 : 0.3, pointerEvents: kaikkiEsiTarkistuksetTehty ? 'auto' : 'none'}}>
-          <div className="flex items-center justify-between mb-4">
-            <span className="text-white font-bold">Edistyminen</span>
-            <span style={{color: '#C9A84C'}} className="text-sm font-bold">
-              {aktiivinenVaihe === 2 ? `${selvitysHoidettu}/${selvitysKaikki} hoidettu` : `${valmiit}/${kaikki} tehtävää`}
-            </span>
-          </div>
-          <div className="w-full rounded-full h-2" style={{backgroundColor: '#0F1E3C'}}>
-            <div className="h-2 rounded-full transition-all" style={{backgroundColor: '#C9A84C', width: aktiivinenVaihe === 2 ? `${(selvitysHoidettu/selvitysKaikki)*100}%` : kaikki > 0 ? `${(valmiit/kaikki)*100}%` : '0%'}} />
-          </div>
-        </div>
+            <div className="rounded-lg p-6 transition-all" style={{backgroundColor: '#1B2A4A', border: '1px solid #2D3E5C', opacity: kaikkiEsiTarkistuksetTehty ? 1 : 0.3, pointerEvents: kaikkiEsiTarkistuksetTehty ? 'auto' : 'none'}}>
+              <h2 className="text-white font-bold text-lg mb-6">Vaihe {aktiivinenVaihe}: {vaiheet[aktiivinenVaihe-1].nimi}</h2>
 
-        <div className="flex gap-2 mb-8 overflow-x-auto transition-all" style={{opacity: kaikkiEsiTarkistuksetTehty ? 1 : 0.3, pointerEvents: kaikkiEsiTarkistuksetTehty ? 'auto' : 'none'}}>
-          {vaiheet.map(v => (
-            <button key={v.numero} onClick={() => { setAktiivinenVaihe(v.numero); localStorage.setItem('aktiivinenVaihe', v.numero) }} className="flex-1 py-3 px-4 rounded text-sm font-bold whitespace-nowrap"
-              style={{backgroundColor: aktiivinenVaihe === v.numero ? '#C9A84C' : '#1B2A4A', color: aktiivinenVaihe === v.numero ? '#0F1E3C' : '#A0AEC0', border: '1px solid', borderColor: aktiivinenVaihe === v.numero ? '#C9A84C' : '#2D3E5C'}}>
-              {v.numero}. {v.nimi}
-            </button>
-          ))}
-        </div>
-
-        <div className="rounded-lg p-6 transition-all" style={{backgroundColor: '#1B2A4A', border: '1px solid #2D3E5C', opacity: kaikkiEsiTarkistuksetTehty ? 1 : 0.3, pointerEvents: kaikkiEsiTarkistuksetTehty ? 'auto' : 'none'}}>
-          <h2 className="text-white font-bold text-lg mb-6">Vaihe {aktiivinenVaihe}: {vaiheet[aktiivinenVaihe-1].nimi}</h2>
-
-          {aktiivinenVaihe === 1 && (
-            <>
-              <div className="mb-6 p-4 rounded-lg" style={{backgroundColor: '#0F1E3C', border: '1px solid #4A7ACC'}}>
-                <p style={{color: '#A0AEC0'}} className="text-sm">
-                  ℹ️ Käy nämä läpi ja merkitse hoidetuksi sitä mukaa kun ne valmistuvat. Virkatodistuksen tilaaminen kannattaa tehdä ensimmäisenä — toimituksessa kestää viikkoja.
-                </p>
-              </div>
-             {nykyisetTehtavat.length === 0 ? (
-  <p style={{color: '#4A5568'}} className="text-sm">Ei tehtäviä tässä vaiheessa vielä.</p>
-) : (
-  <div className="flex flex-col gap-3">
-    {nykyisetTehtavat.map(tehtava => (
-      <TehtavaKortti key={tehtava.id} tehtava={tehtava} onMerkitse={() => merkitseTehdyksi(tehtava.id, tehtava.tehty)} />
-    ))}
-  </div>
-)}
-
-<button
-  className="w-full py-4 rounded font-bold text-lg mt-6"
-  style={{backgroundColor: '#C9A84C', color: '#0F1E3C'}}
-  onClick={() => setAktiivinenVaihe(2)}>
-  Siirry omaisuuden selvitykseen →
-</button>
-            </>
-          )}
-
-          {aktiivinenVaihe === 2 && (
-            <>
-              <div className="flex gap-2 mb-6">
-                {alivaiheet.map(a => (
-                  <button key={a.numero} onClick={() => setAktiivinenAlivaihe(a.numero)} className="flex-1 py-2 px-4 rounded text-sm font-bold"
-                    style={{backgroundColor: aktiivinenAlivaihe === a.numero ? '#C9A84C' : '#0F1E3C', color: aktiivinenAlivaihe === a.numero ? '#0F1E3C' : '#A0AEC0', border: '1px solid', borderColor: aktiivinenAlivaihe === a.numero ? '#C9A84C' : '#2D3E5C'}}>
-                    {a.numero}. {a.nimi}
+              {aktiivinenVaihe === 1 && (
+                <>
+                  <div className="mb-6 p-4 rounded-lg" style={{backgroundColor: '#0F1E3C', border: '1px solid #4A7ACC'}}>
+                    <p style={{color: '#A0AEC0'}} className="text-sm">
+                      ℹ️ Käy nämä läpi ja merkitse hoidetuksi sitä mukaa kun ne valmistuvat. Virkatodistuksen tilaaminen kannattaa tehdä ensimmäisenä — toimituksessa kestää viikkoja.
+                    </p>
+                  </div>
+                  {nykyisetTehtavat.length === 0 ? (
+                    <p style={{color: '#4A5568'}} className="text-sm">Ei tehtäviä tässä vaiheessa vielä.</p>
+                  ) : (
+                    <div className="flex flex-col gap-3">
+                      {nykyisetTehtavat.map(tehtava => (
+                        <TehtavaKortti
+                          key={tehtava.id}
+                          tehtava={tehtava}
+                          onMerkitse={() => merkitseTehdyksi(tehtava.id, tehtava.tehty)}
+                          kuolinpesaId={kuolinpesa?.id}
+                          kayttajaEmail={kuolinpesa?.kayttaja_email}
+                        />
+                      ))}
+                    </div>
+                  )}
+                  <button className="w-full py-4 rounded font-bold text-lg mt-6" style={{backgroundColor: '#C9A84C', color: '#0F1E3C'}} onClick={() => { setAktiivinenVaihe(2); localStorage.setItem('aktiivinenVaihe', 2) }}>
+                    Siirry omaisuuden selvitykseen →
                   </button>
-                ))}
+                </>
+              )}
+
+              {aktiivinenVaihe === 2 && (
+                <>
+                  <div className="flex gap-2 mb-6">
+                    {alivaiheet.map(a => (
+                      <button key={a.numero} onClick={() => { setAktiivinenAlivaihe(a.numero); localStorage.setItem('aktiivinenAlivaihe', a.numero) }} className="flex-1 py-2 px-4 rounded text-sm font-bold"
+                        style={{backgroundColor: aktiivinenAlivaihe === a.numero ? '#C9A84C' : '#0F1E3C', color: aktiivinenAlivaihe === a.numero ? '#0F1E3C' : '#A0AEC0', border: '1px solid', borderColor: aktiivinenAlivaihe === a.numero ? '#C9A84C' : '#2D3E5C'}}>
+                        {a.numero}. {a.nimi}
+                      </button>
+                    ))}
+                  </div>
+                  {aktiivinenAlivaihe === 1 && <VaratJaVelat rastitattu={varatRastitattu} onToggle={toggleVaraRasti} teksti={varatVelatTeksti} onTekstiMuutos={tallennaTeksti} />}
+                  {aktiivinenAlivaihe === 2 && <SelvitysOsio kuolinpesaId={kuolinpesa?.id} onValmis={() => { setAktiivinenAlivaihe(3); localStorage.setItem('aktiivinenAlivaihe', 3) }} onEdistyminen={setSelvitysHoidettu} />}
+                  {aktiivinenAlivaihe === 3 && <Yhteenveto kuolinpesaId={kuolinpesa?.id} selvitysHoidettu={selvitysHoidettu} selvitysKaikki={selvitysKaikki} onValmis={() => { setAktiivinenVaihe(3); localStorage.setItem('aktiivinenVaihe', 3) }} />}
+                </>
+              )}
+
+              {aktiivinenVaihe > 2 && (
+                <p style={{color: '#4A5568'}} className="text-sm">Tämä osio on tulossa pian.</p>
+              )}
+            </div>
+
+            <div className="rounded-lg p-6 mt-6" style={{backgroundColor: '#1B2A4A', border: '1px solid #2D3E5C'}}>
+              <h2 className="text-white font-bold text-lg mb-6">Tiimi</h2>
+              <KutsuJasen kuolinpesaId={kuolinpesa?.id} />
+            </div>
+
+          </div>
+
+          {/* Oikea sivupalkki */}
+          <div className="lg:w-80 flex flex-col gap-6">
+            <Kommentit kuolinpesaId={kuolinpesa?.id} kayttajaEmail={kuolinpesa?.kayttaja_email} />
+            <Tapahtumaloki kuolinpesaId={kuolinpesa?.id} />
+          </div>
+
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function Kommentit({ kuolinpesaId, kayttajaEmail }) {
+  const [kommentit, setKommentit] = useState([])
+  const [uusiKommentti, setUusiKommentti] = useState('')
+  const [muokkausId, setMuokkausId] = useState(null)
+  const [muokkausteksti, setMuokkausteksti] = useState('')
+
+  useEffect(() => {
+    if (!kuolinpesaId) return
+    const haeKommentit = async () => {
+      const { data } = await supabase.from('kommentit').select('*').eq('kuolinpesa_id', kuolinpesaId).order('created_at', { ascending: false })
+      if (data) setKommentit(data)
+    }
+    haeKommentit()
+  }, [kuolinpesaId])
+
+  const lisaaKommentti = async () => {
+    if (!uusiKommentti.trim()) return
+    const { data } = await supabase.from('kommentit').insert({
+      kuolinpesa_id: kuolinpesaId,
+      tehtava_nimi: 'Yleinen',
+      kirjoittaja_email: kayttajaEmail,
+      teksti: uusiKommentti
+    }).select().single()
+    if (data) { setKommentit([data, ...kommentit]); setUusiKommentti('') }
+  }
+
+  const poistaKommentti = async (id) => {
+    await supabase.from('kommentit').delete().eq('id', id)
+    setKommentit(kommentit.filter(k => k.id !== id))
+  }
+
+  const muokkaaKommentti = async (id) => {
+    const { data } = await supabase.from('kommentit').update({ teksti: muokkausteksti }).eq('id', id).select().single()
+    if (data) { setKommentit(kommentit.map(k => k.id === id ? data : k)); setMuokkausId(null) }
+  }
+
+  return (
+    <div className="rounded-lg p-4" style={{backgroundColor: '#1B2A4A', border: '1px solid #2D3E5C'}}>
+      <h3 className="text-white font-bold mb-4">💬 Kommentit</h3>
+      <div className="mb-4">
+        <textarea value={uusiKommentti} onChange={(e) => setUusiKommentti(e.target.value)} placeholder="Kirjoita kommentti tiimille..." className="w-full px-3 py-2 rounded text-sm text-white placeholder-gray-500 outline-none resize-none mb-2" style={{backgroundColor: '#0F1E3C', border: '1px solid #2D3E5C'}} rows={3} />
+        <button onClick={lisaaKommentti} className="w-full py-2 rounded text-sm font-bold" style={{backgroundColor: '#C9A84C', color: '#0F1E3C'}}>Lähetä</button>
+      </div>
+      <div className="flex flex-col gap-3 max-h-96 overflow-y-auto">
+        {kommentit.length === 0 && <p style={{color: '#4A5568'}} className="text-xs">Ei vielä kommentteja.</p>}
+        {kommentit.map((k) => (
+          <div key={k.id} className="p-3 rounded" style={{backgroundColor: '#0F1E3C', border: '1px solid #2D3E5C'}}>
+            <div className="flex items-center justify-between mb-1">
+              <span style={{color: '#C9A84C'}} className="text-xs font-bold">{k.kirjoittaja_email}</span>
+              <span style={{color: '#4A5568'}} className="text-xs">{new Date(k.created_at).toLocaleDateString('fi-FI')}</span>
+            </div>
+            {k.tehtava_nimi && k.tehtava_nimi !== 'Yleinen' && (
+              <p style={{color: '#4A7ACC'}} className="text-xs mb-1">↳ {k.tehtava_nimi}</p>
+            )}
+            {muokkausId === k.id ? (
+              <div>
+                <textarea value={muokkausteksti} onChange={(e) => setMuokkausteksti(e.target.value)} className="w-full px-2 py-1 rounded text-sm text-white outline-none resize-none mb-2" style={{backgroundColor: '#1B2A4A', border: '1px solid #2D3E5C'}} rows={2} />
+                <div className="flex gap-2">
+                  <button onClick={() => muokkaaKommentti(k.id)} className="text-xs px-2 py-1 rounded" style={{backgroundColor: '#C9A84C', color: '#0F1E3C'}}>Tallenna</button>
+                  <button onClick={() => setMuokkausId(null)} className="text-xs px-2 py-1 rounded" style={{color: '#4A5568', border: '1px solid #2D3E5C'}}>Peruuta</button>
+                </div>
               </div>
+            ) : (
+              <p className="text-white text-sm">{k.teksti}</p>
+            )}
+            {k.kirjoittaja_email === kayttajaEmail && muokkausId !== k.id && (
+              <div className="flex gap-2 mt-2">
+                <button onClick={() => { setMuokkausId(k.id); setMuokkausteksti(k.teksti) }} style={{color: '#A0AEC0'}} className="text-xs hover:opacity-75">Muokkaa</button>
+                <button onClick={() => poistaKommentti(k.id)} style={{color: '#FC8181'}} className="text-xs hover:opacity-75">Poista</button>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
 
-              {aktiivinenAlivaihe === 1 && (
-                <VaratJaVelat
-                  rastitattu={varatRastitattu}
-                  onToggle={toggleVaraRasti}
-                  teksti={varatVelatTeksti}
-                  onTekstiMuutos={tallennaTeksti}
-                />
-              )}
-              {aktiivinenAlivaihe === 2 && (
-                <SelvitysOsio kuolinpesaId={kuolinpesa?.id} onValmis={() => setAktiivinenAlivaihe(3)} onEdistyminen={setSelvitysHoidettu} />
-              )}
-              {aktiivinenAlivaihe === 3 && (
-                <Yhteenveto kuolinpesaId={kuolinpesa?.id} selvitysHoidettu={selvitysHoidettu} selvitysKaikki={selvitysKaikki} onValmis={() => setAktiivinenVaihe(3)} />
-              )}
-            </>
-          )}
+function Tapahtumaloki({ kuolinpesaId }) {
+  const [tapahtumat, setTapahtumat] = useState([])
 
-          {aktiivinenVaihe > 2 && (
-            <p style={{color: '#4A5568'}} className="text-sm">Tämä osio on tulossa pian.</p>
-          )}
-        </div>
+  useEffect(() => {
+    if (!kuolinpesaId) return
+    const haeTapahtumat = async () => {
+      const { data } = await supabase.from('tapahtumat').select('*').eq('kuolinpesa_id', kuolinpesaId).order('created_at', { ascending: false }).limit(20)
+      if (data) setTapahtumat(data)
+    }
+    haeTapahtumat()
+  }, [kuolinpesaId])
 
-        <div className="rounded-lg p-6 mt-6" style={{backgroundColor: '#1B2A4A', border: '1px solid #2D3E5C'}}>
-          <h2 className="text-white font-bold text-lg mb-6">Tiimi</h2>
-          <KutsuJasen kuolinpesaId={kuolinpesa?.id} />
-        </div>
+  return (
+    <div className="rounded-lg p-4" style={{backgroundColor: '#1B2A4A', border: '1px solid #2D3E5C'}}>
+      <h3 className="text-white font-bold mb-4">📋 Tapahtumaloki</h3>
+      <div className="flex flex-col gap-2 max-h-96 overflow-y-auto">
+        {tapahtumat.length === 0 && <p style={{color: '#4A5568'}} className="text-xs">Ei vielä tapahtumia.</p>}
+        {tapahtumat.map((t) => (
+          <div key={t.id} className="p-2 rounded" style={{backgroundColor: '#0F1E3C', border: '1px solid #2D3E5C'}}>
+            <p className="text-white text-xs">{t.teksti}</p>
+            <div className="flex items-center justify-between mt-1">
+              <span style={{color: '#4A7ACC'}} className="text-xs">{t.kirjoittaja_email}</span>
+              <span style={{color: '#4A5568'}} className="text-xs">{new Date(t.created_at).toLocaleDateString('fi-FI')} {new Date(t.created_at).toLocaleTimeString('fi-FI', {hour: '2-digit', minute: '2-digit'})}</span>
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   )
@@ -361,15 +488,12 @@ function VaratJaVelat({ rastitattu, onToggle, teksti, onTekstiMuutos }) {
           ℹ️ Käy läpi muistilista ja rastita kun olet tarkistanut asian. Kirjaa löydöt alla olevaan kenttään — tiedot siirtyvät perunkirjoitusvaiheeseen.
         </p>
       </div>
-
       <div className="mb-6">
         <h3 className="text-white font-bold mb-4">Varat — tarkista nämä</h3>
         <div className="flex flex-col gap-2">
           {varatJaVelatMuistilista.varat.map(kohta => (
-            <div key={kohta.id} onClick={() => onToggle(kohta.id)} className="flex items-start gap-3 p-3 rounded cursor-pointer hover:opacity-80"
-              style={{backgroundColor: '#0F1E3C', border: `1px solid ${rastitattu[kohta.id] ? '#C9A84C' : '#2D3E5C'}`}}>
-              <div className="w-5 h-5 rounded flex items-center justify-center flex-shrink-0 mt-0.5"
-                style={{backgroundColor: rastitattu[kohta.id] ? '#C9A84C' : 'transparent', border: `2px solid ${rastitattu[kohta.id] ? '#C9A84C' : '#4A5568'}`}}>
+            <div key={kohta.id} onClick={() => onToggle(kohta.id)} className="flex items-start gap-3 p-3 rounded cursor-pointer hover:opacity-80" style={{backgroundColor: '#0F1E3C', border: `1px solid ${rastitattu[kohta.id] ? '#C9A84C' : '#2D3E5C'}`}}>
+              <div className="w-5 h-5 rounded flex items-center justify-center flex-shrink-0 mt-0.5" style={{backgroundColor: rastitattu[kohta.id] ? '#C9A84C' : 'transparent', border: `2px solid ${rastitattu[kohta.id] ? '#C9A84C' : '#4A5568'}`}}>
                 {rastitattu[kohta.id] && <span style={{color: '#0F1E3C'}} className="text-xs font-bold">✓</span>}
               </div>
               <div>
@@ -380,15 +504,12 @@ function VaratJaVelat({ rastitattu, onToggle, teksti, onTekstiMuutos }) {
           ))}
         </div>
       </div>
-
       <div className="mb-6">
         <h3 className="text-white font-bold mb-4">Velat — tarkista nämä</h3>
         <div className="flex flex-col gap-2">
           {varatJaVelatMuistilista.velat.map(kohta => (
-            <div key={kohta.id} onClick={() => onToggle('velat_' + kohta.id)} className="flex items-start gap-3 p-3 rounded cursor-pointer hover:opacity-80"
-              style={{backgroundColor: '#0F1E3C', border: `1px solid ${rastitattu['velat_' + kohta.id] ? '#C9A84C' : '#2D3E5C'}`}}>
-              <div className="w-5 h-5 rounded flex items-center justify-center flex-shrink-0 mt-0.5"
-                style={{backgroundColor: rastitattu['velat_' + kohta.id] ? '#C9A84C' : 'transparent', border: `2px solid ${rastitattu['velat_' + kohta.id] ? '#C9A84C' : '#4A5568'}`}}>
+            <div key={kohta.id} onClick={() => onToggle('velat_' + kohta.id)} className="flex items-start gap-3 p-3 rounded cursor-pointer hover:opacity-80" style={{backgroundColor: '#0F1E3C', border: `1px solid ${rastitattu['velat_' + kohta.id] ? '#C9A84C' : '#2D3E5C'}`}}>
+              <div className="w-5 h-5 rounded flex items-center justify-center flex-shrink-0 mt-0.5" style={{backgroundColor: rastitattu['velat_' + kohta.id] ? '#C9A84C' : 'transparent', border: `2px solid ${rastitattu['velat_' + kohta.id] ? '#C9A84C' : '#4A5568'}`}}>
                 {rastitattu['velat_' + kohta.id] && <span style={{color: '#0F1E3C'}} className="text-xs font-bold">✓</span>}
               </div>
               <div>
@@ -399,18 +520,10 @@ function VaratJaVelat({ rastitattu, onToggle, teksti, onTekstiMuutos }) {
           ))}
         </div>
       </div>
-
       <div>
         <h3 className="text-white font-bold mb-2">Kirjaa löydöt</h3>
         <p style={{color: '#A0AEC0'}} className="text-xs mb-3">Kirjaa tähän mitä löysit ja mistä. Tiedot siirtyvät perunkirjoitusvaiheeseen.</p>
-        <textarea
-          value={teksti}
-          onChange={(e) => onTekstiMuutos(e.target.value)}
-          placeholder="Esim: OP tili — n. 12 000€, Nordea säästötili — n. 3 000€, Asunto-osake Helsingissä (arvo selvitetään)..."
-          className="w-full px-4 py-3 rounded text-sm text-white placeholder-gray-500 outline-none resize-none"
-          style={{backgroundColor: '#0F1E3C', border: '1px solid #2D3E5C'}}
-          rows={6}
-        />
+        <textarea value={teksti} onChange={(e) => onTekstiMuutos(e.target.value)} placeholder="Esim: OP tili — n. 12 000€, Nordea säästötili — n. 3 000€, Asunto-osake Helsingissä (arvo selvitetään)..." className="w-full px-4 py-3 rounded text-sm text-white placeholder-gray-500 outline-none resize-none" style={{backgroundColor: '#0F1E3C', border: '1px solid #2D3E5C'}} rows={6} />
       </div>
     </div>
   )
@@ -453,6 +566,10 @@ function SelvitysOsio({ kuolinpesaId, onValmis, onEdistyminen }) {
   const toggleKategoria = (id) => setAvatutKategoriat(prev => ({ ...prev, [id]: !prev[id] }))
   const toggleSopimus = (nimi) => setAvatutSopimukset(prev => ({ ...prev, [nimi]: !prev[nimi] }))
 
+  const kokonaisHoidettu = kategoriat.reduce((sum, k) => sum + k.sopimukset.filter(s => tilat[s.nimi] === 'hoidettu').length, 0)
+  const kokonaisKaikki = kategoriat.reduce((sum, k) => sum + k.sopimukset.length, 0)
+  const avoimet = kategoriat.flatMap(k => k.sopimukset.filter(s => tilat[s.nimi] === 'avoinna').map(s => ({ kategoria: k.nimi, sopimus: s.nimi })))
+
   return (
     <div>
       <div className="mb-6 p-4 rounded-lg" style={{backgroundColor: '#0F1E3C', border: '1px solid #4A7ACC'}}>
@@ -465,14 +582,12 @@ function SelvitysOsio({ kuolinpesaId, onValmis, onEdistyminen }) {
           ⚠️ <strong style={{color: 'white'}}>Huom:</strong> Kuolinpesän sopimuksia ei voi irtisanoa yksin. Tähän tarvitaan kaikkien osakkaiden allekirjoittama valtakirja. Suosittelemme tekemään valtakirjan heti alussa.
         </p>
       </div>
-
       <div className="flex flex-col gap-3 mb-6">
         {kategoriat.map(kategoria => {
           const hoidettu = kategoria.sopimukset.filter(s => tilat[s.nimi] === 'hoidettu').length
           const kaikki = kategoria.sopimukset.length
           const auki = avatutKategoriat[kategoria.id]
           const kaikkiValmis = hoidettu === kaikki
-
           return (
             <div key={kategoria.id} className="rounded-lg overflow-hidden" style={{backgroundColor: '#0F1E3C', border: `1px solid ${kaikkiValmis && hoidettu > 0 ? '#C9A84C' : '#2D3E5C'}`}}>
               <div className="flex items-center justify-between p-4 cursor-pointer hover:opacity-80" onClick={() => toggleKategoria(kategoria.id)}>
@@ -488,7 +603,6 @@ function SelvitysOsio({ kuolinpesaId, onValmis, onEdistyminen }) {
                   <span style={{color: '#C9A84C'}} className="text-xs">{auki ? '▲' : '▼'}</span>
                 </div>
               </div>
-
               {auki && (
                 <div className="px-4 pb-4 border-t flex flex-col gap-2" style={{borderColor: '#2D3E5C'}}>
                   <div className="mt-3 flex flex-col gap-2">
@@ -497,7 +611,6 @@ function SelvitysOsio({ kuolinpesaId, onValmis, onEdistyminen }) {
                       const onHoidettu = tila === 'hoidettu'
                       const onAvoinna = tila === 'avoinna'
                       const ohjeAuki = avatutSopimukset[sopimus.nimi]
-
                       return (
                         <div key={sopimus.nimi} className="rounded overflow-hidden" style={{backgroundColor: '#1B2A4A', border: `1px solid ${onHoidettu ? '#C9A84C' : onAvoinna ? '#4A7ACC' : '#2D3E5C'}`}}>
                           <div className="flex items-center justify-between p-3 gap-3">
@@ -506,18 +619,9 @@ function SelvitysOsio({ kuolinpesaId, onValmis, onEdistyminen }) {
                             <div className="flex gap-2 flex-shrink-0">
                               {!onHoidettu && (
                                 <>
-                                  <button onClick={() => paivitaTila(sopimus.nimi, 'avoinna', kategoria.id)} className="text-xs px-3 py-1 rounded whitespace-nowrap"
-                                    style={{backgroundColor: onAvoinna ? '#2D4A7A' : '#0F1E3C', color: onAvoinna ? 'white' : '#6B7280', border: `1px solid ${onAvoinna ? '#4A7ACC' : '#2D3E5C'}`}}>
-                                    {onAvoinna ? '✓ Oli vainajalla' : 'Oli vainajalla'}
-                                  </button>
-                                  <button onClick={() => paivitaTila(sopimus.nimi, 'hoidettu', kategoria.id)} className="text-xs px-3 py-1 rounded whitespace-nowrap"
-                                    style={{backgroundColor: '#0F1E3C', color: '#6B7280', border: '1px solid #2D3E5C'}}>
-                                    Ei ollut
-                                  </button>
-                                  <button onClick={() => toggleSopimus(sopimus.nimi)} className="text-xs px-3 py-1 rounded whitespace-nowrap"
-                                    style={{backgroundColor: '#0F1E3C', color: '#C9A84C', border: '1px solid #C9A84C'}}>
-                                    {ohjeAuki ? 'Piilota' : 'Ohjeet →'}
-                                  </button>
+                                  <button onClick={() => paivitaTila(sopimus.nimi, 'avoinna', kategoria.id)} className="text-xs px-3 py-1 rounded whitespace-nowrap" style={{backgroundColor: onAvoinna ? '#2D4A7A' : '#0F1E3C', color: onAvoinna ? 'white' : '#6B7280', border: `1px solid ${onAvoinna ? '#4A7ACC' : '#2D3E5C'}`}}>{onAvoinna ? '✓ Oli vainajalla' : 'Oli vainajalla'}</button>
+                                  <button onClick={() => paivitaTila(sopimus.nimi, 'hoidettu', kategoria.id)} className="text-xs px-3 py-1 rounded whitespace-nowrap" style={{backgroundColor: '#0F1E3C', color: '#6B7280', border: '1px solid #2D3E5C'}}>Ei ollut</button>
+                                  <button onClick={() => toggleSopimus(sopimus.nimi)} className="text-xs px-3 py-1 rounded whitespace-nowrap" style={{backgroundColor: '#0F1E3C', color: '#C9A84C', border: '1px solid #C9A84C'}}>{ohjeAuki ? 'Piilota' : 'Ohjeet →'}</button>
                                 </>
                               )}
                               {onHoidettu && <button onClick={() => paivitaTila(sopimus.nimi, null, kategoria.id)} className="text-xs px-3 py-1 rounded" style={{color: '#4A5568', border: '1px solid #2D3E5C', backgroundColor: '#0F1E3C'}}>Peruuta</button>}
@@ -547,10 +651,7 @@ function SelvitysOsio({ kuolinpesaId, onValmis, onEdistyminen }) {
           )
         })}
       </div>
-
-      <button className="w-full py-3 rounded font-bold" style={{backgroundColor: 'transparent', color: '#C9A84C', border: '1px solid #C9A84C'}} onClick={onValmis}>
-        Siirry yhteenvetoon →
-      </button>
+      <button className="w-full py-3 rounded font-bold" style={{backgroundColor: 'transparent', color: '#C9A84C', border: '1px solid #C9A84C'}} onClick={onValmis}>Siirry yhteenvetoon →</button>
     </div>
   )
 }
@@ -574,7 +675,6 @@ function Yhteenveto({ kuolinpesaId, selvitysHoidettu, selvitysKaikki, onValmis }
         <p style={{color: '#C9A84C'}} className="text-2xl font-bold">{selvitysHoidettu}</p>
         <p style={{color: '#4A5568'}} className="text-xs mt-1">yhteensä {selvitysKaikki} sopimuksesta</p>
       </div>
-
       {avoimet.length > 0 && (
         <div className="mb-6">
           <p className="text-white font-bold text-sm mb-3">Kesken — vaatii toimenpiteitä</p>
@@ -587,16 +687,36 @@ function Yhteenveto({ kuolinpesaId, selvitysHoidettu, selvitysKaikki, onValmis }
           </div>
         </div>
       )}
-
-      <button className="w-full py-4 rounded font-bold text-lg" style={{backgroundColor: '#C9A84C', color: '#0F1E3C'}} onClick={onValmis}>
-        Merkitse omaisuuden selvitys valmiiksi →
-      </button>
+      <button className="w-full py-4 rounded font-bold text-lg" style={{backgroundColor: '#C9A84C', color: '#0F1E3C'}} onClick={onValmis}>Merkitse omaisuuden selvitys valmiiksi →</button>
     </div>
   )
 }
 
-function TehtavaKortti({ tehtava, onMerkitse }) {
+function TehtavaKortti({ tehtava, onMerkitse, kuolinpesaId, kayttajaEmail }) {
   const [auki, setAuki] = useState(false)
+  const [kommenttiAuki, setKommenttiAuki] = useState(false)
+  const [uusiKommentti, setUusiKommentti] = useState('')
+  const [kommentit, setKommentit] = useState([])
+
+  useEffect(() => {
+    if (!kommenttiAuki || !kuolinpesaId) return
+    const haeKommentit = async () => {
+      const { data } = await supabase.from('kommentit').select('*').eq('kuolinpesa_id', kuolinpesaId).eq('tehtava_nimi', tehtava.nimi).order('created_at', { ascending: true })
+      if (data) setKommentit(data)
+    }
+    haeKommentit()
+  }, [kommenttiAuki, kuolinpesaId])
+
+  const lisaaKommentti = async () => {
+    if (!uusiKommentti.trim()) return
+    const { data } = await supabase.from('kommentit').insert({
+      kuolinpesa_id: kuolinpesaId,
+      tehtava_nimi: tehtava.nimi,
+      kirjoittaja_email: kayttajaEmail,
+      teksti: uusiKommentti
+    }).select().single()
+    if (data) { setKommentit([...kommentit, data]); setUusiKommentti('') }
+  }
 
   const ohjeet = {
     'Tilaa virkatodistus': { kiireellinen: true, miksi: 'Toimituksessa kestää 4-10 viikkoa — tarvitaan pankeissa, vakuutuksissa ja perunkirjoituksessa. Tee tämä ensimmäisenä.', miten: ['Jos vainaja kuului ev.lut. kirkkoon → mene osoitteeseen tilaavirkatodistus.fi','Jos vainaja ei kuulunut kirkkoon → mene osoitteeseen dvv.fi','Tilaa useampi kopio kerralla — tarvitset niitä monessa paikassa','Hinta noin 35-100 €'] },
@@ -619,21 +739,43 @@ function TehtavaKortti({ tehtava, onMerkitse }) {
           <span className="text-sm font-medium" style={{color: tehtava.tehty ? '#C9A84C' : 'white'}}>{tehtava.nimi}</span>
           {ohje?.kiireellinen && <span className="text-xs px-2 py-0.5 rounded" style={{backgroundColor: '#7C3333', color: '#FCA5A5'}}>⏰ Kiireellinen</span>}
         </div>
-        <span style={{color: '#C9A84C'}} className="text-xs">{auki ? '▲ Piilota' : '▼ Näytä ohjeet'}</span>
+        <div className="flex items-center gap-2">
+          <button onClick={(e) => { e.stopPropagation(); setKommenttiAuki(!kommenttiAuki); setAuki(false) }} className="text-xs px-2 py-1 rounded" style={{color: '#A0AEC0', border: '1px solid #2D3E5C', backgroundColor: '#1B2A4A'}}>
+            💬 Kommentti
+          </button>
+          <span style={{color: '#C9A84C'}} className="text-xs">{auki ? '▲ Piilota' : '▼ Ohjeet'}</span>
+        </div>
       </div>
+
+      {kommenttiAuki && (
+        <div className="px-4 pb-4 border-t" style={{borderColor: '#2D3E5C'}}>
+          <div className="mt-3 flex flex-col gap-2 mb-3">
+            {kommentit.length === 0 && <p style={{color: '#4A5568'}} className="text-xs">Ei vielä kommentteja tähän tehtävään.</p>}
+            {kommentit.map((k) => (
+              <div key={k.id} className="p-2 rounded" style={{backgroundColor: '#1B2A4A', border: '1px solid #2D3E5C'}}>
+                <span style={{color: '#C9A84C'}} className="text-xs font-bold">{k.kirjoittaja_email}: </span>
+                <span className="text-white text-xs">{k.teksti}</span>
+              </div>
+            ))}
+          </div>
+          <div className="flex gap-2">
+            <input value={uusiKommentti} onChange={(e) => setUusiKommentti(e.target.value)} placeholder="Kirjoita kommentti..." className="flex-1 px-3 py-2 rounded text-sm text-white placeholder-gray-500 outline-none" style={{backgroundColor: '#1B2A4A', border: '1px solid #2D3E5C'}} onKeyDown={(e) => e.key === 'Enter' && lisaaKommentti()} />
+            <button onClick={lisaaKommentti} className="px-3 py-2 rounded text-sm font-bold" style={{backgroundColor: '#C9A84C', color: '#0F1E3C'}}>→</button>
+          </div>
+        </div>
+      )}
+
       {auki && ohje && (
         <div className="px-4 pb-4 border-t" style={{borderColor: '#2D3E5C'}}>
           <div className="mt-4 mb-4"><p style={{color: '#A0AEC0'}} className="text-sm">{ohje.miksi}</p></div>
           <div style={{color: '#C9A84C'}} className="text-xs uppercase tracking-widest mb-2">Miten tehdään</div>
-          <ul className="flex flex-col gap-2 mb-6">
+          <ul className="flex flex-col gap-2 mb-4">
             {ohje.miten.map((askel, i) => (
               <li key={i} className="flex gap-3 text-sm" style={{color: 'white'}}>
                 <span style={{color: '#C9A84C'}} className="flex-shrink-0">{i + 1}.</span>{askel}
               </li>
             ))}
           </ul>
-          <div style={{color: '#C9A84C'}} className="text-xs uppercase tracking-widest mb-2">💬 Kommentit tiimille</div>
-          <textarea placeholder="Kirjoita kommentti tai muistiinpano tiimille..." className="w-full px-3 py-2 rounded text-sm text-white placeholder-gray-500 outline-none resize-none" style={{backgroundColor: '#1B2A4A', border: '1px solid #2D3E5C'}} rows={2} />
         </div>
       )}
     </div>
