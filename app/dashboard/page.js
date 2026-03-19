@@ -123,8 +123,15 @@ const varatJaVelatMuistilista = {
 
 export default function Dashboard() {
   const router = useRouter()
-  const [aktiivinenVaihe, setAktiivinenVaihe] = useState(1)
-  const [aktiivinenAlivaihe, setAktiivinenAlivaihe] = useState(1)
+const [aktiivinenVaihe, setAktiivinenVaihe] = useState(1)
+const [aktiivinenAlivaihe, setAktiivinenAlivaihe] = useState(1)
+
+useEffect(() => {
+  const tallennettuVaihe = localStorage.getItem('aktiivinenVaihe')
+  const tallennettuAlivaihe = localStorage.getItem('aktiivinenAlivaihe')
+  if (tallennettuVaihe) setAktiivinenVaihe(parseInt(tallennettuVaihe))
+  if (tallennettuAlivaihe) setAktiivinenAlivaihe(parseInt(tallennettuAlivaihe))
+}, [])
   const [kuolinpesa, setKuolinpesa] = useState(null)
   const [tehtavaLista, setTehtavaLista] = useState([])
   const [esiTarkistukset, setEsiTarkistukset] = useState({ hautajaiset: false, kuolintodistus: false, laheiset: false })
@@ -149,14 +156,14 @@ export default function Dashboard() {
     { numero: 3, nimi: 'Yhteenveto' },
   ]
 
-  const oletusTehtavat = [
-    { nimi: 'Tilaa virkatodistus', vaihe: 1 },
-    { nimi: 'Ilmoita pankeille', vaihe: 1 },
-    { nimi: 'Ilmoita Kelalle', vaihe: 1 },
-    { nimi: 'Hae henkivakuutuskorvaus', vaihe: 1 },
-    { nimi: 'Ilmoita työnantajalle ja taloyhtiölle', vaihe: 1 },
-    { nimi: 'Ohjaa posti uuteen osoitteeseen', vaihe: 1 },
-  ]
+ const oletusTehtavat = [
+  { nimi: 'Tilaa virkatodistus', vaihe: 1, jarjestys: 1 },
+  { nimi: 'Ilmoita pankeille', vaihe: 1, jarjestys: 2 },
+  { nimi: 'Ilmoita Kelalle', vaihe: 1, jarjestys: 3 },
+  { nimi: 'Ilmoita työnantajalle ja taloyhtiölle', vaihe: 1, jarjestys: 4 },
+  { nimi: 'Ohjaa posti uuteen osoitteeseen', vaihe: 1, jarjestys: 5 },
+  { nimi: 'Hae henkivakuutuskorvaus', vaihe: 1, jarjestys: 6 },
+]
 
   useEffect(() => {
     const haeData = async () => {
@@ -169,7 +176,7 @@ export default function Dashboard() {
         if (pesaData.varat_velat_teksti) setVaratVelatTeksti(pesaData.varat_velat_teksti)
         if (pesaData.varat_rastitattu) setVaratRastitattu(pesaData.varat_rastitattu)
         setLadataan(false)
-        const { data: tehtavatData } = await supabase.from('tehtavat').select('*').eq('kuolinpesa_id', pesaData.id)
+        const { data: tehtavatData } = await supabase.from('tehtavat').select('*').eq('kuolinpesa_id', pesaData.id).order('created_at', { ascending: true })
         if (tehtavatData && tehtavatData.length > 0) {
           setTehtavaLista(tehtavatData)
         } else {
@@ -204,7 +211,10 @@ export default function Dashboard() {
     if (kuolinpesa) await supabase.from('kuolinpesat').update({ varat_velat_teksti: teksti }).eq('id', kuolinpesa.id)
   }
 
-  const nykyisetTehtavat = tehtavaLista.filter(t => t.vaihe === aktiivinenVaihe)
+ const jarjestys = ['Tilaa virkatodistus', 'Ilmoita pankeille', 'Ilmoita Kelalle', 'Ilmoita työnantajalle ja taloyhtiölle', 'Ohjaa posti uuteen osoitteeseen', 'Hae henkivakuutuskorvaus']
+const nykyisetTehtavat = tehtavaLista
+  .filter(t => t.vaihe === aktiivinenVaihe)
+  .sort((a, b) => jarjestys.indexOf(a.nimi) - jarjestys.indexOf(b.nimi))
   const valmiit = tehtavaLista.filter(t => t.vaihe === aktiivinenVaihe && t.tehty).length
   const kaikki = tehtavaLista.filter(t => t.vaihe === aktiivinenVaihe).length
 
@@ -265,7 +275,7 @@ export default function Dashboard() {
 
         <div className="flex gap-2 mb-8 overflow-x-auto transition-all" style={{opacity: kaikkiEsiTarkistuksetTehty ? 1 : 0.3, pointerEvents: kaikkiEsiTarkistuksetTehty ? 'auto' : 'none'}}>
           {vaiheet.map(v => (
-            <button key={v.numero} onClick={() => setAktiivinenVaihe(v.numero)} className="flex-1 py-3 px-4 rounded text-sm font-bold whitespace-nowrap"
+            <button key={v.numero} onClick={() => { setAktiivinenVaihe(v.numero); localStorage.setItem('aktiivinenVaihe', v.numero) }} className="flex-1 py-3 px-4 rounded text-sm font-bold whitespace-nowrap"
               style={{backgroundColor: aktiivinenVaihe === v.numero ? '#C9A84C' : '#1B2A4A', color: aktiivinenVaihe === v.numero ? '#0F1E3C' : '#A0AEC0', border: '1px solid', borderColor: aktiivinenVaihe === v.numero ? '#C9A84C' : '#2D3E5C'}}>
               {v.numero}. {v.nimi}
             </button>
@@ -282,15 +292,22 @@ export default function Dashboard() {
                   ℹ️ Käy nämä läpi ja merkitse hoidetuksi sitä mukaa kun ne valmistuvat. Virkatodistuksen tilaaminen kannattaa tehdä ensimmäisenä — toimituksessa kestää viikkoja.
                 </p>
               </div>
-              {nykyisetTehtavat.length === 0 ? (
-                <p style={{color: '#4A5568'}} className="text-sm">Ei tehtäviä tässä vaiheessa vielä.</p>
-              ) : (
-                <div className="flex flex-col gap-3">
-                  {nykyisetTehtavat.map(tehtava => (
-                    <TehtavaKortti key={tehtava.id} tehtava={tehtava} onMerkitse={() => merkitseTehdyksi(tehtava.id, tehtava.tehty)} />
-                  ))}
-                </div>
-              )}
+             {nykyisetTehtavat.length === 0 ? (
+  <p style={{color: '#4A5568'}} className="text-sm">Ei tehtäviä tässä vaiheessa vielä.</p>
+) : (
+  <div className="flex flex-col gap-3">
+    {nykyisetTehtavat.map(tehtava => (
+      <TehtavaKortti key={tehtava.id} tehtava={tehtava} onMerkitse={() => merkitseTehdyksi(tehtava.id, tehtava.tehty)} />
+    ))}
+  </div>
+)}
+
+<button
+  className="w-full py-4 rounded font-bold text-lg mt-6"
+  style={{backgroundColor: '#C9A84C', color: '#0F1E3C'}}
+  onClick={() => setAktiivinenVaihe(2)}>
+  Siirry omaisuuden selvitykseen →
+</button>
             </>
           )}
 
