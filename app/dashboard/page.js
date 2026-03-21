@@ -177,6 +177,8 @@ export default function Dashboard() {
         if (pesaData.esi_tarkistukset) setEsiTarkistukset(pesaData.esi_tarkistukset)
         if (pesaData.varat_velat_teksti) setVaratVelatTeksti(pesaData.varat_velat_teksti)
         if (pesaData.varat_rastitattu) setVaratRastitattu(pesaData.varat_rastitattu)
+          if (pesaData.varat_kirjaukset) setVaratKirjaukset(pesaData.varat_kirjaukset)
+if (pesaData.varat_vahvistetut) setVahvistetutKirjaukset(pesaData.varat_vahvistetut)
         setLadataan(false)
         const { data: tehtavatData } = await supabase.from('tehtavat').select('*').eq('kuolinpesa_id', pesaData.id).order('created_at', { ascending: true })
         if (tehtavatData && tehtavatData.length > 0) {
@@ -215,7 +217,21 @@ export default function Dashboard() {
  const toggleVaraRasti = async (id, arvo) => {
   const uudet = { ...varatRastitattu, [id]: varatRastitattu[id] === arvo ? null : arvo }
   setVaratRastitattu(uudet)
-  if (kuolinpesa) await supabase.from('kuolinpesat').update({ varat_rastitattu: uudet }).eq('id', kuolinpesa.id)
+  const pesaId = kuolinpesa?.id
+  console.log('Tallennetaan:', pesaId, uudet)
+  if (pesaId) await supabase.from('kuolinpesat').update({ varat_rastitattu: uudet }).eq('id', pesaId)
+}
+const tallennaKirjaus = async (id, arvo) => {
+  const uudet = { ...varatKirjaukset, [id]: arvo }
+  setVaratKirjaukset(uudet)
+  if (kuolinpesa?.id) await supabase.from('kuolinpesat').update({ varat_kirjaukset: uudet }).eq('id', kuolinpesa.id)
+}
+
+const tallennaVahvistettu = async (id) => {
+  const uudet = { ...vahvistetutKirjaukset, [id]: [...(vahvistetutKirjaukset[id] || []), varatKirjaukset[id]] }
+  setVahvistetutKirjaukset(uudet)
+  setVaratKirjaukset(prev => ({...prev, [id]: ''}))
+  if (kuolinpesa?.id) await supabase.from('kuolinpesat').update({ varat_vahvistetut: uudet }).eq('id', kuolinpesa.id)
 }
 
   const tallennaTeksti = async (teksti) => {
@@ -318,12 +334,13 @@ export default function Dashboard() {
                     <div className="flex flex-col gap-3">
                       {nykyisetTehtavat.map(tehtava => (
                         <TehtavaKortti
-                          key={tehtava.id}
-                          tehtava={tehtava}
-                          onMerkitse={() => merkitseTehdyksi(tehtava.id, tehtava.tehty)}
-                          kuolinpesaId={kuolinpesa?.id}
-                          kayttajaEmail={kuolinpesa?.kayttaja_email}
-                        />
+  key={tehtava.id}
+  tehtava={tehtava}
+  onMerkitse={() => merkitseTehdyksi(tehtava.id, tehtava.tehty)}
+  kuolinpesaId={kuolinpesa?.id}
+  kayttajaEmail={kuolinpesa?.kayttaja_email}
+  kayttajaNimi={kuolinpesa?.kayttaja_nimi}
+/>
                       ))}
                     </div>
                   )}
@@ -343,7 +360,7 @@ export default function Dashboard() {
                       </button>
                     ))}
                   </div>
-                  {aktiivinenAlivaihe === 1 && <VaratJaVelat rastitattu={varatRastitattu} onToggle={toggleVaraRasti} kirjaukset={varatKirjaukset} onKirjaus={(id, arvo) => setVaratKirjaukset(prev => ({...prev, [id]: arvo}))} vahvistetut={vahvistetutKirjaukset} onVahvista={(id) => { setVahvistetutKirjaukset(prev => ({...prev, [id]: [...(prev[id] || []), varatKirjaukset[id]]})); setVaratKirjaukset(prev => ({...prev, [id]: ''})) }} />}
+                  {aktiivinenAlivaihe === 1 && <VaratJaVelat rastitattu={varatRastitattu} onToggle={toggleVaraRasti} kirjaukset={varatKirjaukset} onKirjaus={tallennaKirjaus} vahvistetut={vahvistetutKirjaukset} onVahvista={tallennaVahvistettu} />}
                   {aktiivinenAlivaihe === 2 && <SelvitysOsio kuolinpesaId={kuolinpesa?.id} onValmis={() => { setAktiivinenAlivaihe(3); localStorage.setItem('aktiivinenAlivaihe', 3) }} onEdistyminen={setSelvitysHoidettu} />}
                   {aktiivinenAlivaihe === 3 && <Yhteenveto kuolinpesaId={kuolinpesa?.id} selvitysHoidettu={selvitysHoidettu} selvitysKaikki={selvitysKaikki} onValmis={() => { setAktiivinenVaihe(3); localStorage.setItem('aktiivinenVaihe', 3) }} />}
                 </>
@@ -393,7 +410,7 @@ function Kommentit({ kuolinpesaId, kayttajaEmail }) {
     const { data } = await supabase.from('kommentit').insert({
       kuolinpesa_id: kuolinpesaId,
       tehtava_nimi: 'Yleinen',
-      kirjoittaja_email: kayttajaEmail,
+    kirjoittaja_email: kayttajaNimi || kayttajaEmail,
       teksti: uusiKommentti
     }).select().single()
     if (data) { setKommentit([data, ...kommentit]); setUusiKommentti('') }
@@ -502,8 +519,8 @@ function VaratJaVelat({ rastitattu, onToggle, kirjaukset, onKirjaus, vahvistetut
             <p className="text-white font-bold text-sm mb-3">{kategoria.otsikko}</p>
             <div className="flex flex-col gap-2">
               {varatJaVelatMuistilista.varat.filter(k => kategoria.kohteet.includes(k.id)).map(kohta => (
-               <div key={kohta.id}><div className="flex items-center justify-between p-3 rounded"
-  style={{backgroundColor: '#1B2A4A', border: '1px solid #2D3E5C', opacity: rastitattu[kohta.id] === 'ei' ? 0.5 : 1}}>
+               <div key={kohta.id} className="rounded" style={{backgroundColor: '#1B2A4A', border: '1px solid #2D3E5C'}}><div className="flex items-center justify-between p-3"
+  style={{backgroundColor: '#1B2A4A', border: '1px solid #2D3E5C', opacity: 1}}>
   <div className="flex-1 mr-4">
     <p className="text-white text-sm font-medium">{kohta.teksti}</p>
     <p style={{color: '#A0AEC0'}} className="text-xs mt-0.5">{kohta.ohje}</p>
@@ -522,12 +539,12 @@ function VaratJaVelat({ rastitattu, onToggle, kirjaukset, onKirjaus, vahvistetut
 {rastitattu[kohta.id] === 'kylla' && (
   <div className="mt-1 px-1">
     {(Array.isArray(vahvistetut[kohta.id]) ? vahvistetut[kohta.id] : vahvistetut[kohta.id] ? [vahvistetut[kohta.id]] : []).map((v, i) => (
-  <p key={i} className="text-white text-sm mb-1">• {v}</p>
+  <p key={i} className="text-white text-sm mb-1">- {v}</p>
 ))}
     <div className="flex gap-2">
       <input value={kirjaukset[kohta.id] || ''} onChange={(e) => onKirjaus(kohta.id, e.target.value)}
         placeholder="Mitä löytyi? Esim: OP tili — n. 12 000€"
-        className="flex-1 px-3 py-2 rounded text-sm text-white placeholder-gray-500 outline-none"
+        className="flex-1 px-3 py-1 rounded text-xs text-white placeholder-gray-500 outline-none"
         style={{backgroundColor: '#0F1E3C', border: '1px solid #2D3E5C'}} />
       <button onClick={() => onVahvista(kohta.id)} className="text-xs px-3 py-1 rounded font-bold flex-shrink-0"
         style={{backgroundColor: '#C9A84C', color: '#0F1E3C'}}>
@@ -554,8 +571,8 @@ function VaratJaVelat({ rastitattu, onToggle, kirjaukset, onKirjaus, vahvistetut
             <p className="text-white font-bold text-sm mb-3">{kategoria.otsikko}</p>
             <div className="flex flex-col gap-2">
               {varatJaVelatMuistilista.velat.filter(k => kategoria.kohteet.includes(k.id)).map(kohta => (
-              <div key={kohta.id}><div className="flex items-center justify-between p-3 rounded"
-  style={{backgroundColor: '#1B2A4A', border: '1px solid #2D3E5C', opacity: rastitattu['velat_' + kohta.id] === 'ei' ? 0.5 : 1}}>
+              <div key={kohta.id} className="rounded" style={{backgroundColor: '#1B2A4A', border: '1px solid #2D3E5C'}}><div className="flex items-center justify-between p-3"
+  style={{backgroundColor: '#1B2A4A', border: '1px solid #2D3E5C', opacity: 1}}>
   <div className="flex-1 mr-4">
     <p className="text-white text-sm font-medium">{kohta.teksti}</p>
     <p style={{color: '#A0AEC0'}} className="text-xs mt-0.5">{kohta.ohje}</p>
@@ -574,12 +591,12 @@ function VaratJaVelat({ rastitattu, onToggle, kirjaukset, onKirjaus, vahvistetut
 {rastitattu['velat_' + kohta.id] === 'kylla' && (
   <div className="mt-1 px-1">
     {(Array.isArray(vahvistetut['velat_' + kohta.id]) ? vahvistetut['velat_' + kohta.id] : vahvistetut['velat_' + kohta.id] ? [vahvistetut['velat_' + kohta.id]] : []).map((v, i) => (
-  <p key={i} className="text-white text-sm mb-1">• {v}</p>
+  <p key={i} className="text-white text-sm mb-1">- {v}</p>
 ))}
     <div className="flex gap-2">
       <input value={kirjaukset['velat_' + kohta.id] || ''} onChange={(e) => onKirjaus('velat_' + kohta.id, e.target.value)}
         placeholder="Mitä löytyi? Esim: 45 000€ jäljellä"
-        className="flex-1 px-3 py-2 rounded text-sm text-white placeholder-gray-500 outline-none"
+        className="flex-1 px-3 py-1 rounded text-xs text-white placeholder-gray-500 outline-none"
         style={{backgroundColor: '#0F1E3C', border: '1px solid #2D3E5C'}} />
       <button onClick={() => onVahvista('velat_' + kohta.id)} className="text-xs px-3 py-1 rounded font-bold flex-shrink-0"
         style={{backgroundColor: '#C9A84C', color: '#0F1E3C'}}>
@@ -604,7 +621,7 @@ function VaratJaVelat({ rastitattu, onToggle, kirjaukset, onKirjaus, vahvistetut
         <p style={{color: '#C9A84C'}} className="text-xs uppercase tracking-widest mb-2">Varat</p>
         {varatJaVelatMuistilista.varat.filter(k => rastitattu[k.id] === 'kylla' && vahvistetut[k.id]?.length > 0).flatMap(k =>
   (vahvistetut[k.id] || []).map((v, i) => (
-    <p key={k.id + i} className="text-white text-sm mb-1">• {k.teksti} — {v}</p>
+    <p key={k.id + i} className="text-white text-sm mb-1">- {k.teksti} — {v}</p>
   ))
 )}
       </div>
@@ -613,7 +630,7 @@ function VaratJaVelat({ rastitattu, onToggle, kirjaukset, onKirjaus, vahvistetut
       <div>
         <p style={{color: '#C9A84C'}} className="text-xs uppercase tracking-widest mb-2">Velat</p>
         {varatJaVelatMuistilista.velat.filter(k => rastitattu['velat_' + k.id] === 'kylla' && vahvistetut['velat_' + k.id]).map(k => (
-          <p key={k.id} className="text-white text-sm mb-1">• {k.teksti} — {vahvistetut['velat_' + k.id]}</p>
+          <p key={k.id} className="text-white text-sm mb-1">- {k.teksti} — {vahvistetut['velat_' + k.id]}</p>
         ))}
       </div>
     )}
@@ -786,7 +803,7 @@ function Yhteenveto({ kuolinpesaId, selvitysHoidettu, selvitysKaikki, onValmis }
   )
 }
 
-function TehtavaKortti({ tehtava, onMerkitse, kuolinpesaId, kayttajaEmail }) {
+function TehtavaKortti({ tehtava, onMerkitse, kuolinpesaId, kayttajaEmail, kayttajaNimi }) {
   const [auki, setAuki] = useState(false)
   const [kommenttiAuki, setKommenttiAuki] = useState(false)
   const [uusiKommentti, setUusiKommentti] = useState('')
@@ -806,10 +823,10 @@ function TehtavaKortti({ tehtava, onMerkitse, kuolinpesaId, kayttajaEmail }) {
     const { data } = await supabase.from('kommentit').insert({
       kuolinpesa_id: kuolinpesaId,
       tehtava_nimi: tehtava.nimi,
-      kirjoittaja_email: kayttajaEmail,
+      kirjoittaja_email: kayttajaNimi || kayttajaEmail,
       teksti: uusiKommentti
     }).select().single()
-    if (data) { setKommentit([...kommentit, data]); setUusiKommentti('') }
+    if (data) { setKommentit([...kommentit, data]); setUusiKommentti(''); setKommenttiAuki(false) }
   }
 
   const ohjeet = {
@@ -824,18 +841,18 @@ function TehtavaKortti({ tehtava, onMerkitse, kuolinpesaId, kayttajaEmail }) {
   const ohje = ohjeet[tehtava.nimi]
 
   return (
-    <div className="rounded transition-all" style={{backgroundColor: '#0F1E3C', border: `1px solid ${auki ? '#C9A84C' : tehtava.tehty ? '#C9A84C' : '#2D3E5C'}`}}>
+    <div className="rounded transition-all" style={{backgroundColor: '#0F1E3C', border: '1px solid #2D3E5C'}}>
       <div className="flex items-center gap-4 p-4 cursor-pointer hover:opacity-80" onClick={() => setAuki(!auki)}>
         <div onClick={(e) => { e.stopPropagation(); onMerkitse() }} className="w-6 h-6 rounded flex items-center justify-center flex-shrink-0" style={{backgroundColor: tehtava.tehty ? '#C9A84C' : 'transparent', border: `2px solid ${tehtava.tehty ? '#C9A84C' : '#4A5568'}`}}>
           {tehtava.tehty && <span style={{color: '#0F1E3C'}} className="text-xs font-bold">✓</span>}
         </div>
         <div className="flex-1 flex items-center gap-3">
-          <span className="text-sm font-medium" style={{color: tehtava.tehty ? '#C9A84C' : 'white'}}>{tehtava.nimi}</span>
+          <span className="text-sm font-medium" style={{color: 'white'}}>{tehtava.nimi}</span>
           {ohje?.kiireellinen && <span className="text-xs px-2 py-0.5 rounded" style={{backgroundColor: '#7C3333', color: '#FCA5A5'}}>⏰ Kiireellinen</span>}
         </div>
         <div className="flex items-center gap-2">
           <button onClick={(e) => { e.stopPropagation(); setKommenttiAuki(!kommenttiAuki); setAuki(false) }} className="text-xs px-2 py-1 rounded" style={{color: '#A0AEC0', border: '1px solid #2D3E5C', backgroundColor: '#1B2A4A'}}>
-            💬 Kommentti
+            💬 Jätä kommentti
           </button>
           <span style={{color: '#C9A84C'}} className="text-xs">{auki ? '▲ Piilota' : '▼ Ohjeet'}</span>
         </div>
