@@ -130,6 +130,7 @@ export default function Dashboard() {
   const [esiTarkistukset, setEsiTarkistukset] = useState({ hautajaiset: false, kuolintodistus: false, laheiset: false })
   const [ladataan, setLadataan] = useState(true)
   const [selvitysHoidettu, setSelvitysHoidettu] = useState(0)
+ const [avattuTehtava, setAvattuTehtava] = useState(null)
   const [varatRastitattu, setVaratRastitattu] = useState({})
   const [varatVelatTeksti, setVaratVelatTeksti] = useState('')
   const [varatKirjaukset, setVaratKirjaukset] = useState({})
@@ -153,6 +154,7 @@ export default function Dashboard() {
 
   const oletusTehtavat = [
     { nimi: 'Tilaa virkatodistus', vaihe: 1 },
+    { nimi: 'Selvitä onko testamentti', vaihe: 1 },
     { nimi: 'Ilmoita pankeille', vaihe: 1 },
     { nimi: 'Ilmoita Kelalle', vaihe: 1 },
     { nimi: 'Ilmoita työnantajalle ja taloyhtiölle', vaihe: 1 },
@@ -322,33 +324,36 @@ const tallennaVahvistettu = async (id) => {
               <h2 className="text-white font-bold text-lg mb-6">Vaihe {aktiivinenVaihe}: {vaiheet[aktiivinenVaihe-1].nimi}</h2>
 
               {aktiivinenVaihe === 1 && (
-                <>
-                  <div className="mb-6 p-4 rounded-lg" style={{backgroundColor: '#0F1E3C', border: '1px solid #4A7ACC'}}>
-                    <p style={{color: '#A0AEC0'}} className="text-sm">
-                      ℹ️ Käy nämä läpi ja merkitse hoidetuksi sitä mukaa kun ne valmistuvat. Virkatodistuksen tilaaminen kannattaa tehdä ensimmäisenä — toimituksessa kestää viikkoja.
-                    </p>
-                  </div>
-                  {nykyisetTehtavat.length === 0 ? (
-                    <p style={{color: '#4A5568'}} className="text-sm">Ei tehtäviä tässä vaiheessa vielä.</p>
-                  ) : (
-                    <div className="flex flex-col gap-3">
-                      {nykyisetTehtavat.map(tehtava => (
-                        <TehtavaKortti
-  key={tehtava.id}
-  tehtava={tehtava}
-  onMerkitse={() => merkitseTehdyksi(tehtava.id, tehtava.tehty)}
-  kuolinpesaId={kuolinpesa?.id}
-  kayttajaEmail={kuolinpesa?.kayttaja_email}
-  kayttajaNimi={kuolinpesa?.kayttaja_nimi}
-/>
-                      ))}
-                    </div>
-                  )}
-                  <button className="w-full py-4 rounded font-bold text-lg mt-6" style={{backgroundColor: '#C9A84C', color: '#0F1E3C'}} onClick={() => { setAktiivinenVaihe(2); localStorage.setItem('aktiivinenVaihe', 2) }}>
-                    Siirry omaisuuden selvitykseen →
-                  </button>
-                </>
-              )}
+  <>
+    <div className="flex gap-6">
+      <div className="flex flex-col gap-3 flex-1">
+        {nykyisetTehtavat.map(tehtava => (
+          <TehtavaKortti
+            key={tehtava.id}
+            tehtava={tehtava}
+            onMerkitse={() => merkitseTehdyksi(tehtava.id, tehtava.tehty)}
+            avattuTehtava={avattuTehtava}
+            setAvattuTehtava={setAvattuTehtava}
+          />
+        ))}
+      </div>
+      {avattuTehtava && (
+        <div className="w-80 flex-shrink-0">
+          <TehtavaPaneeli
+            tehtava={nykyisetTehtavat.find(t => t.id === avattuTehtava)}
+            kuolinpesaId={kuolinpesa?.id}
+            kayttajaEmail={kuolinpesa?.kayttaja_email}
+            kayttajaNimi={kuolinpesa?.kayttaja_nimi}
+            onSulje={() => setAvattuTehtava(null)}
+          />
+        </div>
+      )}
+    </div>
+    <button className="w-full py-4 rounded font-bold text-lg mt-6" style={{backgroundColor: '#C9A84C', color: '#0F1E3C'}} onClick={() => { setAktiivinenVaihe(2); localStorage.setItem('aktiivinenVaihe', 2) }}>
+      Siirry omaisuuden selvitykseen →
+    </button>
+  </>
+)}
 
               {aktiivinenVaihe === 2 && (
                 <>
@@ -381,7 +386,6 @@ const tallennaVahvistettu = async (id) => {
           {/* Oikea sivupalkki */}
           <div className="lg:w-80 flex flex-col gap-6">
             <Kommentit kuolinpesaId={kuolinpesa?.id} kayttajaEmail={kuolinpesa?.kayttaja_email} />
-            <Tapahtumaloki kuolinpesaId={kuolinpesa?.id} />
           </div>
 
         </div>
@@ -500,12 +504,6 @@ function Tapahtumaloki({ kuolinpesaId }) {
 function VaratJaVelat({ rastitattu, onToggle, kirjaukset, onKirjaus, vahvistetut, onVahvista }) {
   return (
     <div>
-      <div className="mb-6 p-4 rounded-lg" style={{backgroundColor: '#0F1E3C', border: '1px solid #4A7ACC'}}>
-        <p style={{color: '#A0AEC0'}} className="text-sm">
-          ℹ️ Käy läpi muistilista ja rastita kun olet tarkistanut asian. Kirjaa löydöt alla olevaan kenttään — tiedot siirtyvät perunkirjoitusvaiheeseen.
-        </p>
-      </div>
-
       <div className="mb-6">
         <h3 className="text-white font-bold mb-4">Varat</h3>
         {[
@@ -683,16 +681,6 @@ function SelvitysOsio({ kuolinpesaId, onValmis, onEdistyminen }) {
 
   return (
     <div>
-      <div className="mb-6 p-4 rounded-lg" style={{backgroundColor: '#0F1E3C', border: '1px solid #4A7ACC'}}>
-        <p style={{color: '#A0AEC0'}} className="text-sm">
-          ℹ️ Käy läpi kategoriat ja merkitse mitkä sopimukset ja palvelut vainajalla oli. "Oli vainajalla" avaa ohjeet hoitamiseen — jos olet jo hoitanut asian, paina suoraan "Hoidettu ✓".
-        </p>
-      </div>
-      <div className="mb-4 p-4 rounded-lg" style={{backgroundColor: '#0F1E3C', border: '1px solid #4A7ACC'}}>
-        <p style={{color: '#A0AEC0'}} className="text-sm">
-          ⚠️ <strong style={{color: 'white'}}>Huom:</strong> Kuolinpesän sopimuksia ei voi irtisanoa yksin. Tähän tarvitaan kaikkien osakkaiden allekirjoittama valtakirja. Suosittelemme tekemään valtakirjan heti alussa.
-        </p>
-      </div>
       <div className="flex flex-col gap-3 mb-6">
         {kategoriat.map(kategoria => {
           const hoidettu = kategoria.sopimukset.filter(s => tilat[s.nimi] === 'hoidettu').length
@@ -803,20 +791,51 @@ function Yhteenveto({ kuolinpesaId, selvitysHoidettu, selvitysKaikki, onValmis }
   )
 }
 
-function TehtavaKortti({ tehtava, onMerkitse, kuolinpesaId, kayttajaEmail, kayttajaNimi }) {
-  const [auki, setAuki] = useState(false)
-  const [kommenttiAuki, setKommenttiAuki] = useState(false)
-  const [uusiKommentti, setUusiKommentti] = useState('')
+function TehtavaKortti({ tehtava, onMerkitse, avattuTehtava, setAvattuTehtava }) {
+  const ohje = ohjeet[tehtava.nimi]
+  const onAuki = avattuTehtava === tehtava.id
+
+  return (
+    <div className="rounded transition-all cursor-pointer" 
+      style={{backgroundColor: onAuki ? '#1B2A4A' : '#0F1E3C', border: `1px solid ${onAuki ? '#C9A84C' : '#2D3E5C'}`}}
+      onClick={() => setAvattuTehtava(onAuki ? null : tehtava.id)}>
+      <div className="flex items-center gap-4 p-4">
+        <div onClick={(e) => { e.stopPropagation(); onMerkitse() }} className="w-6 h-6 rounded flex items-center justify-center flex-shrink-0"
+          style={{backgroundColor: tehtava.tehty ? '#C9A84C' : 'transparent', border: `2px solid ${tehtava.tehty ? '#C9A84C' : '#4A5568'}`}}>
+          {tehtava.tehty && <span style={{color: '#0F1E3C'}} className="text-xs font-bold">✓</span>}
+        </div>
+        <div className="flex-1 flex items-center gap-3">
+          <span className="text-sm font-medium" style={{color: 'white'}}>{tehtava.nimi}</span>
+          {ohje?.kiireellinen && <span className="text-xs px-2 py-0.5 rounded" style={{backgroundColor: '#7C3333', color: '#FCA5A5'}}>⏰ Kiireellinen</span>}
+        </div>
+        <span style={{color: '#C9A84C'}} className="text-xs">{onAuki ? '▲' : '▼'}</span>
+      </div>
+    </div>
+  )
+}
+const ohjeet = {
+  'Tilaa virkatodistus': { kiireellinen: true, miksi: 'Toimituksessa kestää 4-10 viikkoa — tarvitaan pankeissa, vakuutuksissa ja perunkirjoituksessa. Tee tämä ensimmäisenä.', miten: ['Jos vainaja kuului ev.lut. kirkkoon → mene osoitteeseen tilaavirkatodistus.fi','Jos vainaja ei kuulunut kirkkoon → mene osoitteeseen dvv.fi','Tilaa useampi kopio kerralla — tarvitset niitä monessa paikassa','Hinta noin 35-100 €'] },
+  'Selvitä onko testamentti': { kiireellinen: false, miksi: 'Testamentti vaikuttaa siihen kuka perii mitä. Se pitää löytää ja antaa tiedoksi kaikille perillisille 6 kuukauden kuluessa — muuten se menettää voimansa.', miten: ['Tarkista vainajan paperit, tallelokero ja kirjoituspöytä','Kysy asianajajalta tai pankista onko testamentti tallessa','Jos testamentti löytyy — säilytä se turvassa ja vie se perunkirjoitukseen','Testamentti pitää antaa tiedoksi kaikille perillisille kirjallisesti'] },
+  'Ilmoita pankeille': { kiireellinen: false, miksi: 'Pankki jäädyttää tilit automaattisesti mutta oma ilmoitus nopeuttaa asioita. Samalla sovitaan kuka hoitaa kuolinpesän pankkiasioita.', miten: ['Soita vainajan pankin asiakaspalveluun','Ilmoita vainajan nimi ja henkilötunnus','Kerro kuka toimii kuolinpesän hoitajana','Pankki antaa ohjeet kirjallisen ilmoituksen tekemiseen','Huom: Vainajan tililtä voi silti maksaa arjen laskuja ennen perunkirjoitusta'] },
+  'Ilmoita Kelalle': { kiireellinen: false, miksi: 'Jos vainaja sai Kela-etuuksia, ilmoita pian — muuten ylimääräiset maksut peritään takaisin.', miten: ['Soita Kelan palvelunumeroon 020 692 201 (ma-pe 9-16)','Kysy onko sinulla oikeus leskeneläkkeeseen tai lapseneläkkeeseen','Jos sinulla on alle 17-vuotiaita lapsia, kysy lapsilisän yksinhuoltajakorotuksesta'] },
+  'Hae henkivakuutuskorvaus': { kiireellinen: false, miksi: 'Henkivakuutuskorvaus ei tule automaattisesti — se pitää hakea erikseen.', miten: ['Selvitä oliko vainajalla henkivakuutus — tarkista vakuutuskirjoista tai kysy vakuutusyhtiöltä','Selvitä myös oliko vainajalla ryhmähenkivakuutus työnantajan kautta','Ota yhteyttä vakuutusyhtiöön ja pyydä korvaushakemuslomake','Korvaus maksetaan vakuutuksen edunsaajamääräyksen mukaan'] },
+  'Ilmoita työnantajalle ja taloyhtiölle': { kiireellinen: false, miksi: 'Työnantajalla voi olla maksamattomia palkkoja tai ryhmähenkivakuutus.', miten: ['Soita tai kirjoita vainajan viimeiselle työnantajalle — kysy maksamattomista palkoista','Ilmoita taloyhtiön isännöitsijälle','Jos vainaja asui vuokralla: irtisano vuokrasopimus kirjallisesti — tähän tarvitaan kaikkien osakkaiden allekirjoitukset'] },
+  'Ohjaa posti uuteen osoitteeseen': { kiireellinen: false, miksi: 'Vainajalle tuleva posti paljastaa missä palveluissa hän oli asiakkaana.', miten: ['Tee muuttoilmoitus osoitteessa muuttoilmoitus.fi tai Postin toimipisteessä','Ohjaa posti kuolinpesän hoitajan osoitteeseen','Ilmoita uusi osoite myös Verohallinnolle kirjallisesti — tähän tarvitaan kaikkien osakkaiden hyväksyntä'] },
+}
+
+function TehtavaPaneeli({ tehtava, kuolinpesaId, kayttajaEmail, kayttajaNimi, onSulje }) {
   const [kommentit, setKommentit] = useState([])
+  const [uusiKommentti, setUusiKommentti] = useState('')
+  const ohje = ohjeet[tehtava?.nimi]
 
   useEffect(() => {
-    if (!kommenttiAuki || !kuolinpesaId) return
+    if (!kuolinpesaId || !tehtava) return
     const haeKommentit = async () => {
       const { data } = await supabase.from('kommentit').select('*').eq('kuolinpesa_id', kuolinpesaId).eq('tehtava_nimi', tehtava.nimi).order('created_at', { ascending: true })
       if (data) setKommentit(data)
     }
     haeKommentit()
-  }, [kommenttiAuki, kuolinpesaId])
+  }, [kuolinpesaId, tehtava])
 
   const lisaaKommentti = async () => {
     if (!uusiKommentti.trim()) return
@@ -826,73 +845,55 @@ function TehtavaKortti({ tehtava, onMerkitse, kuolinpesaId, kayttajaEmail, kaytt
       kirjoittaja_email: kayttajaNimi || kayttajaEmail,
       teksti: uusiKommentti
     }).select().single()
-    if (data) { setKommentit([...kommentit, data]); setUusiKommentti(''); setKommenttiAuki(false) }
+    if (data) { setKommentit([...kommentit, data]); setUusiKommentti('') }
   }
 
-  const ohjeet = {
-    'Tilaa virkatodistus': { kiireellinen: true, miksi: 'Toimituksessa kestää 4-10 viikkoa — tarvitaan pankeissa, vakuutuksissa ja perunkirjoituksessa. Tee tämä ensimmäisenä.', miten: ['Jos vainaja kuului ev.lut. kirkkoon → mene osoitteeseen tilaavirkatodistus.fi','Jos vainaja ei kuulunut kirkkoon → mene osoitteeseen dvv.fi','Tilaa useampi kopio kerralla — tarvitset niitä monessa paikassa','Hinta noin 35-100 €'] },
-    'Ilmoita pankeille': { kiireellinen: false, miksi: 'Pankki jäädyttää tilit automaattisesti mutta oma ilmoitus nopeuttaa asioita. Samalla sovitaan kuka hoitaa kuolinpesän pankkiasioita.', miten: ['Soita vainajan pankin asiakaspalveluun','Ilmoita vainajan nimi ja henkilötunnus','Kerro kuka toimii kuolinpesän hoitajana','Pankki antaa ohjeet kirjallisen ilmoituksen tekemiseen','Huom: Vainajan tililtä voi silti maksaa arjen laskuja ennen perunkirjoitusta'] },
-    'Ilmoita Kelalle': { kiireellinen: false, miksi: 'Jos vainaja sai Kela-etuuksia, ilmoita pian — muuten ylimääräiset maksut peritään takaisin.', miten: ['Soita Kelan palvelunumeroon 020 692 201 (ma-pe 9-16)','Kysy onko sinulla oikeus leskeneläkkeeseen tai lapseneläkkeeseen','Jos sinulla on alle 17-vuotiaita lapsia, kysy lapsilisän yksinhuoltajakorotuksesta'] },
-    'Hae henkivakuutuskorvaus': { kiireellinen: false, miksi: 'Henkivakuutuskorvaus ei tule automaattisesti — se pitää hakea erikseen.', miten: ['Selvitä oliko vainajalla henkivakuutus — tarkista vakuutuskirjoista tai kysy vakuutusyhtiöltä','Selvitä myös oliko vainajalla ryhmähenkivakuutus työnantajan kautta','Ota yhteyttä vakuutusyhtiöön ja pyydä korvaushakemuslomake','Korvaus maksetaan vakuutuksen edunsaajamääräyksen mukaan'] },
-    'Ilmoita työnantajalle ja taloyhtiölle': { kiireellinen: false, miksi: 'Työnantajalla voi olla maksamattomia palkkoja tai ryhmähenkivakuutus.', miten: ['Soita tai kirjoita vainajan viimeiselle työnantajalle — kysy maksamattomista palkoista','Ilmoita taloyhtiön isännöitsijälle','Jos vainaja asui vuokralla: irtisano vuokrasopimus kirjallisesti — tähän tarvitaan kaikkien osakkaiden allekirjoitukset'] },
-    'Ohjaa posti uuteen osoitteeseen': { kiireellinen: false, miksi: 'Vainajalle tuleva posti paljastaa missä palveluissa hän oli asiakkaana.', miten: ['Tee muuttoilmoitus osoitteessa muuttoilmoitus.fi tai Postin toimipisteessä','Ohjaa posti kuolinpesän hoitajan osoitteeseen','Ilmoita uusi osoite myös Verohallinnolle kirjallisesti — tähän tarvitaan kaikkien osakkaiden hyväksyntä'] },
-  }
-
-  const ohje = ohjeet[tehtava.nimi]
+  if (!tehtava || !ohje) return null
 
   return (
-    <div className="rounded transition-all" style={{backgroundColor: '#0F1E3C', border: '1px solid #2D3E5C'}}>
-      <div className="flex items-center gap-4 p-4 cursor-pointer hover:opacity-80" onClick={() => setAuki(!auki)}>
-        <div onClick={(e) => { e.stopPropagation(); onMerkitse() }} className="w-6 h-6 rounded flex items-center justify-center flex-shrink-0" style={{backgroundColor: tehtava.tehty ? '#C9A84C' : 'transparent', border: `2px solid ${tehtava.tehty ? '#C9A84C' : '#4A5568'}`}}>
-          {tehtava.tehty && <span style={{color: '#0F1E3C'}} className="text-xs font-bold">✓</span>}
+    <div className="rounded-lg p-5 flex flex-col gap-5" style={{backgroundColor: '#1B2A4A', border: '1px solid #C9A84C'}}>
+      <div className="flex items-start justify-between">
+        <div>
+          <h3 className="text-white font-bold text-base mb-1">{tehtava.nimi}</h3>
+          {ohje.kiireellinen && <span className="text-xs px-2 py-0.5 rounded" style={{backgroundColor: '#7C3333', color: '#FCA5A5'}}>⏰ Kiireellinen</span>}
         </div>
-        <div className="flex-1 flex items-center gap-3">
-          <span className="text-sm font-medium" style={{color: 'white'}}>{tehtava.nimi}</span>
-          {ohje?.kiireellinen && <span className="text-xs px-2 py-0.5 rounded" style={{backgroundColor: '#7C3333', color: '#FCA5A5'}}>⏰ Kiireellinen</span>}
-        </div>
-        <div className="flex items-center gap-2">
-          <button onClick={(e) => { e.stopPropagation(); setKommenttiAuki(!kommenttiAuki); setAuki(false) }} className="text-xs px-2 py-1 rounded" style={{color: '#A0AEC0', border: '1px solid #2D3E5C', backgroundColor: '#1B2A4A'}}>
-            💬 Jätä kommentti
-          </button>
-          <span style={{color: '#C9A84C'}} className="text-xs">{auki ? '▲ Piilota' : '▼ Ohjeet'}</span>
-        </div>
+        <button onClick={onSulje} style={{color: '#4A5568'}} className="text-sm hover:opacity-75">✕ Sulje</button>
       </div>
 
-      {kommenttiAuki && (
-        <div className="px-4 pb-4 border-t" style={{borderColor: '#2D3E5C'}}>
-          <div className="mt-3 flex flex-col gap-2 mb-3">
-            {kommentit.length === 0 && <p style={{color: '#4A5568'}} className="text-xs">Ei vielä kommentteja tähän tehtävään.</p>}
-            {kommentit.map((k) => (
-              <div key={k.id} className="p-2 rounded" style={{backgroundColor: '#1B2A4A', border: '1px solid #2D3E5C'}}>
-                <span style={{color: '#C9A84C'}} className="text-xs font-bold">{k.kirjoittaja_email}: </span>
-                <span className="text-white text-xs">{k.teksti}</span>
-              </div>
-            ))}
-          </div>
-          <div className="flex gap-2">
-            <input value={uusiKommentti} onChange={(e) => setUusiKommentti(e.target.value)} placeholder="Kirjoita kommentti..." className="flex-1 px-3 py-2 rounded text-sm text-white placeholder-gray-500 outline-none" style={{backgroundColor: '#1B2A4A', border: '1px solid #2D3E5C'}} onKeyDown={(e) => e.key === 'Enter' && lisaaKommentti()} />
-            <button onClick={lisaaKommentti} className="px-3 py-2 rounded text-sm font-bold" style={{backgroundColor: '#C9A84C', color: '#0F1E3C'}}>→</button>
-          </div>
-        </div>
-      )}
+      <div>
+        <p style={{color: '#A0AEC0'}} className="text-sm">{ohje.miksi}</p>
+      </div>
 
-      {auki && ohje && (
-        <div className="px-4 pb-4 border-t" style={{borderColor: '#2D3E5C'}}>
-          <div className="mt-4 mb-4"><p style={{color: '#A0AEC0'}} className="text-sm">{ohje.miksi}</p></div>
-          <div style={{color: '#C9A84C'}} className="text-xs uppercase tracking-widest mb-2">Miten tehdään</div>
-          <ul className="flex flex-col gap-2 mb-4">
-            {ohje.miten.map((askel, i) => (
-              <li key={i} className="flex gap-3 text-sm" style={{color: 'white'}}>
-                <span style={{color: '#C9A84C'}} className="flex-shrink-0">{i + 1}.</span>{askel}
-              </li>
-            ))}
-          </ul>
+      <div>
+        <div style={{color: '#C9A84C'}} className="text-xs uppercase tracking-widest mb-3">Miten tehdään</div>
+        <ul className="flex flex-col gap-2">
+          {ohje.miten.map((askel, i) => (
+            <li key={i} className="flex gap-3 text-sm" style={{color: 'white'}}>
+              <span style={{color: '#C9A84C'}} className="flex-shrink-0">{i + 1}.</span>{askel}
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      <div className="border-t pt-4" style={{borderColor: '#2D3E5C'}}>
+        <div style={{color: '#C9A84C'}} className="text-xs uppercase tracking-widest mb-3">Kommentit</div>
+        <div className="flex flex-col gap-2 mb-3">
+          {kommentit.length === 0 && <p style={{color: '#4A5568'}} className="text-xs">Ei vielä kommentteja.</p>}
+          {kommentit.map((k) => (
+            <div key={k.id} className="p-2 rounded" style={{backgroundColor: '#0F1E3C', border: '1px solid #2D3E5C'}}>
+              <span style={{color: '#C9A84C'}} className="text-xs font-bold">{k.kirjoittaja_email}: </span>
+              <span className="text-white text-xs">{k.teksti}</span>
+            </div>
+          ))}
         </div>
-      )}
+        <div className="flex gap-2">
+          <input value={uusiKommentti} onChange={(e) => setUusiKommentti(e.target.value)} placeholder="Kirjoita kommentti..." className="flex-1 px-3 py-2 rounded text-sm text-white placeholder-gray-500 outline-none" style={{backgroundColor: '#0F1E3C', border: '1px solid #2D3E5C'}} onKeyDown={(e) => e.key === 'Enter' && lisaaKommentti()} />
+          <button onClick={lisaaKommentti} className="px-3 py-2 rounded text-sm font-bold" style={{backgroundColor: '#C9A84C', color: '#0F1E3C'}}>→</button>
+        </div>
+      </div>
     </div>
   )
 }
-
 function KutsuJasen({ kuolinpesaId }) {
   const [email, setEmail] = useState('')
   const [viesti, setViesti] = useState('')
