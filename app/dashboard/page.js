@@ -337,21 +337,17 @@ const tallennaVahvistettu = async (id) => {
           />
         ))}
       </div>
-      {aktiivinenVaihe === 1 && (
-        <div className="lg:w-80 flex-shrink-0">
-          {avattuTehtava ? (
-            <TehtavaPaneeli
-              tehtava={nykyisetTehtavat.find(t => t.id === avattuTehtava)}
-              kuolinpesaId={kuolinpesa?.id}
-              kayttajaEmail={kuolinpesa?.kayttaja_email}
-              kayttajaNimi={kuolinpesa?.kayttaja_nimi}
-              onSulje={() => setAvattuTehtava(null)}
-            />
-          ) : (
-            <Kommentit kuolinpesaId={kuolinpesa?.id} kayttajaEmail={kuolinpesa?.kayttaja_email} />
-          )}
-        </div>
-      )}
+      {aktiivinenVaihe === 1 && avattuTehtava && (
+  <div className="lg:w-80 flex-shrink-0">
+    <TehtavaPaneeli
+      tehtava={nykyisetTehtavat.find(t => t.id === avattuTehtava)}
+      kuolinpesaId={kuolinpesa?.id}
+      kayttajaEmail={kuolinpesa?.kayttaja_email}
+      kayttajaNimi={kuolinpesa?.kayttaja_nimi}
+      onSulje={() => setAvattuTehtava(null)}
+    />
+  </div>
+)}
     </div>
     <button className="w-full py-4 rounded font-bold text-lg mt-6" style={{backgroundColor: '#C9A84C', color: '#0F1E3C'}} onClick={() => { setAktiivinenVaihe(2); localStorage.setItem('aktiivinenVaihe', 2) }}>
       Siirry omaisuuden selvitykseen →
@@ -875,18 +871,18 @@ function TehtavaPaneeli({ tehtava, kuolinpesaId, kayttajaEmail, kayttajaNimi, on
       </div>
 
       <div>
-        <div style={{color: '#C9A84C'}} className="text-xs uppercase tracking-widest mb-3">Miten tehdään</div>
+        <div style={{color: 'white'}} className="text-xs uppercase tracking-widest mb-3">Miten tehdään</div>
         <ul className="flex flex-col gap-2">
           {ohje.miten.map((askel, i) => (
             <li key={i} className="flex gap-3 text-sm" style={{color: 'white'}}>
-              <span style={{color: '#C9A84C'}} className="flex-shrink-0">{i + 1}.</span>{askel}
+              <span style={{color: 'white'}} className="flex-shrink-0">{i + 1}.</span>{askel}
             </li>
           ))}
         </ul>
       </div>
 
       <div className="border-t pt-4" style={{borderColor: '#2D3E5C'}}>
-        <div style={{color: '#C9A84C'}} className="text-xs uppercase tracking-widest mb-3">Kommentit</div>
+        <div style={{color: 'white'}} className="text-xs uppercase tracking-widest mb-3">💬 Kommentit</div>
         <div className="flex flex-col gap-2 mb-3">
           {kommentit.length === 0 && <p style={{color: '#4A5568'}} className="text-xs">Ei vielä kommentteja.</p>}
           {kommentit.map((k) => (
@@ -918,6 +914,8 @@ const perunkirjoitusTehtavat = [
 
 function PerunkirjoitusOsio({ kuolinpesa, vahvistetutKirjaukset, kayttajaEmail, kayttajaNimi }) {
   const [avattuTehtava, setAvattuTehtava] = useState(null)
+  const [perunkirjoitusTehty, setPerunkirjoitusTehty] = useState({})
+const togglePerunkirjoitusTehty = (id) => setPerunkirjoitusTehty(prev => ({...prev, [id]: !prev[id]}))
   const avattuOhje = perunkirjoitusTehtavat.find(t => t.id === avattuTehtava)
 
   return (
@@ -926,15 +924,20 @@ function PerunkirjoitusOsio({ kuolinpesa, vahvistetutKirjaukset, kayttajaEmail, 
         <div className="flex flex-col gap-3 flex-1">
           {perunkirjoitusTehtavat.map(tehtava => (
             <div key={tehtava.id} className="rounded cursor-pointer transition-all"
-              style={{backgroundColor: avattuTehtava === tehtava.id ? '#1B2A4A' : '#0F1E3C', border: `1px solid ${avattuTehtava === tehtava.id ? '#C9A84C' : '#2D3E5C'}`}}
-              onClick={() => setAvattuTehtava(avattuTehtava === tehtava.id ? null : tehtava.id)}>
-              <div className="flex items-center gap-4 p-4">
-                <div className="flex-1">
-                  <span className="text-sm font-medium text-white">{tehtava.nimi}</span>
-                </div>
-                <span style={{color: '#C9A84C'}} className="text-xs">{avattuTehtava === tehtava.id ? '▲' : '▼'}</span>
-              </div>
-            </div>
+  style={{backgroundColor: avattuTehtava === tehtava.id ? '#1B2A4A' : '#0F1E3C', border: `1px solid ${avattuTehtava === tehtava.id ? '#C9A84C' : '#2D3E5C'}`}}
+  onClick={() => setAvattuTehtava(avattuTehtava === tehtava.id ? null : tehtava.id)}>
+  <div className="flex items-center gap-4 p-4">
+    <div onClick={(e) => { e.stopPropagation(); togglePerunkirjoitusTehty(tehtava.id) }}
+      className="w-6 h-6 rounded flex items-center justify-center flex-shrink-0"
+      style={{backgroundColor: perunkirjoitusTehty[tehtava.id] ? '#C9A84C' : 'transparent', border: `2px solid ${perunkirjoitusTehty[tehtava.id] ? '#C9A84C' : '#4A5568'}`}}>
+      {perunkirjoitusTehty[tehtava.id] && <span style={{color: '#0F1E3C'}} className="text-xs font-bold">✓</span>}
+    </div>
+    <div className="flex-1">
+      <span className="text-sm font-medium" style={{color: 'white'}}>{tehtava.nimi}</span>
+    </div>
+    <span style={{color: '#C9A84C'}} className="text-xs">{avattuTehtava === tehtava.id ? '▲' : '▼'}</span>
+  </div>
+</div>
           ))}
         </div>
 
