@@ -397,13 +397,7 @@ const tallennaVahvistettu = async (id) => {
           </div>
 
 {/* Oikea sivupalkki - näytetään muissa vaiheissa */}
-          {aktiivinenVaihe !== 1 && (
-            <div className="lg:w-80 flex-shrink-0">
-              <Kommentit kuolinpesaId={kuolinpesa?.id} kayttajaEmail={kuolinpesa?.kayttaja_email} />
-            </div>
-          )}
-    
-
+         
         </div>
       </div>
     </div>
