@@ -321,9 +321,9 @@ const tallennaVahvistettu = async (id) => {
             </div>
 
             <div className="rounded-lg p-6 transition-all" style={{backgroundColor: '#1B2A4A', border: '1px solid #2D3E5C', opacity: kaikkiEsiTarkistuksetTehty ? 1 : 0.3, pointerEvents: kaikkiEsiTarkistuksetTehty ? 'auto' : 'none'}}>
-              <h2 className="text-white font-bold text-lg mb-6">Vaihe {aktiivinenVaihe}: {vaiheet[aktiivinenVaihe-1].nimi}</h2>
+  <h2 className="text-white font-bold text-lg mb-6">Vaihe {aktiivinenVaihe}: {vaiheet[aktiivinenVaihe-1].nimi}</h2>
 
-              {aktiivinenVaihe === 1 && (
+  {aktiivinenVaihe === 1 && (
   <>
     <div className="flex gap-6">
       <div className="flex flex-col gap-3 flex-1">
@@ -337,15 +337,19 @@ const tallennaVahvistettu = async (id) => {
           />
         ))}
       </div>
-      {avattuTehtava && (
-        <div className="w-80 flex-shrink-0">
-          <TehtavaPaneeli
-            tehtava={nykyisetTehtavat.find(t => t.id === avattuTehtava)}
-            kuolinpesaId={kuolinpesa?.id}
-            kayttajaEmail={kuolinpesa?.kayttaja_email}
-            kayttajaNimi={kuolinpesa?.kayttaja_nimi}
-            onSulje={() => setAvattuTehtava(null)}
-          />
+      {aktiivinenVaihe === 1 && (
+        <div className="lg:w-80 flex-shrink-0">
+          {avattuTehtava ? (
+            <TehtavaPaneeli
+              tehtava={nykyisetTehtavat.find(t => t.id === avattuTehtava)}
+              kuolinpesaId={kuolinpesa?.id}
+              kayttajaEmail={kuolinpesa?.kayttaja_email}
+              kayttajaNimi={kuolinpesa?.kayttaja_nimi}
+              onSulje={() => setAvattuTehtava(null)}
+            />
+          ) : (
+            <Kommentit kuolinpesaId={kuolinpesa?.id} kayttajaEmail={kuolinpesa?.kayttaja_email} />
+          )}
         </div>
       )}
     </div>
@@ -371,9 +375,18 @@ const tallennaVahvistettu = async (id) => {
                 </>
               )}
 
-              {aktiivinenVaihe > 2 && (
-                <p style={{color: '#4A5568'}} className="text-sm">Tämä osio on tulossa pian.</p>
-              )}
+              {aktiivinenVaihe === 3 && (
+  <PerunkirjoitusOsio
+    kuolinpesa={kuolinpesa}
+    vahvistetutKirjaukset={vahvistetutKirjaukset}
+    kayttajaEmail={kuolinpesa?.kayttaja_email}
+    kayttajaNimi={kuolinpesa?.kayttaja_nimi}
+  />
+)}
+
+{aktiivinenVaihe > 3 && (
+  <p style={{color: '#4A5568'}} className="text-sm">Tämä osio on tulossa pian.</p>
+)}
             </div>
 
             <div className="rounded-lg p-6 mt-6" style={{backgroundColor: '#1B2A4A', border: '1px solid #2D3E5C'}}>
@@ -383,10 +396,13 @@ const tallennaVahvistettu = async (id) => {
 
           </div>
 
-          {/* Oikea sivupalkki */}
-          <div className="lg:w-80 flex flex-col gap-6">
-            <Kommentit kuolinpesaId={kuolinpesa?.id} kayttajaEmail={kuolinpesa?.kayttaja_email} />
-          </div>
+{/* Oikea sivupalkki - näytetään muissa vaiheissa */}
+          {aktiivinenVaihe !== 1 && (
+            <div className="lg:w-80 flex-shrink-0">
+              <Kommentit kuolinpesaId={kuolinpesa?.id} kayttajaEmail={kuolinpesa?.kayttaja_email} />
+            </div>
+          )}
+    
 
         </div>
       </div>
@@ -891,6 +907,70 @@ function TehtavaPaneeli({ tehtava, kuolinpesaId, kayttajaEmail, kayttajaNimi, on
           <button onClick={lisaaKommentti} className="px-3 py-2 rounded text-sm font-bold" style={{backgroundColor: '#C9A84C', color: '#0F1E3C'}}>→</button>
         </div>
       </div>
+    </div>
+  )
+}
+const perunkirjoitusTehtavat = [
+  { id: 'pk1', nimi: 'Määritä pesänilmoittaja', miksi: 'Pesänilmoittaja on se henkilö joka ottaa vetovastuun perunkirjoituksesta. Yleensä leski tai vanhin perillinen.', miten: ['Sopikaa osakkaiden kesken kuka ottaa vetovastuun','Pesänilmoittaja allekirjoittaa perukirjan ja vastaa sen oikeellisuudesta','Ilmoittakaa valinnasta muille osakkaille'] },
+  { id: 'pk2', nimi: 'Hanki uskottu mies', miksi: 'Perunkirjoituksessa täytyy olla kaksi uskottua miestä — he eivät voi olla perillisiä tai puoliso.', miten: ['Pyydä kaksi ulkopuolista henkilöä toimimaan uskottuina miehinä','He voivat olla esim. naapureita tai tuttavia','He allekirjoittavat perukirjan ja todistevat sen oikeellisuuden'] },
+  { id: 'pk3', nimi: 'Kutsu kaikki osakkaat', miksi: 'Kaikille osakkaille on annettava tieto perunkirjoituksen ajankohdasta.', miten: ['Ilmoita kaikille perillisille kirjallisesti','Kirjaa ylös kenelle on ilmoitettu ja milloin','Osakkaiden ei ole pakko osallistua — ilmoitus riittää'] },
+  { id: 'pk4', nimi: 'Kerää virkatodistukset osakkaista', miksi: 'Perukirjaan tarvitaan virkatodistukset kaikista osakkaista sukuselvityksen varmistamiseksi.', miten: ['Tilaa virkatodistus jokaisesta osakkaasta','Ev.lut. kirkon jäsenet: tilaavirkatodistus.fi','Muut: dvv.fi'] },
+  { id: 'pk5', nimi: 'Tarkista aviokirja tai avioehtosopimus', miksi: 'Jos vainaja oli naimisissa, aviokirja tai avioehtosopimus vaikuttaa siihen mitä kuuluu kuolinpesään.', miten: ['Tarkista vainajan paperit','Aviokirja tai avioehtosopimus liitetään perukirjaan','Jos ei löydy — se tarkoittaa että avio-oikeus on voimassa'] },
+  { id: 'pk6', nimi: 'Pidä perunkirjoitustilaisuus', miksi: 'Perunkirjoitus on pidettävä 3 kuukauden kuluessa kuolemasta. Määräaikaa voi hakea jatkoa Verohallinnolta.', miten: ['Sovi aika ja paikka kaikkien osakkaiden ja uskottujen miesten kanssa','Käykää läpi kaikki varat ja velat','Uskotut miehet allekirjoittavat perukirjan'] },
+  { id: 'pk7', nimi: 'Laadi perukirja', miksi: 'Perukirja on virallinen asiakirja joka listaa kaikki vainajan varat ja velat kuolinhetkellä.', miten: ['Käytä alla olevaa "Generoi perukirjapohja" -nappia pohjana','Täytä puuttuvat tiedot kuten henkilötunnukset','Uskotut miehet ja pesänilmoittaja allekirjoittavat'] },
+  { id: 'pk8', nimi: 'Toimita perukirja Verohallinnolle', miksi: 'Perukirja on toimitettava Verohallinnolle kuukauden kuluessa perunkirjoitustilaisuudesta.', miten: ['Lähetä perukirja osoitteeseen: Verohallinto, PL 700, 00052 VERO','Tai toimita OmaVero-palvelussa','Liitä mukaan testamentti jos sellainen on'] },
+  { id: 'pk9', nimi: 'Toimita perukirja pankille', miksi: 'Pankki tarvitsee perukirjan ennen kuin kuolinpesän tilejä voidaan käyttää tai sulkea.', miten: ['Toimita perukirja kaikkiin pankkeihin joissa vainajalla oli tilejä','Pyydä pankista tiliotteet kuolinpäivältä','Sovi pankin kanssa tilien jatkosta'] },
+]
+
+function PerunkirjoitusOsio({ kuolinpesa, vahvistetutKirjaukset, kayttajaEmail, kayttajaNimi }) {
+  const [avattuTehtava, setAvattuTehtava] = useState(null)
+  const avattuOhje = perunkirjoitusTehtavat.find(t => t.id === avattuTehtava)
+
+  return (
+    <div>
+      <div className="flex gap-6">
+        <div className="flex flex-col gap-3 flex-1">
+          {perunkirjoitusTehtavat.map(tehtava => (
+            <div key={tehtava.id} className="rounded cursor-pointer transition-all"
+              style={{backgroundColor: avattuTehtava === tehtava.id ? '#1B2A4A' : '#0F1E3C', border: `1px solid ${avattuTehtava === tehtava.id ? '#C9A84C' : '#2D3E5C'}`}}
+              onClick={() => setAvattuTehtava(avattuTehtava === tehtava.id ? null : tehtava.id)}>
+              <div className="flex items-center gap-4 p-4">
+                <div className="flex-1">
+                  <span className="text-sm font-medium text-white">{tehtava.nimi}</span>
+                </div>
+                <span style={{color: '#C9A84C'}} className="text-xs">{avattuTehtava === tehtava.id ? '▲' : '▼'}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {avattuTehtava && avattuOhje && (
+          <div className="w-80 flex-shrink-0">
+            <div className="rounded-lg p-5 flex flex-col gap-5" style={{backgroundColor: '#1B2A4A', border: '1px solid #C9A84C'}}>
+              <div className="flex items-start justify-between">
+                <h3 className="text-white font-bold text-base">{avattuOhje.nimi}</h3>
+                <button onClick={() => setAvattuTehtava(null)} style={{color: '#4A5568'}} className="text-sm hover:opacity-75">✕</button>
+              </div>
+              <p style={{color: '#A0AEC0'}} className="text-sm">{avattuOhje.miksi}</p>
+              <div>
+                <div style={{color: '#C9A84C'}} className="text-xs uppercase tracking-widest mb-3">Miten tehdään</div>
+                <ul className="flex flex-col gap-2">
+                  {avattuOhje.miten.map((askel, i) => (
+                    <li key={i} className="flex gap-3 text-sm text-white">
+                      <span style={{color: '#C9A84C'}} className="flex-shrink-0">{i + 1}.</span>{askel}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      <button className="w-full py-4 rounded font-bold text-lg mt-8" style={{backgroundColor: '#C9A84C', color: '#0F1E3C'}}
+        onClick={() => alert('Perukirjapohja tulossa pian!')}>
+        Generoi perukirjapohja →
+      </button>
     </div>
   )
 }
