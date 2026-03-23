@@ -93,31 +93,31 @@ const kategoriat = [
 
 const varatJaVelatMuistilista = {
   varat: [
-    { id: 'pankkitilit', teksti: 'Pankkitilit', ohje: 'Pyydä pankista täydellinen tililistaus. Tarkista kaikki pankit joissa vainaja saattoi olla asiakkaana.' },
-    { id: 'kateinen', teksti: 'Käteinen kotona', ohje: 'Tarkista kodin yleisimmät piilopaikat — lipasto, kaappi, kassakirja.' },
-    { id: 'sijoitukset', teksti: 'Sijoitukset (osakkeet, rahastot)', ohje: 'Tarkista OmaVero ja pankin verkkopankki. Sijoitukset näkyvät myös verottajan tiedoissa.' },
-    { id: 'asunnot', teksti: 'Asunto-osakkeet ja kiinteistöt', ohje: 'Tarkista lainhuutotodistus maanmittauslaitokselta. Asunto-osakkeet näkyvät isännöitsijäntodistuksessa.' },
-    { id: 'ajoneuvot', teksti: 'Ajoneuvot (auto, mopo, vene, mönkijä)', ohje: 'Tarkista Traficomin ajoneuvorekisteri. Kaikki vainajan nimissä olevat ajoneuvot siirtyvät kuolinpesälle.' },
-    { id: 'metsa', teksti: 'Metsätilat', ohje: 'Tarkista maanmittauslaitoksen kiinteistörekisteri. Metsätilat ovat usein unohdettua omaisuutta.' },
-    { id: 'mokki', teksti: 'Kesämökki tai vapaa-ajan kiinteistö', ohje: 'Tarkista maanmittauslaitoksen lainhuutotodistus.' },
-    { id: 'tallelokero', teksti: 'Tallelokero pankissa', ohje: 'Kysy kaikilta pankeilta onko vainajalla tallelokeroa. Tallelokero vaatii avaamista pesänselvittäjän läsnäollessa.' },
-    { id: 'krypto', teksti: 'Kryptovaluutat', ohje: 'Tarkista vainajan tietokoneen lompakkosovellukset ja sähköpostit kryptopörssien vahvistuksista.' },
-    { id: 'osuuskunnat', teksti: 'Osuuskunnat (S-osuus, OP-osuus, HOK)', ohje: 'Osuuskunnan jäsenyys näkyy jäsenkirjeistä tai kysymällä suoraan osuuskunnalta.' },
-    { id: 'elakesaastot', teksti: 'Eläkesäästöt ja kapitalisaatiosopimukset', ohje: 'Kysy vakuutusyhtiöiltä onko vainajalla vapaaehtoista eläkesäästämistä.' },
-    { id: 'veronpalautus', teksti: 'Veronpalautukset', ohje: 'Tarkista OmaVero.fi — avoinna olevat veronpalautukset kuuluvat kuolinpesälle.' },
-    { id: 'lomarahat', teksti: 'Ansaitsemattomat lomarahat', ohje: 'Kysy viimeiseltä työnantajalta onko maksamattomia palkkoja tai lomarahoja.' },
-    { id: 'vakuutuskorvaukset', teksti: 'Keskeneräiset vakuutuskorvaukset', ohje: 'Tarkista onko vainajalla vireillä olevia vakuutuskorvauksia joita ei ole vielä maksettu.' },
-    { id: 'arvoesineet', teksti: 'Arvoesineet (korut, taide, antiikki)', ohje: 'Arvoesineet pitää arvioida perunkirjoitusta varten. Ota yhteyttä arvioijaan.' },
+    { id: 'pankkitilit', teksti: 'Pankkitilit', ohje: 'Pyydä pankista täydellinen tililistaus. Tarkista kaikki pankit joissa vainaja saattoi olla asiakkaana.', esimerkki: 'Esim. OP-tili, Nordea säästötili' },
+    { id: 'kateinen', teksti: 'Käteinen kotona', ohje: 'Tarkista kodin yleisimmät piilopaikat — lipasto, kaappi, kassakirja.', esimerkki: 'Esim: käteistä löytyi lipastosta' },
+    { id: 'sijoitukset', teksti: 'Sijoitukset (osakkeet, rahastot)', ohje: 'Tarkista OmaVero ja pankin verkkopankki. Sijoitukset näkyvät myös verottajan tiedoissa.', esimerkki: 'Esim: Nordnet-tili, OP-rahasto' },
+    { id: 'asunnot', teksti: 'Asunto-osakkeet ja kiinteistöt', ohje: 'Tarkista lainhuutotodistus maanmittauslaitokselta. Asunto-osakkeet näkyvät isännöitsijäntodistuksessa.', esimerkki: 'Esim: 2h+k Helsinki Kallio, As Oy Kallionkatu' },
+    { id: 'ajoneuvot', teksti: 'Ajoneuvot (auto, mopo, vene, mönkijä)', ohje: 'Tarkista Traficomin ajoneuvorekisteri. Kaikki vainajan nimissä olevat ajoneuvot siirtyvät kuolinpesälle.', esimerkki: 'Esim: Toyota Corolla 2015' },
+    { id: 'metsa', teksti: 'Metsätilat', ohje: 'Tarkista maanmittauslaitoksen kiinteistörekisteri. Metsätilat ovat usein unohdettua omaisuutta.', esimerkki: 'Esim: metsätila Kuopiossa' },
+    { id: 'mokki', teksti: 'Kesämökki tai vapaa-ajan kiinteistö', ohje: 'Tarkista maanmittauslaitoksen lainhuutotodistus.', esimerkki: 'Esim: mökki Savonlinnassa' },
+    { id: 'tallelokero', teksti: 'Tallelokero pankissa', ohje: 'Kysy kaikilta pankeilta onko vainajalla tallelokeroa. Tallelokero vaatii avaamista pesänselvittäjän läsnäollessa.', esimerkki: 'Esim: tallelokero OP Helsingin konttorissa' },
+    { id: 'krypto', teksti: 'Kryptovaluutat', ohje: 'Tarkista vainajan tietokoneen lompakkosovellukset ja sähköpostit kryptopörssien vahvistuksista.', esimerkki: 'Esim: Bitcoin Coinbase-lompakossa' },
+    { id: 'osuuskunnat', teksti: 'Osuuskunnat (S-osuus, OP-osuus, HOK)', ohje: 'Osuuskunnan jäsenyys näkyy jäsenkirjeistä tai kysymällä suoraan osuuskunnalta.', esimerkki: 'Esim: S-osuus, OP-osuudet' },
+    { id: 'elakesaastot', teksti: 'Eläkesäästöt ja kapitalisaatiosopimukset', ohje: 'Kysy vakuutusyhtiöiltä onko vainajalla vapaaehtoista eläkesäästämistä.', esimerkki: 'Esim: vapaaehtoinen eläkevakuutus LähiTapiolassa' },
+    { id: 'veronpalautus', teksti: 'Veronpalautukset', ohje: 'Tarkista OmaVero.fi — avoinna olevat veronpalautukset kuuluvat kuolinpesälle.', esimerkki: 'Esim: veronpalautus OmaVerossa' },
+    { id: 'lomarahat', teksti: 'Ansaitsemattomat lomarahat', ohje: 'Kysy viimeiseltä työnantajalta onko maksamattomia palkkoja tai lomarahoja.', esimerkki: 'Esim: maksamattomat lomarahat työnantajalta' },
+    { id: 'vakuutuskorvaukset', teksti: 'Keskeneräiset vakuutuskorvaukset', ohje: 'Tarkista onko vainajalla vireillä olevia vakuutuskorvauksia joita ei ole vielä maksettu.', esimerkki: 'Esim: vireillä oleva korvaus If vakuutukselta' },
+    { id: 'arvoesineet', teksti: 'Arvoesineet (korut, taide, antiikki)', ohje: 'Arvoesineet pitää arvioida perunkirjoitusta varten. Ota yhteyttä arvioijaan.', esimerkki: 'Esim: kultakello, öljymaalaus' },
   ],
   velat: [
-    { id: 'asuntolaina', teksti: 'Asuntolaina', ohje: 'Kysy pankista lainan jäljellä oleva saldo. Tarkista onko lainassa lainaturva.' },
-    { id: 'kulutusluotot', teksti: 'Kulutusluotot ja pikavipit', ohje: 'Tarkista positiivirekisteri.fi — siellä näkyvät kaikki vainajan luotot.' },
-    { id: 'autolaina', teksti: 'Autolaina / rahoitussopimus', ohje: 'Kysy rahoitusyhtiöltä lainan jäljellä oleva saldo.' },
-    { id: 'opintolaina', teksti: 'Opintolaina', ohje: 'Tarkista Kelasta onko opintolainaa jäljellä.' },
-    { id: 'osamaksut', teksti: 'Osamaksusopimukset (puhelin, kodinkone)', ohje: 'Tarkista laskut ja sopimukset — osamaksut jatkuvat kunnes ne maksetaan pois.' },
-    { id: 'takaukset', teksti: 'Takaukset toisten lainoille', ohje: 'Takaukset siirtyvät kuolinpesälle. Kysy pankista onko vainaja taannut jonkun toisen lainaa.' },
-    { id: 'maksamattomat', teksti: 'Maksamattomat laskut', ohje: 'Tarkista vainajan posti ja sähköposti. Maksamattomat laskut ovat kuolinpesän velkoja.' },
-    { id: 'verorästit', teksti: 'Verorästit', ohje: 'Tarkista OmaVero.fi — avoinna olevat verot ovat kuolinpesän velkoja.' },
+    { id: 'asuntolaina', teksti: 'Asuntolaina', ohje: 'Kysy pankista lainan jäljellä oleva saldo. Tarkista onko lainassa lainaturva.', esimerkki: 'Esim: asuntolaina OP:ssa' },
+    { id: 'kulutusluotot', teksti: 'Kulutusluotot ja pikavipit', ohje: 'Tarkista positiivirekisteri.fi — siellä näkyvät kaikki vainajan luotot.', esimerkki: 'Esim: Ferratum-luotto, Visa-luottokortti' },
+    { id: 'autolaina', teksti: 'Autolaina / rahoitussopimus', ohje: 'Kysy rahoitusyhtiöltä lainan jäljellä oleva saldo.', esimerkki: 'Esim: Toyota Financial Services rahoitus' },
+    { id: 'opintolaina', teksti: 'Opintolaina', ohje: 'Tarkista Kelasta onko opintolainaa jäljellä.', esimerkki: 'Esim: opintolaina Kelasta' },
+    { id: 'osamaksut', teksti: 'Osamaksusopimukset (puhelin, kodinkone)', ohje: 'Tarkista laskut ja sopimukset — osamaksut jatkuvat kunnes ne maksetaan pois.', esimerkki: 'Esim: iPhone osamaksu Elisalta' },
+    { id: 'takaukset', teksti: 'Takaukset toisten lainoille', ohje: 'Takaukset siirtyvät kuolinpesälle. Kysy pankista onko vainaja taannut jonkun toisen lainaa.', esimerkki: 'Esim: taannut pojan asuntolainan OP:ssa' },
+    { id: 'maksamattomat', teksti: 'Maksamattomat laskut', ohje: 'Tarkista vainajan posti ja sähköposti. Maksamattomat laskut ovat kuolinpesän velkoja.', esimerkki: 'Esim: maksamaton sähkölasku, lääkärilasku' },
+    { id: 'verorästit', teksti: 'Verorästit', ohje: 'Tarkista OmaVero.fi — avoinna olevat verot ovat kuolinpesän velkoja.', esimerkki: 'Esim: verorästit OmaVerossa' },
   ]
 }
 
@@ -236,7 +236,12 @@ const tallennaVahvistettu = async (id) => {
   setVaratKirjaukset(prev => ({...prev, [id]: ''}))
   if (kuolinpesa?.id) await supabase.from('kuolinpesat').update({ varat_vahvistetut: uudet }).eq('id', kuolinpesa.id)
 }
-
+const poistaVahvistettu = async (id, index) => {
+  const lista = Array.isArray(vahvistetutKirjaukset[id]) ? vahvistetutKirjaukset[id] : [vahvistetutKirjaukset[id]]
+  const uudet = { ...vahvistetutKirjaukset, [id]: lista.filter((_, i) => i !== index) }
+  setVahvistetutKirjaukset(uudet)
+  if (kuolinpesa?.id) await supabase.from('kuolinpesat').update({ varat_vahvistetut: uudet }).eq('id', kuolinpesa.id)
+}
   const tallennaTeksti = async (teksti) => {
     setVaratVelatTeksti(teksti)
     if (kuolinpesa) await supabase.from('kuolinpesat').update({ varat_velat_teksti: teksti }).eq('id', kuolinpesa.id)
@@ -384,23 +389,25 @@ const tallennaVahvistettu = async (id) => {
       </div>
        {aktiivinenAlivaihe === 1 && (
  <div className="lg:w-80 flex-shrink-0" style={{marginTop: '60px'}}>
-          {avattuKohta ? (
-            <VaratJaVelatPaneeli
-              kohta={avattuKohta}
-              kirjaukset={varatKirjaukset}
-              onKirjaus={tallennaKirjaus}
-              vahvistetut={vahvistetutKirjaukset}
-              onVahvista={tallennaVahvistettu}
-              onSulje={() => setAvattuKohta(null)}
-            />
-          ) : (
-           <div className="rounded-lg p-5" style={{backgroundColor: '#1B2A4A', border: '1px solid #2D3E5C', position: 'sticky', top: '20px'}}>
-              <h3 className="text-white font-bold text-base mb-3">Näin Varat ja velat toimii</h3>
-              <p style={{color: '#A0AEC0'}} className="text-sm mb-4">Käy lista läpi ja merkitse Kyllä tai Ei jokaiselle kohdalle.</p>
-              <p style={{color: '#A0AEC0'}} className="text-sm mb-4">Kyllä-vastaukseen avautuu ohjeet ja kirjauskenttä — kirjaa mitä löytyi.</p>
-              <p style={{color: '#A0AEC0'}} className="text-sm">Löydöt kerääntyvät automaattisesti yhteenvetoon sivun alareunaan.</p>
-            </div>
-          )}
+          <div className="flex flex-col gap-4" style={{position: 'sticky', top: '20px'}}>
+  <div className="rounded-lg p-5" style={{backgroundColor: '#1B2A4A', border: '1px solid #C9A84C', position: 'sticky', top: '20px'}}>
+    <h3 className="text-white font-bold text-base mb-3">Näin Varat ja velat toimii</h3>
+    <p style={{color: '#A0AEC0'}} className="text-sm mb-4">Käy lista läpi ja merkitse Kyllä tai Ei jokaiselle kohdalle.</p>
+    <p style={{color: '#A0AEC0'}} className="text-sm mb-4">Klikkaa riviä nähdäksesi ohjeet ja kirjauskentän. Merkitse Kyllä jos asia koskee vainajaa, Ei jos ei koske.</p>
+    <p style={{color: '#A0AEC0'}} className="text-sm">Löydöt kerääntyvät automaattisesti yhteenvetoon sivun alareunaan.</p>
+  </div>
+  {avattuKohta && (
+    <VaratJaVelatPaneeli
+      kohta={avattuKohta}
+      kirjaukset={varatKirjaukset}
+      onKirjaus={tallennaKirjaus}
+      vahvistetut={vahvistetutKirjaukset}
+      onVahvista={tallennaVahvistettu}
+      onSulje={() => setAvattuKohta(null)}
+      onPoista={poistaVahvistettu}
+    />
+  )}
+</div>
         </div>
       )}
     </div>
@@ -559,7 +566,7 @@ function VaratJaVelat({ rastitattu, onToggle, kirjaukset, onKirjaus, vahvistetut
             <p className="text-white font-bold text-sm mb-3">{kategoria.otsikko}</p>
             <div className="flex flex-col gap-2">
               {varatJaVelatMuistilista.varat.filter(k => kategoria.kohteet.includes(k.id)).map(kohta => (
-                <div key={kohta.id} className="rounded cursor-pointer" onClick={() => setAvattuKohta(avattuKohta === kohta.id ? null : kohta.id)} style={{backgroundColor: '#1B2A4A', border: `1px solid ${avattuKohta === kohta.id ? '#C9A84C' : '#2D3E5C'}`, opacity: rastitattu[kohta.id] === 'ei' ? 0.5 : 1}}>
+                <div key={kohta.id} className="rounded cursor-pointer" onClick={() => { if (rastitattu[kohta.id] !== 'ei') setAvattuKohta(avattuKohta === kohta.id ? null : kohta.id) }} style={{backgroundColor: '#1B2A4A', border: `1px solid ${avattuKohta === kohta.id ? '#C9A84C' : '#2D3E5C'}`, opacity: rastitattu[kohta.id] === 'ei' ? 0.5 : 1}}>
   <div className="flex items-center justify-between p-3">
                     <p className="text-white text-sm font-medium flex-1 mr-4">{kohta.teksti}</p>
                     <div className="flex gap-2 flex-shrink-0">
@@ -616,8 +623,7 @@ function VaratJaVelat({ rastitattu, onToggle, kirjaukset, onKirjaus, vahvistetut
         ))}
       </div>
 
-      {(varatJaVelatMuistilista.varat.some(k => rastitattu[k.id] === 'kylla' && vahvistetut[k.id]) ||
-        varatJaVelatMuistilista.velat.some(k => rastitattu['velat_' + k.id] === 'kylla' && vahvistetut['velat_' + k.id])) && (
+      
         <div className="p-4 rounded-lg" style={{backgroundColor: '#0F1E3C', border: '1px solid #2D3E5C'}}>
           <h3 className="text-white font-bold mb-4">📊 Yhteenveto löydöistä</h3>
           {varatJaVelatMuistilista.varat.some(k => rastitattu[k.id] === 'kylla' && vahvistetut[k.id]) && (
@@ -633,13 +639,16 @@ function VaratJaVelat({ rastitattu, onToggle, kirjaukset, onKirjaus, vahvistetut
           {varatJaVelatMuistilista.velat.some(k => rastitattu['velat_' + k.id] === 'kylla' && vahvistetut['velat_' + k.id]) && (
             <div>
               <p style={{color: '#C9A84C'}} className="text-xs uppercase tracking-widest mb-2">Velat</p>
-              {varatJaVelatMuistilista.velat.filter(k => rastitattu['velat_' + k.id] === 'kylla' && vahvistetut['velat_' + k.id]).map(k => (
-                <p key={k.id} className="text-white text-sm mb-1">- {k.teksti} — {vahvistetut['velat_' + k.id]}</p>
-              ))}
+             {varatJaVelatMuistilista.velat.filter(k => rastitattu['velat_' + k.id] === 'kylla' && vahvistetut['velat_' + k.id]?.length > 0).flatMap(k =>
+  (Array.isArray(vahvistetut['velat_' + k.id]) ? vahvistetut['velat_' + k.id] : [vahvistetut['velat_' + k.id]]).map((v, i) => (
+    <p key={k.id + i} className="text-white text-sm mb-1">- {k.teksti} — {v}</p>
+  ))
+)}
             </div>
           )}
         </div>
-      )}
+      
+      
     </div>
   )
 }
@@ -971,7 +980,7 @@ const togglePerunkirjoitusTehty = (id) => setPerunkirjoitusTehty(prev => ({...pr
     </div>
   )
 }
-function VaratJaVelatPaneeli({ kohta, kirjaukset, onKirjaus, vahvistetut, onVahvista, onSulje }) {
+function VaratJaVelatPaneeli({ kohta, kirjaukset, onKirjaus, vahvistetut, onVahvista, onSulje, onPoista }) {
   const isVelat = kohta.startsWith('velat_')
   const puhtaastiId = isVelat ? kohta.replace('velat_', '') : kohta
   const lista = isVelat ? varatJaVelatMuistilista.velat : varatJaVelatMuistilista.varat
@@ -987,15 +996,18 @@ function VaratJaVelatPaneeli({ kohta, kirjaukset, onKirjaus, vahvistetut, onVahv
       </div>
       <p style={{color: '#A0AEC0'}} className="text-sm">{kohtatiedot.ohje}</p>
       <div className="border-t pt-4" style={{borderColor: '#2D3E5C'}}>
-        <div style={{color: 'white'}} className="text-xs uppercase tracking-widest mb-3">Kirjaa löydöt</div>
+        <p className="text-white font-bold text-sm mb-3">Kirjaa löydöt</p>
         <div className="flex flex-col gap-1 mb-3">
           {(Array.isArray(vahvistetut[kohta]) ? vahvistetut[kohta] : vahvistetut[kohta] ? [vahvistetut[kohta]] : []).map((v, i) => (
-            <p key={i} className="text-white text-sm">- {v}</p>
-          ))}
+  <div key={i} className="flex items-center justify-between">
+    <p className="text-white text-sm">- {v}</p>
+    <button onClick={() => onPoista(kohta, i)} style={{color: '#FC8181'}} className="text-xs hover:opacity-75 flex-shrink-0 ml-2">Poista</button>
+  </div>
+))}
         </div>
         <div className="flex gap-2">
           <input value={kirjaukset[kohta] || ''} onChange={(e) => onKirjaus(kohta, e.target.value)}
-            placeholder="Esim: OP tili — n. 12 000€"
+            placeholder={kohtatiedot.esimerkki || "Esim: kirjaa löytö..."}
             className="flex-1 px-3 py-1 rounded text-xs text-white placeholder-gray-500 outline-none"
             style={{backgroundColor: '#0F1E3C', border: '1px solid #2D3E5C'}} />
           <button onClick={() => onVahvista(kohta)} className="text-xs px-3 py-1 rounded font-bold"
