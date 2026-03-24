@@ -601,7 +601,7 @@ function VaratJaVelat({ rastitattu, onToggle, kirjaukset, onKirjaus, vahvistetut
                     onClick={() => setAvattuKohta(onValittu ? null : id)}>
                     <div className="flex items-center justify-between p-3 gap-3">
                       <span className="text-sm flex-1 text-white">{kohta.teksti}</span>
-                      {onKylla && <span className="text-xs font-bold px-2 py-0.5 rounded flex-shrink-0" style={{backgroundColor: '#1A3A1A', color: '#4ADE80', border: '1px solid #4ADE80'}}>LÖYTYI</span>}
+
                       <div className="flex gap-2 flex-shrink-0" onClick={e => e.stopPropagation()}>
                         <button onClick={() => onToggle(id, 'kylla')} className="text-xs px-3 py-1 rounded font-bold"
                           style={{backgroundColor: onKylla ? '#C9A84C' : '#0F1E3C', color: onKylla ? '#0F1E3C' : '#6B7280', border: '1px solid #2D3E5C'}}>
@@ -739,26 +739,29 @@ function SelvitysOsio({ kuolinpesaId, onValmis, onEdistyminen, avattuSopimus, se
                         const onValittu = avattuSopimus?.nimi === sopimus.nimi
                         return (
                           <div key={sopimus.nimi} className="rounded cursor-pointer"
-                            style={{backgroundColor: '#1B2A4A', border: `1px solid ${onValittu ? '#C9A84C' : onHoidettu ? '#C9A84C' : onAvoinna ? '#4A7ACC' : '#2D3E5C'}`}}
+                            style={{backgroundColor: '#1B2A4A', border: `1px solid ${onValittu || onHoidettu || onAvoinna ? '#C9A84C' : '#2D3E5C'}`}}
                             onClick={() => setAvattuSopimus(onValittu ? null : { ...sopimus, kategoriaId: kategoria.id })}>
                             <div className="flex items-center justify-between p-3 gap-3">
                               <span className="text-sm flex-1" style={{color: onHoidettu ? '#C9A84C' : 'white'}}>{sopimus.nimi}</span>
-                              {onHoidettu && <span className="text-xs font-bold px-2 py-0.5 rounded flex-shrink-0" style={{backgroundColor: '#1A3A1A', color: '#4ADE80', border: '1px solid #4ADE80'}}>HOIDETTU</span>}
+                              
                               <div className="flex gap-2 flex-shrink-0" onClick={e => e.stopPropagation()}>
-                                {!onHoidettu && (
-                                  <>
-                                    <button onClick={() => paivitaTila(sopimus.nimi, 'avoinna', kategoria.id)} className="text-xs px-3 py-1 rounded whitespace-nowrap"
-                                      style={{backgroundColor: onAvoinna ? '#2D4A7A' : '#0F1E3C', color: onAvoinna ? 'white' : '#6B7280', border: `1px solid ${onAvoinna ? '#4A7ACC' : '#2D3E5C'}`}}>
-                                      {onAvoinna ? '✓ Oli vainajalla' : 'Oli vainajalla'}
-                                    </button>
-                                    <button onClick={() => paivitaTila(sopimus.nimi, 'hoidettu', kategoria.id)} className="text-xs px-3 py-1 rounded whitespace-nowrap"
-                                      style={{backgroundColor: '#0F1E3C', color: '#6B7280', border: '1px solid #2D3E5C'}}>
-                                      Ei ollut
-                                    </button>
-                                  </>
-                                )}
-                                {onHoidettu && <button onClick={() => paivitaTila(sopimus.nimi, null, kategoria.id)} className="text-xs px-3 py-1 rounded"
-                                  style={{color: '#4A5568', border: '1px solid #2D3E5C', backgroundColor: '#0F1E3C'}}>Peruuta</button>}
+  {true && (
+  <>
+    <button onClick={() => paivitaTila(sopimus.nimi, 'avoinna', kategoria.id)} className="text-xs px-3 py-1 rounded font-bold"
+      style={{backgroundColor: onAvoinna ? '#C9A84C' : '#0F1E3C', color: onAvoinna ? '#0F1E3C' : '#6B7280', border: '1px solid #2D3E5C'}}>
+      Kyllä
+    </button>
+    <button onClick={() => paivitaTila(sopimus.nimi, 'ei', kategoria.id)} className="text-xs px-3 py-1 rounded font-bold"
+      style={{backgroundColor: tilat[sopimus.nimi] === 'ei' ? '#C9A84C' : '#0F1E3C', color: tilat[sopimus.nimi] === 'ei' ? '#0F1E3C' : '#6B7280', border: '1px solid #2D3E5C'}}>
+      Ei
+    </button>
+    <button onClick={() => paivitaTila(sopimus.nimi, 'hoidettu', kategoria.id)} className="text-xs px-3 py-1 rounded font-bold"
+      style={{backgroundColor: onHoidettu ? '#C9A84C' : '#0F1E3C', color: onHoidettu ? '#0F1E3C' : '#6B7280', border: '1px solid #2D3E5C'}}>
+      Hoidettu
+    </button>
+  </>
+)}
+                                
                               </div>
                             </div>
                           </div>
@@ -778,8 +781,8 @@ function SelvitysOsio({ kuolinpesaId, onValmis, onEdistyminen, avattuSopimus, se
         <div className="rounded-lg p-5" style={{backgroundColor: '#1B2A4A', border: '1px solid #C9A84C', position: 'sticky', top: '20px'}}>
           <h3 className="text-white font-bold text-base mb-3">Näin Sopimukset toimii</h3>
           <p style={{color: '#A0AEC0'}} className="text-sm mb-4">Avaa kategoriat ja klikkaa sopimusta nähdäksesi ohjeet.</p>
-          <p style={{color: '#A0AEC0'}} className="text-sm mb-4">Merkitse "Oli vainajalla" jos sopimus oli voimassa — ohjeet kertovat miten se hoidetaan.</p>
-          <p style={{color: '#A0AEC0'}} className="text-sm">"Ei ollut" merkitsee sopimuksen hoidetuksi automaattisesti.</p>
+          <p style={{color: '#A0AEC0'}} className="text-sm mb-4">Merkitse "Kyllä" jos sopimus oli voimassa — ohjeet kertovat miten se hoidetaan.</p>
+          <p style={{color: '#A0AEC0'}} className="text-sm">"Ei" merkitsee sopimuksen hoidetuksi automaattisesti.</p>
         </div>
         {avattuSopimus && (
           <div className="rounded-lg p-5 flex flex-col gap-4" style={{backgroundColor: '#1B2A4A', border: '1px solid #C9A84C'}}>
