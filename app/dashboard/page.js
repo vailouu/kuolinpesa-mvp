@@ -570,11 +570,7 @@ function VaratJaVelat({ rastitattu, onToggle, kirjaukset, onKirjaus, vahvistetut
   <div className="flex items-center justify-between p-3">
                     <p className="text-white text-sm font-medium flex-1 mr-4">{kohta.teksti}</p>
                     <div className="flex gap-2 flex-shrink-0">
-                      <button onClick={() => { 
-  const uusiTila = rastitattu[kohta.id] === 'kylla' ? null : 'kylla'
-  onToggle(kohta.id, 'kylla')
-  setAvattuKohta(uusiTila ? kohta.id : null)
-}} className="text-xs px-3 py-1 rounded font-bold"
+                      <button onClick={(e) => { e.stopPropagation(); onToggle(kohta.id, 'kylla') }} className="text-xs px-3 py-1 rounded font-bold"
                         style={{backgroundColor: rastitattu[kohta.id] === 'kylla' ? '#C9A84C' : '#0F1E3C', color: rastitattu[kohta.id] === 'kylla' ? '#0F1E3C' : '#6B7280', border: '1px solid #2D3E5C'}}>
                         Kyllä
                       </button>
@@ -606,7 +602,7 @@ function VaratJaVelat({ rastitattu, onToggle, kirjaukset, onKirjaus, vahvistetut
                   <div className="flex items-center justify-between p-3">
                     <p className="text-white text-sm font-medium flex-1 mr-4">{kohta.teksti}</p>
                     <div className="flex gap-2 flex-shrink-0">
-                      <button onClick={() => { const uusiTila = rastitattu['velat_' + kohta.id] === 'kylla' ? null : 'kylla'; onToggle('velat_' + kohta.id, 'kylla'); setAvattuKohta(uusiTila ? 'velat_' + kohta.id : null) }} className="text-xs px-3 py-1 rounded font-bold"
+                      <button onClick={(e) => { e.stopPropagation(); onToggle('velat_' + kohta.id, 'kylla') }} className="text-xs px-3 py-1 rounded font-bold"
                         style={{backgroundColor: rastitattu['velat_' + kohta.id] === 'kylla' ? '#C9A84C' : '#0F1E3C', color: rastitattu['velat_' + kohta.id] === 'kylla' ? '#0F1E3C' : '#6B7280', border: '1px solid #2D3E5C'}}>
                         Kyllä
                       </button>
