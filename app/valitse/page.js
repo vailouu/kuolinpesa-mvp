@@ -17,7 +17,11 @@ useEffect(() => {
 
   return (
     <div className="min-h-screen" style={{backgroundColor: '#0F1E3C'}}>
-
+<div className="px-8 pt-6">
+  <button onClick={() => router.push('/')} style={{color: '#C9A84C'}} className="text-sm hover:opacity-75">
+    ← Takaisin etusivulle
+  </button>
+</div>
       <nav style={{borderBottom: '1px solid #C9A84C'}} className="px-8 py-4 flex items-center justify-between">
         <div style={{color: '#C9A84C'}} className="text-xl font-bold tracking-widest uppercase">
           Pesänhoitaja
@@ -36,18 +40,17 @@ useEffect(() => {
       <div className="flex flex-col items-center justify-center text-center px-6 py-24">
 
         <div style={{color: '#C9A84C', letterSpacing: '4px'}} className="text-sm uppercase mb-6">
-          — Kuolinpesän hallinta —
+          — Valitse, miten aloitat —
         </div>
 
         <h1 className="text-white text-5xl font-bold mb-4 max-w-2xl leading-tight">
-          Et voi poistaa surua.
+Miten voimme
+auttaa sinua tänään?
         </h1>
-        <h1 style={{color: '#C9A84C'}} className="text-5xl font-bold mb-8 max-w-2xl leading-tight">
-          Voit poistaa kaaoksen.
-        </h1>
+     
 
         <p style={{color: '#A0AEC0'}} className="text-lg max-w-2xl mb-16 leading-relaxed">
-          Kaikki mitä pitää hoitaa yhdellä alustalla — viranomaisista ja pankeista jokaiseen liittymään, sopimukseen ja vakuutukseen asti. Jaettu dashboard kaikille osakkaille, selkeät ohjeet jokaiseen vaiheeseen. Täysi varmuus siitä, että kaikki on hoidettu.
+          Valitse tilanteeseesi sopiva polku. Voit aloittaa kuolinpesän hoidon, valmistella tietoja läheisillesi etukäteen, tai avata vainajan valmiiksi kokoamat tiedot.
         </p>
 
         <div className="grid grid-cols-1 gap-6 w-full max-w-4xl md:grid-cols-3">
