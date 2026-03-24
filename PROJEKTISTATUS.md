@@ -13,7 +13,7 @@
 - Kulta: `#C9A84C`
 - Kortti: `#1B2A4A`
 - Teksti: `#FFFFFF` / `#A0AEC0`
-- HOIDETTU badge: `#4ADE80` on `#1A3A1A`
+- HOIDETTU/LÖYTYI badge: `#4ADE80` on `#1A3A1A`
 
 ## Tiedostorakenne
 - `app/page.js` — Etusivu (markkinointisivu)
@@ -38,8 +38,8 @@
 ## Prosessin rakenne (5 vaihetta)
 1. **Ensitoimet** — tehtävälista (virkatodistus, pankki, Kela jne.)
 2. **Omaisuuden selvitys** — 3 alivälilehteä:
-   - Varat ja velat (Kyllä/Ei + kirjauskenttä + yhteenveto)
-   - Sopimukset (5 kategoriaa, 52+ sopimusta)
+   - Varat ja velat
+   - Sopimukset
    - Yhteenveto
 3. **Perunkirjoitus** — tehtävälista (9 tehtävää) + "Generoi perukirjapohja" nappi
 4. **Hoito ja toimeenpano** — tulossa
@@ -47,39 +47,60 @@
 
 ## UI-arkkitehtuuri
 
-### Sivupaneeli-rakenne (kaikissa osioissa)
-- **Vasen puoli:** lista/tehtävät/sopimukset
+### Sivupaneeli-rakenne (kaikissa osioissa sama)
+- **Vasen puoli:** lista/tehtävät/sopimukset — pysyy aina samankokoisena
 - **Oikea puoli (sticky):**
-  - Yläosa: yleinen ohjekortti (aina näkyvissä)
+  - Yläosa: yleinen ohjekortti (aina näkyvissä, kultainen reunus)
   - Alaosa: klikatun elementin ohjeet + kommentit (ilmestyy klikkauksesta)
 
 ### Ensitoimet
 - Tehtävät listattuna järjestyksessä
 - Checkmark-boksi vasemmalla
 - Klikkaamalla riviä avautuu oikea paneeli (ohjeet + kommentit)
+- Oikealla oletuksena "Näin Ensitoimet toimii" -ohjekortti
 - "Siirry omaisuuden selvitykseen →" nappi listan alla
 
 ### Varat ja velat
-- Kategoriat: Pankkivarat, Sijoitukset, Kiinteistöt, Omaisuus, Saatavat, Lainat, Luotot, Muut velat
+- Kategoriat accordioneina: Pankkivarat, Sijoitukset, Kiinteistöt, Omaisuus, Saatavat / Lainat, Luotot, Muut velat
+- X/Y löytyi laskuri kategorian alla
 - Jokainen rivi: Kyllä/Ei napit + klikattava rivi
-- Kyllä → avautuu oikea paneeli jossa ohje + kirjauskenttä + kommentit
-- Kirjatut löydöt näkyvät sekä paneelissa että yhteenvedossa sivun alareunassa
+- Klikatessa avautuu oikea paneeli: ohje + kirjauskenttä (esimerkki-placeholder per kohde) + kommentit
+- Kirjatut löydöt näkyvät paneelissa, poistettavissa Poista-napilla
+- Yhteenveto-blokki sivun alareunassa
+- Oikealla oletuksena "Näin Varat ja velat toimii" -ohjekortti (sticky)
 
 ### Sopimukset
-- 5 kategoriaa, accordionit
-- Klikkaamalla sopimusta avautuu oikea paneeli
+- 9 kategoriaa accordioneina, X/Y hoidettu laskuri
+- Klikkaamalla sopimusta avautuu oikea paneeli: ohjeet + "Merkitse hoidetuksi ✓" nappi
 - "Oli vainajalla" / "Ei ollut" napit
-- "Merkitse hoidetuksi ✓" nappi paneelissa
+- Oikealla oletuksena "Näin Sopimukset toimii" -ohjekortti (sticky)
 
 ### Perunkirjoitus
 - 9 tehtävää listattuna
 - Checkmark-boksi + klikattava rivi → oikea paneeli
-- "Generoi perukirjapohja →" nappi listan alla (placeholder)
+- "Generoi perukirjapohja →" nappi listan alla (placeholder, alert)
 
-## Kommentointi
-- Tehtäväkohtaiset kommentit (kommentit-taulu)
-- Oikean sivupalkin yleinen kommenttikenttä (Ensitoimet-osiossa)
-- Kommenteissa näkyy kirjoittajan nimi (ei sähköposti)
+## Dashboard-statet (tärkeimmät)
+```js
+const [aktiivinenVaihe, setAktiivinenVaihe] = useState(1) // localStorage
+const [aktiivinenAlivaihe, setAktiivinenAlivaihe] = useState(1) // localStorage
+const [avattuTehtava, setAvattuTehtava] = useState(null) // Ensitoimet
+const [avattuKohta, setAvattuKohta] = useState(null) // Varat ja velat
+const [avattuSopimus, setAvattuSopimus] = useState(null) // Sopimukset
+const [varatRastitattu, setVaratRastitattu] = useState({}) // Supabase
+const [varatKirjaukset, setVaratKirjaukset] = useState({}) // Supabase
+const [vahvistetutKirjaukset, setVahvistetutKirjaukset] = useState({}) // Supabase
+```
+
+## Komponentit
+- `TehtavaKortti` — rivi Ensitoimissa
+- `TehtavaPaneeli` — oikea paneeli Ensitoimissa (ohjeet + kommentit)
+- `VaratJaVelat` — Varat ja velat -osio (accordion-rakenne)
+- `VaratJaVelatPaneeli` — oikea paneeli Varat ja velat -osiossa
+- `SelvitysOsio` — Sopimukset-osio (sisältää oman sivupaneelin)
+- `PerunkirjoitusOsio` — Perunkirjoitus-osio
+- `Yhteenveto` — Yhteenveto-alivälilehti
+- `KutsuJasen` — tiimin jäsenten lisäys
 
 ## Navigaatio
 - Logo vasemmassa yläkulmassa
@@ -92,13 +113,15 @@
 - Perukirjapohja generoidaan ilman tarkkoja summia — toimii muistilistana asianajajalle
 - Sopimuksia ei voi irtisanoa yksin — valtakirja tarvitaan
 - RLS pois päältä MVP-vaiheessa
+- Kommenteissa näkyy kirjoittajan nimi (ei sähköposti)
+- Sovelluksen kohdeyleisö: perheet jotka haluavat selvitä ilman asianajajaa tai minimoida asianajajan käyttöä
 
 ## Pending / Tulossa
-- Perukirjapohjan generointi (Word/PDF)
-- Vaihe 4: Hoito ja toimeenpano (omaisuuden jako, perinnönjakosopimus)
+- Perukirjapohjan generointi (Word/PDF) — docx-skill käytettävissä
+- Vaihe 4: Hoito ja toimeenpano (omaisuuden jako, perinnönjakosopimus, äänestysrakenne per omaisuuserä)
 - Vaihe 5: Päätös
+- Kommentointi Varat ja velat + Sopimukset -osioihin (nyt "tulossa pian")
 - Realtime-kommentit (Supabase Realtime)
-- Testamentti-osio Perunkirjoitukseen
 - RLS päälle ennen tuotantoa
 - Mobiilioptimointi
 - Tapahtumaloki sopivampaan paikkaan
