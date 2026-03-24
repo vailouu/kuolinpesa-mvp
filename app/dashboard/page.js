@@ -552,75 +552,95 @@ function Tapahtumaloki({ kuolinpesaId }) {
 }
 
 function VaratJaVelat({ rastitattu, onToggle, kirjaukset, onKirjaus, vahvistetut, onVahvista, avattuKohta, setAvattuKohta }) {
+  const [avatutKategoriat, setAvatutKategoriat] = useState({})
+
+  const toggleKategoria = (id) => setAvatutKategoriat(prev => ({ ...prev, [id]: !prev[id] }))
+
+  const varatKategoriat = [
+    { id: 'pankkivarat', otsikko: '🏦 Pankkivarat', kohteet: ['pankkitilit', 'kateinen', 'tallelokero'] },
+    { id: 'sijoitukset', otsikko: '📈 Sijoitukset', kohteet: ['sijoitukset', 'krypto', 'elakesaastot', 'osuuskunnat'] },
+    { id: 'kiinteistot', otsikko: '🏠 Kiinteistöt', kohteet: ['asunnot', 'mokki', 'metsa'] },
+    { id: 'omaisuus', otsikko: '🚗 Omaisuus', kohteet: ['ajoneuvot', 'arvoesineet'] },
+    { id: 'saatavat', otsikko: '📋 Saatavat', kohteet: ['veronpalautus', 'lomarahat', 'vakuutuskorvaukset'] },
+  ]
+
+  const velatKategoriat = [
+    { id: 'lainat', otsikko: '🏦 Lainat', kohteet: ['asuntolaina', 'autolaina', 'opintolaina'] },
+    { id: 'luotot', otsikko: '💳 Luotot', kohteet: ['kulutusluotot', 'osamaksut'] },
+    { id: 'muutvelat', otsikko: '📄 Muut velat', kohteet: ['takaukset', 'maksamattomat', 'verorästit'] },
+  ]
+
+  const renderKategoria = (kategoria, lista, etuliite = '') => {
+    const auki = avatutKategoriat[kategoria.id]
+    const kohteet = lista.filter(k => kategoria.kohteet.includes(k.id))
+    const kyllaMaara = kohteet.filter(k => rastitattu[etuliite + k.id] === 'kylla').length
+
+    return (
+      <div key={kategoria.id} className="rounded-lg overflow-hidden" style={{backgroundColor: '#0F1E3C', border: `1px solid ${kyllaMaara === kohteet.length && kyllaMaara > 0 ? '#C9A84C' : '#2D3E5C'}`}}>
+        <div className="flex items-center justify-between p-4 cursor-pointer hover:opacity-80" onClick={() => toggleKategoria(kategoria.id)}>
+    <div>
+  <p className="text-white font-bold text-sm">{kategoria.otsikko}</p>
+  <p style={{color: kyllaMaara > 0 ? '#C9A84C' : '#4A5568'}} className="text-xs">{kyllaMaara}/{kohteet.length} löytyi</p>
+</div>
+          <div className="flex items-center gap-2">
+  {kyllaMaara === kohteet.length && kyllaMaara > 0 && <span style={{color: '#C9A84C'}} className="text-xs">✓ Valmis</span>}
+  <span style={{color: '#C9A84C'}} className="text-xs">{auki ? '▲' : '▼'}</span>
+</div>
+        </div>
+        {auki && (
+          <div className="px-4 pb-4 border-t flex flex-col gap-2" style={{borderColor: '#2D3E5C'}}>
+            <div className="mt-3 flex flex-col gap-2">
+              {kohteet.map(kohta => {
+                const id = etuliite + kohta.id
+                const onValittu = avattuKohta === id
+                const onKylla = rastitattu[id] === 'kylla'
+                const onEi = rastitattu[id] === 'ei'
+                return (
+                  <div key={kohta.id} className="rounded cursor-pointer"
+                    style={{backgroundColor: '#1B2A4A', border: `1px solid ${onValittu ? '#C9A84C' : '#2D3E5C'}`, opacity: onEi ? 0.5 : 1}}
+                    onClick={() => setAvattuKohta(onValittu ? null : id)}>
+                    <div className="flex items-center justify-between p-3 gap-3">
+                      <span className="text-sm flex-1 text-white">{kohta.teksti}</span>
+                      {onKylla && <span className="text-xs font-bold px-2 py-0.5 rounded flex-shrink-0" style={{backgroundColor: '#1A3A1A', color: '#4ADE80', border: '1px solid #4ADE80'}}>LÖYTYI</span>}
+                      <div className="flex gap-2 flex-shrink-0" onClick={e => e.stopPropagation()}>
+                        <button onClick={() => onToggle(id, 'kylla')} className="text-xs px-3 py-1 rounded font-bold"
+                          style={{backgroundColor: onKylla ? '#C9A84C' : '#0F1E3C', color: onKylla ? '#0F1E3C' : '#6B7280', border: '1px solid #2D3E5C'}}>
+                          Kyllä
+                        </button>
+                        <button onClick={() => onToggle(id, 'ei')} className="text-xs px-3 py-1 rounded font-bold"
+                          style={{backgroundColor: onEi ? '#C9A84C' : '#0F1E3C', color: onEi ? '#0F1E3C' : '#6B7280', border: '1px solid #2D3E5C'}}>
+                          Ei
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        )}
+      </div>
+    )
+  }
+
   return (
     <div>
       <div className="mb-6">
         <h3 className="text-white font-bold mb-4">Varat</h3>
-        {[
-          { otsikko: '🏦 Pankkivarat', kohteet: ['pankkitilit', 'kateinen', 'tallelokero'] },
-          { otsikko: '📈 Sijoitukset', kohteet: ['sijoitukset', 'krypto', 'elakesaastot', 'osuuskunnat'] },
-          { otsikko: '🏠 Kiinteistöt', kohteet: ['asunnot', 'mokki', 'metsa'] },
-          { otsikko: '🚗 Omaisuus', kohteet: ['ajoneuvot', 'arvoesineet'] },
-          { otsikko: '📋 Saatavat', kohteet: ['veronpalautus', 'lomarahat', 'vakuutuskorvaukset'] },
-        ].map(kategoria => (
-          <div key={kategoria.otsikko} className="mb-4 p-4 rounded-lg" style={{backgroundColor: '#0F1E3C', border: '1px solid #2D3E5C'}}>
-            <p className="text-white font-bold text-sm mb-3">{kategoria.otsikko}</p>
-            <div className="flex flex-col gap-2">
-              {varatJaVelatMuistilista.varat.filter(k => kategoria.kohteet.includes(k.id)).map(kohta => (
-                <div key={kohta.id} className="rounded cursor-pointer" onClick={() => { if (rastitattu[kohta.id] !== 'ei') setAvattuKohta(avattuKohta === kohta.id ? null : kohta.id) }} style={{backgroundColor: '#1B2A4A', border: `1px solid ${avattuKohta === kohta.id ? '#C9A84C' : '#2D3E5C'}`, opacity: rastitattu[kohta.id] === 'ei' ? 0.5 : 1}}>
-  <div className="flex items-center justify-between p-3">
-                    <p className="text-white text-sm font-medium flex-1 mr-4">{kohta.teksti}</p>
-                    <div className="flex gap-2 flex-shrink-0">
-                      <button onClick={(e) => { e.stopPropagation(); onToggle(kohta.id, 'kylla') }} className="text-xs px-3 py-1 rounded font-bold"
-                        style={{backgroundColor: rastitattu[kohta.id] === 'kylla' ? '#C9A84C' : '#0F1E3C', color: rastitattu[kohta.id] === 'kylla' ? '#0F1E3C' : '#6B7280', border: '1px solid #2D3E5C'}}>
-                        Kyllä
-                      </button>
-                      <button onClick={() => { onToggle(kohta.id, 'ei'); setAvattuKohta(null) }} className="text-xs px-3 py-1 rounded font-bold"
-                        style={{backgroundColor: rastitattu[kohta.id] === 'ei' ? '#C9A84C' : '#0F1E3C', color: rastitattu[kohta.id] === 'ei' ? '#0F1E3C' : '#6B7280', border: '1px solid #2D3E5C'}}>
-                        Ei
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        ))}
+        <div className="flex flex-col gap-3">
+          {varatKategoriat.map(k => renderKategoria(k, varatJaVelatMuistilista.varat))}
+        </div>
       </div>
 
       <div className="mb-6">
         <h3 className="text-white font-bold mb-4">Velat</h3>
-        {[
-          { otsikko: '🏦 Lainat', kohteet: ['asuntolaina', 'autolaina', 'opintolaina'] },
-          { otsikko: '💳 Luotot', kohteet: ['kulutusluotot', 'osamaksut'] },
-          { otsikko: '📄 Muut velat', kohteet: ['takaukset', 'maksamattomat', 'verorästit'] },
-        ].map(kategoria => (
-          <div key={kategoria.otsikko} className="mb-4 p-4 rounded-lg" style={{backgroundColor: '#0F1E3C', border: '1px solid #2D3E5C'}}>
-            <p className="text-white font-bold text-sm mb-3">{kategoria.otsikko}</p>
-            <div className="flex flex-col gap-2">
-              {varatJaVelatMuistilista.velat.filter(k => kategoria.kohteet.includes(k.id)).map(kohta => (
-                <div key={kohta.id} className="rounded cursor-pointer" onClick={() => setAvattuKohta(avattuKohta === 'velat_' + kohta.id ? null : 'velat_' + kohta.id)} style={{backgroundColor: '#1B2A4A', border: `1px solid ${avattuKohta === 'velat_' + kohta.id ? '#C9A84C' : '#2D3E5C'}`, opacity: rastitattu['velat_' + kohta.id] === 'ei' ? 0.5 : 1}}>
-                  <div className="flex items-center justify-between p-3">
-                    <p className="text-white text-sm font-medium flex-1 mr-4">{kohta.teksti}</p>
-                    <div className="flex gap-2 flex-shrink-0">
-                      <button onClick={(e) => { e.stopPropagation(); onToggle('velat_' + kohta.id, 'kylla') }} className="text-xs px-3 py-1 rounded font-bold"
-                        style={{backgroundColor: rastitattu['velat_' + kohta.id] === 'kylla' ? '#C9A84C' : '#0F1E3C', color: rastitattu['velat_' + kohta.id] === 'kylla' ? '#0F1E3C' : '#6B7280', border: '1px solid #2D3E5C'}}>
-                        Kyllä
-                      </button>
-                      <button onClick={() => { onToggle('velat_' + kohta.id, 'ei'); setAvattuKohta(null) }} className="text-xs px-3 py-1 rounded font-bold"
-                        style={{backgroundColor: rastitattu['velat_' + kohta.id] === 'ei' ? '#C9A84C' : '#0F1E3C', color: rastitattu['velat_' + kohta.id] === 'ei' ? '#0F1E3C' : '#6B7280', border: '1px solid #2D3E5C'}}>
-                        Ei
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        ))}
+        <div className="flex flex-col gap-3">
+          {velatKategoriat.map(k => renderKategoria(k, varatJaVelatMuistilista.velat, 'velat_'))}
+        </div>
       </div>
 
-      
+      {(varatJaVelatMuistilista.varat.some(k => rastitattu[k.id] === 'kylla' && vahvistetut[k.id]) ||
+        varatJaVelatMuistilista.velat.some(k => rastitattu['velat_' + k.id] === 'kylla' && vahvistetut['velat_' + k.id])) && (
         <div className="p-4 rounded-lg" style={{backgroundColor: '#0F1E3C', border: '1px solid #2D3E5C'}}>
           <h3 className="text-white font-bold mb-4">📊 Yhteenveto löydöistä</h3>
           {varatJaVelatMuistilista.varat.some(k => rastitattu[k.id] === 'kylla' && vahvistetut[k.id]) && (
@@ -636,16 +656,13 @@ function VaratJaVelat({ rastitattu, onToggle, kirjaukset, onKirjaus, vahvistetut
           {varatJaVelatMuistilista.velat.some(k => rastitattu['velat_' + k.id] === 'kylla' && vahvistetut['velat_' + k.id]) && (
             <div>
               <p style={{color: '#C9A84C'}} className="text-xs uppercase tracking-widest mb-2">Velat</p>
-             {varatJaVelatMuistilista.velat.filter(k => rastitattu['velat_' + k.id] === 'kylla' && vahvistetut['velat_' + k.id]?.length > 0).flatMap(k =>
-  (Array.isArray(vahvistetut['velat_' + k.id]) ? vahvistetut['velat_' + k.id] : [vahvistetut['velat_' + k.id]]).map((v, i) => (
-    <p key={k.id + i} className="text-white text-sm mb-1">- {k.teksti} — {v}</p>
-  ))
-)}
+              {varatJaVelatMuistilista.velat.filter(k => rastitattu['velat_' + k.id] === 'kylla' && vahvistetut['velat_' + k.id]).map(k => (
+                <p key={k.id} className="text-white text-sm mb-1">- {k.teksti} — {vahvistetut['velat_' + k.id]}</p>
+              ))}
             </div>
           )}
         </div>
-      
-      
+      )}
     </div>
   )
 }
@@ -695,7 +712,7 @@ function SelvitysOsio({ kuolinpesaId, onValmis, onEdistyminen, avattuSopimus, se
             const auki = avatutKategoriat[kategoria.id]
             const kaikkiValmis = hoidettu === kaikki
             return (
-              <div key={kategoria.id} className="rounded-lg overflow-hidden" style={{backgroundColor: '#0F1E3C', border: `1px solid ${kaikkiValmis && hoidettu > 0 ? '#C9A84C' : '#2D3E5C'}`}}>
+              <div key={kategoria.id} className="rounded-lg overflow-hidden" style={{backgroundColor: '#0F1E3C', border: `1px solid ${hoidettu === kaikki && hoidettu > 0 ? '#C9A84C' : '#2D3E5C'}`}}>
                 <div className="flex items-center justify-between p-4 cursor-pointer hover:opacity-80" onClick={() => toggleKategoria(kategoria.id)}>
                   <div className="flex items-center gap-3">
                     <span className="text-xl">{kategoria.ikoni}</span>
@@ -706,7 +723,10 @@ function SelvitysOsio({ kuolinpesaId, onValmis, onEdistyminen, avattuSopimus, se
                   </div>
                   <div className="flex items-center gap-2">
                     {kaikkiValmis && hoidettu > 0 && <span style={{color: '#C9A84C'}} className="text-xs">✓ Valmis</span>}
-                    <span style={{color: '#C9A84C'}} className="text-xs">{auki ? '▲' : '▼'}</span>
+                    <div className="flex items-center gap-2">
+  {hoidettu === kaikki && hoidettu > 0 && <span style={{color: '#C9A84C'}} className="text-xs">✓ Valmis</span>}
+  <span style={{color: '#C9A84C'}} className="text-xs">{auki ? '▲' : '▼'}</span>
+</div>
                   </div>
                 </div>
                 {auki && (
