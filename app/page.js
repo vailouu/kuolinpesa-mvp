@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from './supabase'
-
+import GlobalNav from './components/GlobalNav'
 export default function Home() {
   const router = useRouter()
   const [kirjautunut, setKirjautunut] = useState(false)
@@ -19,33 +19,31 @@ export default function Home() {
     <div style={{ backgroundColor: '#0F1E3C', fontFamily: 'Georgia, serif', color: 'white', minHeight: '100vh' }}>
 
       {/* Nav */}
-      <nav style={{ borderBottom: '1px solid #2D3E5C', padding: '20px 64px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <div style={{ color: '#C9A84C', letterSpacing: '4px', fontSize: '15px', fontWeight: 'bold', textTransform: 'uppercase' }}>
-          Pesänhoitaja
-        </div>
-        <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
-          {kirjautunut ? (
-            <button onClick={() => router.push('/dashboard')}
-              style={{ backgroundColor: '#C9A84C', color: '#0F1E3C', border: 'none', padding: '10px 22px', fontSize: '13px', fontWeight: 'bold', borderRadius: '6px', cursor: 'pointer', fontFamily: 'Georgia, serif' }}>
-              Siirry dashboardille →
-            </button>
-          ) : (
-            <>
-              <button onClick={() => router.push('/kirjaudu')}
-                style={{ color: '#A0AEC0', background: 'none', border: 'none', fontSize: '13px', cursor: 'pointer', fontFamily: 'Georgia, serif' }}>
-                Kirjaudu
-              </button>
-              <button onClick={() => router.push('/valitse')}
-                style={{ backgroundColor: '#C9A84C', color: '#0F1E3C', border: 'none', padding: '10px 22px', fontSize: '13px', fontWeight: 'bold', borderRadius: '6px', cursor: 'pointer', fontFamily: 'Georgia, serif' }}>
-                Aloita ilmaiseksi →
-              </button>
-            </>
-          )}
-        </div>
-      </nav>
+ <nav style={{ borderBottom: '1px solid #C9A84C', padding: '16px 64px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+  <div onClick={() => router.push('/')} style={{ color: '#C9A84C', letterSpacing: '3px', cursor: 'pointer' }} className="text-xl font-bold tracking-widest uppercase">
+    Pesänhoitaja
+  </div>
+  <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
+    {kirjautunut ? (
+      <GlobalNav />
+    ) : (
+      <>
+        <button onClick={() => router.push('/kirjaudu')}
+          style={{ color: '#A0AEC0', background: 'none', border: 'none', fontSize: '13px', cursor: 'pointer', fontFamily: 'Georgia, serif' }}>
+          Kirjaudu
+        </button>
+        <button onClick={() => router.push('/valitse')}
+          style={{ backgroundColor: '#C9A84C', color: '#0F1E3C', border: 'none', padding: '10px 22px', fontSize: '13px', fontWeight: 'bold', borderRadius: '6px', cursor: 'pointer', fontFamily: 'Georgia, serif' }}>
+          Aloita ilmaiseksi →
+        </button>
+      </>
+    )}
+  </div>
+</nav>
 
       {/* Hero — keskitetty */}
       <div style={{ padding: '100px 64px 88px', textAlign: 'center', borderBottom: '1px solid #2D3E5C', position: 'relative', overflow: 'hidden' }}>
+     
         <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse at 50% 60%, rgba(201,168,76,0.07) 0%, transparent 70%)', pointerEvents: 'none' }} />
         <div style={{ position: 'absolute', top: 0, left: '50%', transform: 'translateX(-50%)', width: '1px', height: '80px', background: 'linear-gradient(to bottom, rgba(201,168,76,0.4), transparent)', pointerEvents: 'none' }} />
         <div style={{ color: '#C9A84C', letterSpacing: '5px', fontSize: '11px', textTransform: 'uppercase', marginBottom: '28px', position: 'relative' }}>

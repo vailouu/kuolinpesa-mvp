@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '../supabase'
-
+import GlobalNav from '../components/GlobalNav'
 export default function Home() {
   const router = useRouter()
 const [kirjautunut, setKirjautunut] = useState(false)
@@ -18,24 +18,18 @@ useEffect(() => {
   return (
     <div className="min-h-screen" style={{backgroundColor: '#0F1E3C'}}>
 <div className="px-8 pt-6">
-  <button onClick={() => router.push('/')} style={{color: '#C9A84C'}} className="text-sm hover:opacity-75">
-    ← Takaisin etusivulle
-  </button>
+  
 </div>
-      <nav style={{borderBottom: '1px solid #C9A84C'}} className="px-8 py-4 flex items-center justify-between">
-        <div style={{color: '#C9A84C'}} className="text-xl font-bold tracking-widest uppercase">
-          Pesänhoitaja
-        </div>
-      {kirjautunut ? (
-  <button onClick={() => router.push('/dashboard')} style={{backgroundColor: '#C9A84C', color: '#0F1E3C'}} className="px-5 py-2 text-sm font-bold rounded">
-    Siirry dashboardille →
-  </button>
-) : (
-  <a href="/kirjaudu" style={{backgroundColor: '#C9A84C', color: '#0F1E3C'}} className="px-5 py-2 text-sm font-bold rounded">
-    Kirjaudu sisään
-  </a>
-)}
-      </nav>
+    <nav style={{borderBottom: '1px solid #C9A84C'}} className="px-8 py-4 flex items-center justify-between">
+  <div onClick={() => router.push('/')} style={{color: '#C9A84C', cursor: 'pointer', letterSpacing: '3px'}} className="text-xl font-bold tracking-widest uppercase">Pesänhoitaja</div>
+  {kirjautunut ? (
+    <GlobalNav />
+  ) : (
+    <a href="/kirjaudu" style={{backgroundColor: '#C9A84C', color: '#0F1E3C'}} className="px-5 py-2 text-sm font-bold rounded">
+      Kirjaudu sisään
+    </a>
+  )}
+</nav>
 
       <div className="flex flex-col items-center justify-center text-center px-6 py-24">
 

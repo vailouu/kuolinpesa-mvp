@@ -137,6 +137,7 @@ export default function Dashboard() {
   const [varatVelatTeksti, setVaratVelatTeksti] = useState('')
   const [varatKirjaukset, setVaratKirjaukset] = useState({})
   const [vahvistetutKirjaukset, setVahvistetutKirjaukset] = useState({})
+  const [dropdownAuki, setDropdownAuki] = useState(false)
   const selvitysKaikki = kategoriat.reduce((sum, k) => sum + k.sopimukset.length, 0)
   const kaikkiEsiTarkistuksetTehty = Object.values(esiTarkistukset).every(v => v === true)
 
@@ -170,7 +171,13 @@ export default function Dashboard() {
     if (tallennettuVaihe) setAktiivinenVaihe(parseInt(tallennettuVaihe))
     if (tallennettuAlivaihe) setAktiivinenAlivaihe(parseInt(tallennettuAlivaihe))
   }, [])
-
+useEffect(() => {
+  const suljeDropdown = (e) => {
+    if (!e.target.closest('[data-dropdown]')) setDropdownAuki(false)
+  }
+  document.addEventListener('mousedown', suljeDropdown)
+  return () => document.removeEventListener('mousedown', suljeDropdown)
+}, [])
   useEffect(() => {
     const haeData = async () => {
       const { data: { user } } = await supabase.auth.getUser()
@@ -231,6 +238,7 @@ const tallennaKirjaus = async (id, arvo) => {
   if (kuolinpesa?.id) await supabase.from('kuolinpesat').update({ varat_kirjaukset: uudet }).eq('id', kuolinpesa.id)
 }
 
+
 const tallennaVahvistettu = async (id) => {
   const uudet = { ...vahvistetutKirjaukset, [id]: [...(vahvistetutKirjaukset[id] || []), varatKirjaukset[id]] }
   setVahvistetutKirjaukset(uudet)
@@ -257,16 +265,46 @@ const poistaVahvistettu = async (id, index) => {
 
   return (
     <div className="min-h-screen" style={{backgroundColor: '#0F1E3C'}}>
-      <nav style={{borderBottom: '1px solid #C9A84C'}} className="px-8 py-4 flex items-center justify-between">
-        <div className="flex items-center gap-6">
-          <div style={{color: '#C9A84C'}} className="text-xl font-bold tracking-widest uppercase">Pesänhoitaja</div>
-          <button onClick={() => { window.location.href = '/' }} className="px-3 py-2 rounded text-sm font-bold" style={{color: '#0F1E3C', backgroundColor: '#C9A84C'}}>← Etusivu</button>
+    <nav style={{borderBottom: '1px solid #C9A84C'}} className="px-8 py-4 flex items-center justify-between">
+  <div className="flex items-center gap-6">
+    <div onClick={() => router.push('/')} style={{color: '#C9A84C', cursor: 'pointer'}} className="text-xl font-bold tracking-widest uppercase">Pesänhoitaja</div>
+    
+  </div>
+
+  {/* Avatar dropdown */}
+  <div style={{position: 'relative'}}>
+    <div
+      onClick={() => setDropdownAuki(prev => !prev)}
+      style={{width: '38px', height: '38px', borderRadius: '50%', backgroundColor: '#C9A84C', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '15px', fontWeight: 'bold', color: '#0F1E3C', cursor: 'pointer', border: '2px solid #C9A84C', userSelect: 'none', fontFamily: 'Georgia, serif'}}>
+      {(kuolinpesa?.kayttaja_nimi || kuolinpesa?.kayttaja_email || 'K')[0].toUpperCase()}
+    </div>
+
+    {dropdownAuki && (
+      <div style={{position: 'absolute', right: 0, top: '48px', backgroundColor: '#1B2A4A', border: '1px solid #2D3E5C', borderRadius: '10px', width: '240px', overflow: 'hidden', boxShadow: '0 8px 32px rgba(0,0,0,0.4)', zIndex: 100}}>
+        <div style={{padding: '14px 16px', borderBottom: '1px solid #2D3E5C'}}>
+          <div style={{color: 'white', fontSize: '14px', fontWeight: 'bold', marginBottom: '2px'}}>{kuolinpesa?.kayttaja_nimi || ''}</div>
+          <div style={{color: '#4A5568', fontSize: '12px'}}>{kuolinpesa?.kayttaja_email || ''}</div>
         </div>
-        <div className="flex items-center gap-4">
-          <div className="text-white text-sm">{kuolinpesa?.kayttaja_email || ''}</div>
-          <button onClick={async () => { await supabase.auth.signOut(); router.push('/') }} style={{color: '#C9A84C', border: '1px solid #2D3E5C'}} className="px-3 py-1 text-sm rounded hover:opacity-75">Kirjaudu ulos</button>
+        <div
+          onClick={() => { setDropdownAuki(false); router.push('/dashboard') }}
+          style={{display: 'flex', alignItems: 'center', gap: '12px', padding: '11px 16px', cursor: 'pointer', borderBottom: '1px solid #152238'}}
+          onMouseEnter={e => e.currentTarget.style.backgroundColor = 'rgba(201,168,76,0.08)'}
+          onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" strokeWidth="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+          <span style={{color: '#A0AEC0', fontSize: '13px', fontFamily: 'Georgia, serif'}}>Dashboard</span>
         </div>
-      </nav>
+        <div
+          onClick={async () => { setDropdownAuki(false); await supabase.auth.signOut(); router.push('/') }}
+          style={{display: 'flex', alignItems: 'center', gap: '12px', padding: '11px 16px', cursor: 'pointer', borderTop: '1px solid #2D3E5C'}}
+          onMouseEnter={e => e.currentTarget.style.backgroundColor = 'rgba(252,129,129,0.06)'}
+          onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#FC8181" strokeWidth="1.5"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>
+          <span style={{color: '#FC8181', fontSize: '13px', fontFamily: 'Georgia, serif'}}>Kirjaudu ulos</span>
+        </div>
+      </div>
+    )}
+  </div>
+</nav>
 
       <div className="max-w-7xl mx-auto px-6 py-10">
         <div className="mb-8">
