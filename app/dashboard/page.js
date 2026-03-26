@@ -137,6 +137,7 @@ export default function Dashboard() {
   const [varatVelatTeksti, setVaratVelatTeksti] = useState('')
   const [varatKirjaukset, setVaratKirjaukset] = useState({})
   const [vahvistetutKirjaukset, setVahvistetutKirjaukset] = useState({})
+  const [sopimusTilat, setSopimusTilat] = useState({})
   const [dropdownAuki, setDropdownAuki] = useState(false)
   const selvitysKaikki = kategoriat.reduce((sum, k) => sum + k.sopimukset.length, 0)
   const kaikkiEsiTarkistuksetTehty = Object.values(esiTarkistukset).every(v => v === true)
@@ -188,8 +189,9 @@ useEffect(() => {
         if (pesaData.esi_tarkistukset) setEsiTarkistukset(pesaData.esi_tarkistukset)
         if (pesaData.varat_velat_teksti) setVaratVelatTeksti(pesaData.varat_velat_teksti)
         if (pesaData.varat_rastitattu) setVaratRastitattu(pesaData.varat_rastitattu)
-          if (pesaData.varat_kirjaukset) setVaratKirjaukset(pesaData.varat_kirjaukset)
-if (pesaData.varat_vahvistetut) setVahvistetutKirjaukset(pesaData.varat_vahvistetut)
+        if (pesaData.varat_kirjaukset) setVaratKirjaukset(pesaData.varat_kirjaukset)
+        if (pesaData.varat_vahvistetut) setVahvistetutKirjaukset(pesaData.varat_vahvistetut)
+        if (pesaData.sopimus_tilat) setSopimusTilat(pesaData.sopimus_tilat)
         setLadataan(false)
         const { data: tehtavatData } = await supabase.from('tehtavat').select('*').eq('kuolinpesa_id', pesaData.id).order('created_at', { ascending: true })
         if (tehtavatData && tehtavatData.length > 0) {
@@ -224,6 +226,15 @@ if (pesaData.varat_vahvistetut) setVahvistetutKirjaukset(pesaData.varat_vahviste
       })
     }
   }
+
+ const tallennaSopimusTila = async (nimi, uusiTila) => {
+  const vanhaTila = sopimusTilat[nimi]
+  const uudet = { ...sopimusTilat }
+  if (vanhaTila === uusiTila) delete uudet[nimi]
+  else uudet[nimi] = uusiTila
+  setSopimusTilat(uudet)
+  if (kuolinpesa?.id) await supabase.from('kuolinpesat').update({ sopimus_tilat: uudet }).eq('id', kuolinpesa.id)
+}
 
  const toggleVaraRasti = async (id, arvo) => {
   const uudet = { ...varatRastitattu, [id]: varatRastitattu[id] === arvo ? null : arvo }
@@ -423,8 +434,8 @@ const poistaVahvistettu = async (id, index) => {
     <div className="flex gap-6">
       <div className="flex-1 min-w-0">
         {aktiivinenAlivaihe === 1 && <VaratJaVelat rastitattu={varatRastitattu} onToggle={toggleVaraRasti} kirjaukset={varatKirjaukset} onKirjaus={tallennaKirjaus} vahvistetut={vahvistetutKirjaukset} onVahvista={tallennaVahvistettu} avattuKohta={avattuKohta} setAvattuKohta={setAvattuKohta} />}
-        {aktiivinenAlivaihe === 2 && <SelvitysOsio kuolinpesaId={kuolinpesa?.id} onValmis={() => { setAktiivinenAlivaihe(3); localStorage.setItem('aktiivinenAlivaihe', 3) }} onEdistyminen={setSelvitysHoidettu} avattuSopimus={avattuSopimus} setAvattuSopimus={setAvattuSopimus} kayttajaEmail={kuolinpesa?.kayttaja_email} kayttajaNimi={kuolinpesa?.kayttaja_nimi} />}
-        {aktiivinenAlivaihe === 3 && <Yhteenveto kuolinpesaId={kuolinpesa?.id} selvitysHoidettu={selvitysHoidettu} selvitysKaikki={selvitysKaikki} onValmis={() => { setAktiivinenVaihe(3); localStorage.setItem('aktiivinenVaihe', 3) }} />}
+        {aktiivinenAlivaihe === 2 && <SelvitysOsio onValmis={() => { setAktiivinenAlivaihe(3); localStorage.setItem('aktiivinenAlivaihe', 3) }} onEdistyminen={setSelvitysHoidettu} avattuSopimus={avattuSopimus} setAvattuSopimus={setAvattuSopimus} sopimusTilat={sopimusTilat} tallennaSopimusTila={tallennaSopimusTila} />}
+        {aktiivinenAlivaihe === 3 && <Yhteenveto varatRastitattu={varatRastitattu} vahvistetutKirjaukset={vahvistetutKirjaukset} sopimusTilat={sopimusTilat} tallennaSopimusTila={tallennaSopimusTila} onValmis={() => { setAktiivinenVaihe(3); localStorage.setItem('aktiivinenVaihe', 3) }} />}
       </div>
        {aktiivinenAlivaihe === 1 && (
  <div className="lg:w-80 flex-shrink-0" style={{marginTop: '60px'}}>
@@ -633,20 +644,25 @@ function VaratJaVelat({ rastitattu, onToggle, kirjaukset, onKirjaus, vahvistetut
                 const onValittu = avattuKohta === id
                 const onKylla = rastitattu[id] === 'kylla'
                 const onEi = rastitattu[id] === 'ei'
+                const handleRiviClick = () => {
+                  if (onEi) return
+                  if (onKylla) { setAvattuKohta(onValittu ? null : id); return }
+                  setAvattuKohta(onValittu ? null : id)
+                }
                 return (
-                  <div key={kohta.id} className="rounded cursor-pointer"
-                    style={{backgroundColor: '#1B2A4A', border: `1px solid ${onValittu ? '#C9A84C' : '#2D3E5C'}`, opacity: onEi ? 0.5 : 1}}
-                    onClick={() => setAvattuKohta(onValittu ? null : id)}>
+                  <div key={kohta.id} className="rounded"
+                    style={{backgroundColor: '#1B2A4A', border: `1px solid ${onValittu ? '#C9A84C' : '#2D3E5C'}`, opacity: onEi ? 0.5 : 1, cursor: onEi ? 'default' : 'pointer'}}
+                    onClick={handleRiviClick}>
                     <div className="flex items-center justify-between p-3 gap-3">
                       <span className="text-sm flex-1 text-white">{kohta.teksti}</span>
 
                       <div className="flex gap-2 flex-shrink-0" onClick={e => e.stopPropagation()}>
-                        <button onClick={() => onToggle(id, 'kylla')} className="text-xs px-3 py-1 rounded font-bold"
+                        <button onClick={() => { onToggle(id, 'kylla'); setAvattuKohta(onKylla ? null : id) }} className="text-xs px-3 py-1 rounded font-bold"
                           style={{backgroundColor: onKylla ? '#C9A84C' : '#0F1E3C', color: onKylla ? '#0F1E3C' : '#6B7280', border: '1px solid #2D3E5C'}}>
                           Kyllä
                         </button>
-                        <button onClick={() => onToggle(id, 'ei')} className="text-xs px-3 py-1 rounded font-bold"
-                          style={{backgroundColor: onEi ? '#C9A84C' : '#0F1E3C', color: onEi ? '#0F1E3C' : '#6B7280', border: '1px solid #2D3E5C'}}>
+                        <button onClick={() => { onToggle(id, 'ei'); setAvattuKohta(null) }} className="text-xs px-3 py-1 rounded font-bold"
+                          style={{backgroundColor: onEi ? '#4A5568' : '#0F1E3C', color: onEi ? '#9CA3AF' : '#6B7280', border: '1px solid #2D3E5C'}}>
                           Ei
                         </button>
                       </div>
@@ -705,38 +721,14 @@ function VaratJaVelat({ rastitattu, onToggle, kirjaukset, onKirjaus, vahvistetut
   )
 }
 
-function SelvitysOsio({ kuolinpesaId, onValmis, onEdistyminen, avattuSopimus, setAvattuSopimus, kayttajaEmail, kayttajaNimi }) {
-  const [tilat, setTilat] = useState({})
+function SelvitysOsio({ onValmis, onEdistyminen, avattuSopimus, setAvattuSopimus, sopimusTilat, tallennaSopimusTila }) {
   const [avatutKategoriat, setAvatutKategoriat] = useState({})
+  const [muistiinpanot, setMuistiinpanot] = useState({})
 
   useEffect(() => {
-    if (!kuolinpesaId) return
-    const haeSopimukset = async () => {
-      const { data } = await supabase.from('sopimukset').select('*').eq('kuolinpesa_id', kuolinpesaId)
-      if (data) {
-        const map = {}
-        data.forEach(s => { map[s.nimi] = s.tila })
-        setTilat(map)
-      }
-    }
-    haeSopimukset()
-  }, [kuolinpesaId])
-
-  useEffect(() => {
-    const hoidettu = kategoriat.reduce((sum, k) => sum + k.sopimukset.filter(s => tilat[s.nimi] === 'hoidettu').length, 0)
-    onEdistyminen?.(hoidettu)
-  }, [tilat])
-
-  const paivitaTila = async (nimi, uusiTila, kategoriaId) => {
-    const vanhaTila = tilat[nimi]
-    const lopullinenTila = vanhaTila === uusiTila ? null : uusiTila
-    setTilat(prev => ({ ...prev, [nimi]: lopullinenTila }))
-    if (lopullinenTila) {
-      await supabase.from('sopimukset').upsert({ kuolinpesa_id: kuolinpesaId, nimi, tila: lopullinenTila, kategoria: kategoriaId }, { onConflict: 'kuolinpesa_id,nimi' })
-    } else {
-      await supabase.from('sopimukset').delete().eq('kuolinpesa_id', kuolinpesaId).eq('nimi', nimi)
-    }
-  }
+    const kasitelty = kategoriat.reduce((sum, k) => sum + k.sopimukset.filter(s => sopimusTilat[s.nimi] === 'hoidettu' || sopimusTilat[s.nimi] === 'ei').length, 0)
+    onEdistyminen?.(kasitelty)
+  }, [sopimusTilat])
 
   const toggleKategoria = (id) => setAvatutKategoriat(prev => ({ ...prev, [id]: !prev[id] }))
 
@@ -745,62 +737,49 @@ function SelvitysOsio({ kuolinpesaId, onValmis, onEdistyminen, avattuSopimus, se
       <div className="flex-1 min-w-0">
         <div className="flex flex-col gap-3 mb-6">
           {kategoriat.map(kategoria => {
-            const hoidettu = kategoria.sopimukset.filter(s => tilat[s.nimi] === 'hoidettu').length
+            const kasitelty = kategoria.sopimukset.filter(s => sopimusTilat[s.nimi] === 'hoidettu' || sopimusTilat[s.nimi] === 'ei').length
             const kaikki = kategoria.sopimukset.length
             const auki = avatutKategoriat[kategoria.id]
-            const kaikkiValmis = hoidettu === kaikki
             return (
-              <div key={kategoria.id} className="rounded-lg overflow-hidden" style={{backgroundColor: '#0F1E3C', border: `1px solid ${hoidettu === kaikki && hoidettu > 0 ? '#C9A84C' : '#2D3E5C'}`}}>
+              <div key={kategoria.id} className="rounded-lg overflow-hidden" style={{backgroundColor: '#0F1E3C', border: `1px solid ${kasitelty === kaikki && kasitelty > 0 ? '#C9A84C' : '#2D3E5C'}`}}>
                 <div className="flex items-center justify-between p-4 cursor-pointer hover:opacity-80" onClick={() => toggleKategoria(kategoria.id)}>
                   <div className="flex items-center gap-3">
                     <span className="text-xl">{kategoria.ikoni}</span>
                     <div>
                       <p className="text-white font-bold text-sm">{kategoria.nimi}</p>
-                      <p style={{color: hoidettu > 0 ? '#C9A84C' : '#4A5568'}} className="text-xs">{`${hoidettu}/${kaikki} hoidettu`}</p>
+                      <p style={{color: kasitelty > 0 ? '#C9A84C' : '#4A5568'}} className="text-xs">{`${kasitelty}/${kaikki} käsitelty`}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    {kaikkiValmis && hoidettu > 0 && <span style={{color: '#C9A84C'}} className="text-xs">✓ Valmis</span>}
-                    <div className="flex items-center gap-2">
-  {hoidettu === kaikki && hoidettu > 0 && <span style={{color: '#C9A84C'}} className="text-xs">✓ Valmis</span>}
-  <span style={{color: '#C9A84C'}} className="text-xs">{auki ? '▲' : '▼'}</span>
-</div>
+                    {kasitelty === kaikki && kasitelty > 0 && <span style={{color: '#C9A84C'}} className="text-xs">✓ Valmis</span>}
+                    <span style={{color: '#C9A84C'}} className="text-xs">{auki ? '▲' : '▼'}</span>
                   </div>
                 </div>
                 {auki && (
                   <div className="px-4 pb-4 border-t flex flex-col gap-2" style={{borderColor: '#2D3E5C'}}>
                     <div className="mt-3 flex flex-col gap-2">
                       {kategoria.sopimukset.map(sopimus => {
-                        const tila = tilat[sopimus.nimi]
+                        const tila = sopimusTilat[sopimus.nimi]
                         const onHoidettu = tila === 'hoidettu'
-                        const onAvoinna = tila === 'avoinna'
+                        const onOhitettu = tila === 'ei'
+                        const onKesken = tila === 'kesken'
                         const onValittu = avattuSopimus?.nimi === sopimus.nimi
                         return (
                           <div key={sopimus.nimi} className="rounded cursor-pointer"
-                            style={{backgroundColor: '#1B2A4A', border: `1px solid ${onValittu || onHoidettu || onAvoinna ? '#C9A84C' : '#2D3E5C'}`}}
+                            style={{backgroundColor: '#1B2A4A', border: `1px solid ${onValittu ? '#C9A84C' : '#2D3E5C'}`}}
                             onClick={() => setAvattuSopimus(onValittu ? null : { ...sopimus, kategoriaId: kategoria.id })}>
                             <div className="flex items-center justify-between p-3 gap-3">
-                              <span className="text-sm flex-1" style={{color: onHoidettu ? '#C9A84C' : 'white'}}>{sopimus.nimi}</span>
-                              
-                              <div className="flex gap-2 flex-shrink-0" onClick={e => e.stopPropagation()}>
-  {true && (
-  <>
-    <button onClick={() => paivitaTila(sopimus.nimi, 'avoinna', kategoria.id)} className="text-xs px-3 py-1 rounded font-bold"
-      style={{backgroundColor: onAvoinna ? '#C9A84C' : '#0F1E3C', color: onAvoinna ? '#0F1E3C' : '#6B7280', border: '1px solid #2D3E5C'}}>
-      Kyllä
-    </button>
-    <button onClick={() => paivitaTila(sopimus.nimi, 'ei', kategoria.id)} className="text-xs px-3 py-1 rounded font-bold"
-      style={{backgroundColor: tilat[sopimus.nimi] === 'ei' ? '#C9A84C' : '#0F1E3C', color: tilat[sopimus.nimi] === 'ei' ? '#0F1E3C' : '#6B7280', border: '1px solid #2D3E5C'}}>
-      Ei
-    </button>
-    <button onClick={() => paivitaTila(sopimus.nimi, 'hoidettu', kategoria.id)} className="text-xs px-3 py-1 rounded font-bold"
-      style={{backgroundColor: onHoidettu ? '#C9A84C' : '#0F1E3C', color: onHoidettu ? '#0F1E3C' : '#6B7280', border: '1px solid #2D3E5C'}}>
-      Hoidettu
-    </button>
-  </>
-)}
-                                
-                              </div>
+                              <span className="text-sm flex-1 min-w-0 truncate text-white">{sopimus.nimi}</span>
+                              {onHoidettu && <span className="text-xs px-2 py-1 rounded font-bold flex-shrink-0" style={{backgroundColor: '#C9A84C', color: '#0F1E3C'}}>✓ Hoidettu</span>}
+                              {onKesken && <span className="text-xs px-2 py-1 rounded font-bold flex-shrink-0" style={{backgroundColor: '#2D3E5C', color: '#A0AEC0'}}>⏳ Kesken</span>}
+                              {onOhitettu && <span className="text-xs px-2 py-1 rounded font-bold flex-shrink-0" style={{backgroundColor: '#2D3E5C', color: '#6B7280'}}>Ei kuulu</span>}
+                              {!tila && (
+                                <button onClick={e => { e.stopPropagation(); tallennaSopimusTila(sopimus.nimi, 'ei'); setAvattuSopimus(null) }}
+                                  className="text-xs px-3 py-1 rounded font-bold flex-shrink-0"
+                                  style={{backgroundColor: '#0F1E3C', color: '#6B7280', border: '1px solid #2D3E5C'}}>
+                                  Ei kuulu
+                                </button>
+                              )}
                             </div>
                           </div>
                         )
@@ -818,14 +797,22 @@ function SelvitysOsio({ kuolinpesaId, onValmis, onEdistyminen, avattuSopimus, se
       <div className="lg:w-80 flex-shrink-0 flex flex-col gap-4" style={{position: 'sticky', top: '20px', alignSelf: 'flex-start'}}>
         <div className="rounded-lg p-5" style={{backgroundColor: '#1B2A4A', border: '1px solid #C9A84C', position: 'sticky', top: '20px'}}>
           <h3 className="text-white font-bold text-base mb-3">Näin Sopimukset toimii</h3>
-          <p style={{color: '#A0AEC0'}} className="text-sm mb-4">Avaa kategoriat ja klikkaa sopimusta nähdäksesi ohjeet.</p>
-          <p style={{color: '#A0AEC0'}} className="text-sm mb-4">Merkitse "Kyllä" jos sopimus oli voimassa — ohjeet kertovat miten se hoidetaan.</p>
-          <p style={{color: '#A0AEC0'}} className="text-sm">"Ei" merkitsee sopimuksen hoidetuksi automaattisesti.</p>
+          <p style={{color: '#A0AEC0'}} className="text-sm mb-4">Klikkaa sopimusta nähdäksesi ohjeet miten se hoidetaan.</p>
+          <p style={{color: '#A0AEC0'}} className="text-sm mb-4">Kun olet hoitanut asian, paina <strong style={{color: 'white'}}>"Merkitse hoidetuksi"</strong> paneelissa.</p>
+          <p style={{color: '#A0AEC0'}} className="text-sm">Paina <strong style={{color: 'white'}}>"Ei kuulu"</strong> jos sopimusta ei ollut, tai se on jo hoidettu.</p>
         </div>
         {avattuSopimus && (
           <div className="rounded-lg p-5 flex flex-col gap-4" style={{backgroundColor: '#1B2A4A', border: '1px solid #C9A84C'}}>
             <div className="flex items-start justify-between">
-              <h3 className="text-white font-bold text-base">{avattuSopimus.nimi}</h3>
+              <div>
+                <h3 className="text-white font-bold text-base">{avattuSopimus.nimi}</h3>
+                {sopimusTilat[avattuSopimus.nimi] === 'kesken' && (
+                  <span className="text-xs" style={{color: '#A0AEC0'}}>⏳ Kesken</span>
+                )}
+                {sopimusTilat[avattuSopimus.nimi] === 'hoidettu' && (
+                  <span className="text-xs" style={{color: '#C9A84C'}}>✓ Hoidettu</span>
+                )}
+              </div>
               <button onClick={() => setAvattuSopimus(null)} style={{color: '#4A5568'}} className="text-sm hover:opacity-75">✕</button>
             </div>
             <p style={{color: '#A0AEC0'}} className="text-sm">{avattuSopimus.miksi}</p>
@@ -834,15 +821,32 @@ function SelvitysOsio({ kuolinpesaId, onValmis, onEdistyminen, avattuSopimus, se
               <ul className="flex flex-col gap-2">
                 {avattuSopimus.miten.map((askel, i) => (
                   <li key={i} className="flex gap-3 text-sm text-white">
-                    <span style={{color: 'white'}} className="flex-shrink-0">{i + 1}.</span>{askel}
+                    <span className="flex-shrink-0">{i + 1}.</span>{askel}
                   </li>
                 ))}
               </ul>
             </div>
-            <button onClick={() => { paivitaTila(avattuSopimus.nimi, 'hoidettu', avattuSopimus.kategoriaId); setAvattuSopimus(null) }}
-              className="w-full py-2 rounded text-sm font-bold" style={{backgroundColor: '#C9A84C', color: '#0F1E3C'}}>
-              Merkitse hoidetuksi ✓
-            </button>
+            <div>
+              <p className="text-white font-bold text-sm mb-2">Muistiinpano</p>
+              <textarea
+                value={muistiinpanot[avattuSopimus.nimi] || ''}
+                onChange={e => setMuistiinpanot(prev => ({ ...prev, [avattuSopimus.nimi]: e.target.value }))}
+                placeholder="Esim. Soitin ti 25.3, odotan kirjallista vahvistusta..."
+                rows={3}
+                className="w-full rounded p-2 text-sm resize-none"
+                style={{backgroundColor: '#0F1E3C', color: 'white', border: '1px solid #2D3E5C'}}
+              />
+            </div>
+            <div className="flex flex-col gap-2">
+              <button onClick={() => { tallennaSopimusTila(avattuSopimus.nimi, 'kesken'); setAvattuSopimus(null) }}
+                className="w-full py-2 rounded text-sm font-bold" style={{backgroundColor: '#2D3E5C', color: '#A0AEC0'}}>
+                ⏳ Merkitse kesken
+              </button>
+              <button onClick={() => { tallennaSopimusTila(avattuSopimus.nimi, 'hoidettu'); setAvattuSopimus(null) }}
+                className="w-full py-2 rounded text-sm font-bold" style={{backgroundColor: '#C9A84C', color: '#0F1E3C'}}>
+                ✓ Merkitse hoidetuksi
+              </button>
+            </div>
           </div>
         )}
       </div>
@@ -850,38 +854,90 @@ function SelvitysOsio({ kuolinpesaId, onValmis, onEdistyminen, avattuSopimus, se
   )
 }
 
-function Yhteenveto({ kuolinpesaId, selvitysHoidettu, selvitysKaikki, onValmis }) {
-  const [avoimet, setAvoimet] = useState([])
+function Yhteenveto({ varatRastitattu, vahvistetutKirjaukset, sopimusTilat, tallennaSopimusTila, onValmis }) {
+  const kaikkiSopimukset = kategoriat.flatMap(k => k.sopimukset.map(s => ({ ...s, kategoriaId: k.id, kategoriaNimi: k.nimi })))
+  const hoidetutSopimukset = kaikkiSopimukset.filter(s => sopimusTilat[s.nimi] === 'hoidettu')
+  const avoimet = kaikkiSopimukset.filter(s => sopimusTilat[s.nimi] === 'kesken')
 
-  useEffect(() => {
-    if (!kuolinpesaId) return
-    const haeAvoimet = async () => {
-      const { data } = await supabase.from('sopimukset').select('*').eq('kuolinpesa_id', kuolinpesaId).eq('tila', 'avoinna')
-      if (data) setAvoimet(data)
-    }
-    haeAvoimet()
-  }, [kuolinpesaId])
+  const varatLoydetyt = varatJaVelatMuistilista.varat.filter(k => varatRastitattu?.[k.id] === 'kylla' && vahvistetutKirjaukset?.[k.id]?.length > 0)
+  const velatLoydetyt = varatJaVelatMuistilista.velat.filter(k => varatRastitattu?.['velat_' + k.id] === 'kylla' && vahvistetutKirjaukset?.['velat_' + k.id]?.length > 0)
 
   return (
-    <div>
-      <div className="mb-6 p-4 rounded-lg" style={{backgroundColor: '#0F1E3C', border: '1px solid #2D3E5C'}}>
-        <p className="text-white font-bold text-sm mb-1">Hoidettu</p>
-        <p style={{color: '#C9A84C'}} className="text-2xl font-bold">{selvitysHoidettu}</p>
-        <p style={{color: '#4A5568'}} className="text-xs mt-1">yhteensä {selvitysKaikki} sopimuksesta</p>
-      </div>
-      {avoimet.length > 0 && (
-        <div className="mb-6">
-          <p className="text-white font-bold text-sm mb-3">Kesken — vaatii toimenpiteitä</p>
-          <div className="flex flex-col gap-2">
-            {avoimet.map((item, i) => (
-              <div key={i} className="p-3 rounded" style={{backgroundColor: '#2D1A1A', border: '1px solid #FC8181'}}>
-                <p style={{color: '#FCA5A5'}} className="text-sm">{item.nimi}</p>
+    <div className="flex flex-col gap-6">
+
+      {/* Varat */}
+      <div className="rounded-lg p-5" style={{backgroundColor: '#1B2A4A', border: '1px solid #2D3E5C'}}>
+        <h3 className="text-white font-bold mb-4">Löydetyt varat</h3>
+        {varatLoydetyt.length === 0 ? (
+          <p style={{color: '#4A5568'}} className="text-sm">Ei kirjattuja varalöytöjä. Lisää tietoja Varat ja velat -osiossa.</p>
+        ) : (
+          <div className="flex flex-col gap-3">
+            {varatLoydetyt.map(k => (
+              <div key={k.id}>
+                <p style={{color: '#C9A84C'}} className="text-xs font-bold uppercase tracking-wider mb-1">{k.teksti}</p>
+                {vahvistetutKirjaukset[k.id].map((v, i) => (
+                  <p key={i} style={{color: '#A0AEC0'}} className="text-sm">— {v}</p>
+                ))}
               </div>
             ))}
           </div>
+        )}
+      </div>
+
+      {/* Velat */}
+      <div className="rounded-lg p-5" style={{backgroundColor: '#1B2A4A', border: '1px solid #2D3E5C'}}>
+        <h3 className="text-white font-bold mb-4">Löydetyt velat</h3>
+        {velatLoydetyt.length === 0 ? (
+          <p style={{color: '#4A5568'}} className="text-sm">Ei kirjattuja velkalöytöjä. Lisää tietoja Varat ja velat -osiossa.</p>
+        ) : (
+          <div className="flex flex-col gap-3">
+            {velatLoydetyt.map(k => (
+              <div key={k.id}>
+                <p style={{color: '#C9A84C'}} className="text-xs font-bold uppercase tracking-wider mb-1">{k.teksti}</p>
+                {vahvistetutKirjaukset['velat_' + k.id].map((v, i) => (
+                  <p key={i} style={{color: '#A0AEC0'}} className="text-sm">— {v}</p>
+                ))}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Sopimukset */}
+      <div className="rounded-lg p-5" style={{backgroundColor: '#1B2A4A', border: '1px solid #2D3E5C'}}>
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-white font-bold">Sopimukset</h3>
+          {hoidetutSopimukset.length > 0 && (
+            <span style={{color: '#C9A84C'}} className="text-xs">{hoidetutSopimukset.length} hoidettu</span>
+          )}
         </div>
-      )}
-      <button className="w-full py-4 rounded font-bold text-lg" style={{backgroundColor: '#C9A84C', color: '#0F1E3C'}} onClick={onValmis}>Merkitse omaisuuden selvitys valmiiksi →</button>
+        {avoimet.length === 0 ? (
+          <p style={{color: '#4A5568'}} className="text-sm">Ei avoimia sopimuksia. Käy Sopimukset-osio läpi ensin.</p>
+        ) : (
+          <div className="flex flex-col gap-2">
+            <p style={{color: '#A0AEC0'}} className="text-xs mb-2">Nämä sopimukset odottavat hoitamista ennen perunkirjoitusta:</p>
+            {avoimet.map(s => (
+              <div key={s.nimi} className="rounded p-3 flex items-center justify-between gap-3"
+                style={{backgroundColor: '#0F1E3C', border: '1px solid #2D3E5C'}}>
+                <div>
+                  <p className="text-white text-sm">{s.nimi}</p>
+                  <p style={{color: '#4A5568'}} className="text-xs">{s.kategoriaNimi}</p>
+                </div>
+                <button
+                  onClick={() => tallennaSopimusTila(s.nimi, 'hoidettu')}
+                  className="text-xs px-3 py-1 rounded font-bold flex-shrink-0"
+                  style={{backgroundColor: '#C9A84C', color: '#0F1E3C'}}>
+                  ✓ Hoidettu
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <button className="w-full py-4 rounded font-bold text-lg" style={{backgroundColor: '#C9A84C', color: '#0F1E3C'}} onClick={onValmis}>
+        Siirry perunkirjoitukseen →
+      </button>
     </div>
   )
 }
