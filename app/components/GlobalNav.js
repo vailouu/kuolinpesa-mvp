@@ -1,13 +1,21 @@
 'use client'
 import { useState, useEffect } from 'react'
-import { useRouter, usePathname } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import { supabase } from '../supabase'
+
+const C = {
+  bg: '#0A0806',
+  text: '#F0EBE3',
+  secondary: '#7A7268',
+  accent: '#C9A84C',
+  border: 'rgba(240,235,227,0.06)',
+  borderWarm: 'rgba(201,168,76,0.18)',
+}
 
 export default function GlobalNav() {
   const router = useRouter()
-  const pathname = usePathname()
   const [kayttaja, setKayttaja] = useState(null)
-  const [dropdownAuki, setDropdownAuki] = useState(false)
+  const [auki, setAuki] = useState(false)
 
   useEffect(() => {
     const haeKayttaja = async () => {
@@ -18,46 +26,146 @@ export default function GlobalNav() {
   }, [])
 
   useEffect(() => {
-    const suljeDropdown = (e) => {
-      if (!e.target.closest('[data-dropdown]')) setDropdownAuki(false)
+    const sulje = (e) => {
+      if (!e.target.closest('[data-dropdown]')) setAuki(false)
     }
-    document.addEventListener('mousedown', suljeDropdown)
-    return () => document.removeEventListener('mousedown', suljeDropdown)
+    document.addEventListener('mousedown', sulje)
+    return () => document.removeEventListener('mousedown', sulje)
   }, [])
 
   if (!kayttaja) return null
 
+  const initial = (kayttaja.email || '')[0]?.toUpperCase() || '?'
+
+  const menuItems = [
+    {
+      label: 'Pesäni',
+      sub: 'Dashboard',
+      icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={C.accent} strokeWidth="1.5"><rect x="3" y="3" width="18" height="18" rx="1"/><path d="M3 9h18M9 21V9"/></svg>,
+      onClick: () => { setAuki(false); router.push('/dashboard') },
+      danger: false,
+    },
+    {
+      label: 'Asetukset',
+      sub: null,
+      icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={C.accent} strokeWidth="1.5"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>,
+      onClick: () => { setAuki(false); router.push('/asetukset') },
+      danger: false,
+    },
+    {
+      label: 'Kirjaudu ulos',
+      sub: null,
+      icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(240,235,227,0.35)" strokeWidth="1.5"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>,
+      onClick: async () => { setAuki(false); await supabase.auth.signOut(); router.push('/') },
+      danger: true,
+    },
+  ]
+
   return (
     <div data-dropdown style={{ position: 'relative' }}>
-      <div
-        onClick={() => setDropdownAuki(prev => !prev)}
-        style={{ width: '38px', height: '38px', borderRadius: '50%', backgroundColor: '#C9A84C', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '15px', fontWeight: 'bold', color: '#0F1E3C', cursor: 'pointer', border: '2px solid #C9A84C', userSelect: 'none', fontFamily: 'Georgia, serif' }}>
-        {(kayttaja.email || '')[0]?.toUpperCase() || ''}
-      </div>
 
-      {dropdownAuki && (
-        <div style={{ position: 'absolute', right: 0, top: '48px', backgroundColor: '#1B2A4A', border: '1px solid #2D3E5C', borderRadius: '10px', width: '240px', overflow: 'hidden', boxShadow: '0 8px 32px rgba(0,0,0,0.4)' }}>
-          <div style={{ padding: '14px 16px', borderBottom: '1px solid #2D3E5C' }}>
-            <div style={{ color: 'white', fontSize: '14px', fontWeight: 'bold', marginBottom: '2px' }}>{kayttaja.email}</div>
+      {/* Avatar */}
+      <button
+        onClick={() => setAuki(prev => !prev)}
+        style={{
+          width: '32px', height: '32px',
+          borderRadius: '50%',
+          background: auki ? 'rgba(201,168,76,0.12)' : 'transparent',
+          border: `1px solid ${auki ? 'rgba(201,168,76,0.5)' : C.borderWarm}`,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          fontSize: '11px', fontWeight: '500',
+          color: C.accent,
+          cursor: 'pointer',
+          fontFamily: 'var(--font-body), sans-serif',
+          letterSpacing: '0.05em',
+          boxShadow: auki ? '0 0 18px rgba(201,168,76,0.25)' : 'none',
+          transition: 'background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease',
+          userSelect: 'none',
+        }}
+        onMouseEnter={e => {
+          if (!auki) {
+            e.currentTarget.style.background = 'rgba(201,168,76,0.08)'
+            e.currentTarget.style.boxShadow = '0 0 18px rgba(201,168,76,0.3)'
+            e.currentTarget.style.borderColor = 'rgba(201,168,76,0.5)'
+          }
+        }}
+        onMouseLeave={e => {
+          if (!auki) {
+            e.currentTarget.style.background = 'transparent'
+            e.currentTarget.style.boxShadow = 'none'
+            e.currentTarget.style.borderColor = C.borderWarm
+          }
+        }}
+      >
+        {initial}
+      </button>
+
+      {/* Dropdown */}
+      {auki && (
+        <div style={{
+          position: 'absolute',
+          right: 0, top: '44px',
+          width: '220px',
+          background: '#0E0B08',
+          border: `1px solid ${C.borderWarm}`,
+          boxShadow: '0 16px 48px rgba(0,0,0,0.6), 0 0 0 1px rgba(201,168,76,0.05)',
+          overflow: 'hidden',
+          animation: 'dropIn 0.18s cubic-bezier(0.22,1,0.36,1) both',
+        }}>
+
+          {/* Email header */}
+          <div style={{
+            padding: '14px 18px 12px',
+            borderBottom: `1px solid ${C.border}`,
+          }}>
+            <div style={{
+              fontSize: '9px', letterSpacing: '0.18em', textTransform: 'uppercase',
+              color: C.secondary, fontFamily: 'var(--font-body), sans-serif',
+            }}>
+              {kayttaja.email}
+            </div>
           </div>
-          <div
-            onClick={() => { setDropdownAuki(false); router.push('/dashboard') }}
-            style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '11px 16px', cursor: 'pointer', borderBottom: '1px solid #152238' }}
-            onMouseEnter={e => e.currentTarget.style.backgroundColor = 'rgba(201,168,76,0.08)'}
-            onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}>
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" strokeWidth="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
-            <span style={{ color: '#A0AEC0', fontSize: '13px', fontFamily: 'Georgia, serif' }}>Dashboard</span>
-          </div>
-          <div
-            onClick={async () => { setDropdownAuki(false); await supabase.auth.signOut(); router.push('/') }}
-            style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '11px 16px', cursor: 'pointer' }}
-            onMouseEnter={e => e.currentTarget.style.backgroundColor = 'rgba(252,129,129,0.06)'}
-            onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}>
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#FC8181" strokeWidth="1.5"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>
-            <span style={{ color: '#FC8181', fontSize: '13px', fontFamily: 'Georgia, serif' }}>Kirjaudu ulos</span>
-          </div>
+
+          {/* Menu items */}
+          {menuItems.map((item, i) => (
+            <div
+              key={i}
+              onClick={item.onClick}
+              style={{
+                display: 'flex', alignItems: 'center', gap: '13px',
+                padding: '13px 18px',
+                cursor: 'pointer',
+                borderBottom: i < menuItems.length - 1 ? `1px solid ${C.border}` : 'none',
+                transition: 'background 0.15s ease',
+              }}
+              onMouseEnter={e => {
+                e.currentTarget.style.background = item.danger
+                  ? 'rgba(240,235,227,0.03)'
+                  : 'rgba(201,168,76,0.05)'
+              }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}
+            >
+              <span style={{ flexShrink: 0, opacity: item.danger ? 0.5 : 1 }}>{item.icon}</span>
+              <span style={{
+                fontFamily: 'var(--font-body), sans-serif',
+                fontSize: '11px', letterSpacing: '0.12em', textTransform: 'uppercase',
+                color: item.danger ? C.secondary : C.text,
+                transition: 'color 0.15s ease',
+              }}>
+                {item.label}
+              </span>
+            </div>
+          ))}
+
         </div>
       )}
+
+      <style>{`
+        @keyframes dropIn {
+          from { opacity: 0; transform: translateY(-6px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+      `}</style>
     </div>
   )
 }

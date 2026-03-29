@@ -46,13 +46,15 @@ const css = `
     padding: 0 56px;
     height: 60px;
     z-index: 50;
-    border-bottom: 1px solid ${C.border};
+    border-bottom: 1px solid rgba(201,168,76,0.18);
+    box-shadow: 0 1px 0 rgba(201,168,76,0.06);
   }
   .nav-logo {
-    font-family: var(--font-display), Georgia, serif;
-    font-size: 19px;
-    font-weight: 400;
-    letter-spacing: 0.03em;
+    font-family: var(--font-body), sans-serif;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
     color: ${C.text};
     cursor: pointer;
     background: none; border: none;
@@ -60,7 +62,10 @@ const css = `
     margin-right: 8px;
     flex-shrink: 0;
   }
-  .nav-logo:hover { color: ${C.accent}; }
+  .nav-logo:hover {
+    color: ${C.accent};
+    text-shadow: 0 0 18px rgba(201,168,76,0.45), 0 0 40px rgba(201,168,76,0.18);
+  }
   .nav-item {
     font-family: var(--font-body), sans-serif;
     font-size: 10px;
@@ -70,10 +75,14 @@ const css = `
     cursor: pointer;
     background: none; border: none;
     padding: 0;
-    transition: color 0.2s ease;
+    transition: color 0.2s ease, text-shadow 0.2s ease;
     white-space: nowrap;
   }
-  .nav-item:hover { color: ${C.text}; }
+  .nav-item:hover {
+    color: ${C.accent};
+    text-shadow: 0 0 12px rgba(201,168,76,0.7), 0 0 28px rgba(201,168,76,0.3);
+    box-shadow: 0 0 16px rgba(201,168,76,0.15);
+  }
   .nav-item:focus-visible { outline: 2px solid ${C.accent}; outline-offset: 4px; }
   .nav-right { margin-left: auto; display: flex; align-items: center; gap: 32px; }
 
@@ -197,13 +206,16 @@ const css = `
     display: inline-flex; align-items: center; gap: 10px;
     font-family: var(--font-body), sans-serif;
     font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase;
-    color: #0A0806; background: ${C.accent}; border: none;
+    color: ${C.accent};
+    background: transparent;
+    border: 1px solid rgba(201,168,76,0.35);
     padding: 14px 28px; cursor: pointer;
-    transition: background 0.2s, box-shadow 0.2s, transform 0.15s;
+    transition: background 0.2s, box-shadow 0.2s, border-color 0.2s, transform 0.15s;
   }
   .btn-primary:hover {
-    background: #d4b55a;
-    box-shadow: 0 8px 32px rgba(201,168,76,0.25);
+    background: rgba(201,168,76,0.08);
+    border-color: rgba(201,168,76,0.7);
+    box-shadow: 0 0 24px rgba(201,168,76,0.2);
     transform: translateY(-1px);
   }
   .btn-primary:active { transform: translateY(0); }
@@ -394,6 +406,7 @@ export default function Home() {
       <nav className="top-bar a1">
         <button className="nav-logo" onClick={() => router.push('/')}>Pesänhoitaja</button>
         <button className="nav-item" onClick={() => router.push('/miten-toimii')}>Miten toimii</button>
+        <button className="nav-item" onClick={() => router.push('/ukk')}>UKK</button>
         <button className="nav-item" onClick={() => router.push('/hinnat')}>Hinnat</button>
         <div className="nav-right">
           <button className="nav-item">Suomi</button>
@@ -419,84 +432,39 @@ export default function Home() {
         alignItems: 'center', textAlign: 'center',
         zIndex: 10,
       }}>
-        <h1
-          ref={heroRef}
-          className="a2"
-          onMouseMove={handleLetterMove}
-          onMouseLeave={handleLetterLeave}
-          style={{
-            fontFamily: 'var(--font-display), Georgia, serif',
-            fontSize: 'clamp(64px, 11vw, 170px)',
-            fontWeight: 300, lineHeight: 0.88,
-            letterSpacing: '-0.03em', textTransform: 'uppercase',
-            color: C.text, userSelect: 'none', marginBottom: '28px',
-          }}
-        >
-          {'Pesänhoitaja'.split('').map((char, i) => (
-            <span key={i} className="letter">{char}</span>
-          ))}
+        <h1 className="a2" style={{
+          fontFamily: 'var(--font-display), Georgia, serif',
+          fontSize: 'clamp(44px, 7vw, 100px)',
+          fontWeight: 300, lineHeight: 1.05,
+          letterSpacing: '-0.03em',
+          color: C.text, userSelect: 'none', marginBottom: '28px',
+          maxWidth: '820px',
+        }}>
+          Et voi poistaa surua.{' '}
+          <em style={{ fontStyle: 'italic', color: C.accent }}>Voit poistaa kaaoksen.</em>
         </h1>
 
         <p className="a3" style={{
           fontFamily: 'var(--font-body), sans-serif',
-          fontSize: '14px', lineHeight: 1.85,
-          color: C.secondary, maxWidth: '400px',
-          fontWeight: 300, marginBottom: '36px',
+          fontSize: '15px', lineHeight: 1.9,
+          color: C.secondary, maxWidth: '520px',
+          fontWeight: 300, marginBottom: '40px',
         }}>
-          Kaikki kuolinpesän vaiheet yhdellä alustalla —
-          viranomaisista ja pankeista perunkirjoitukseen asti.
+          Kaikki mitä pitää hoitaa yhdellä alustalla — viranomaisista ja pankeista
+          jokaiseen liittymään, sopimukseen ja vakuutukseen asti. Jaettu dashboard
+          kaikille osakkaille, selkeät ohjeet jokaiseen vaiheeseen.
         </p>
 
-        <div className="a4" style={{ display: 'flex', alignItems: 'center', gap: '32px' }}>
+        <div className="a4">
           <button className="btn-primary" onClick={() => router.push('/valitse')}>
             Aloita ilmaiseksi
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
               <path d="M5 12h14M12 5l7 7-7 7"/>
             </svg>
           </button>
-          <button className="btn-ghost" onClick={() => router.push('/miten-toimii')}>
-            Miten toimii
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-              <path d="M5 12h14M12 5l7 7-7 7"/>
-            </svg>
-          </button>
         </div>
       </div>
 
-      {/* ── PERSPECTIVE FLOOR ── */}
-      <div className="perspective-scene a1">
-        <div className="perspective-floor" />
-        <div className="floor-fade" />
-      </div>
-
-      {/* ── SERVICE CARDS ── */}
-      <div className="cards-row a5">
-        {services.map((s, i) => (
-          <div
-            key={s.num}
-            className={`service-card ${floatClasses[i]}`}
-            onClick={() => router.push('/aloita')}
-          >
-            <div className="service-card-num">{s.num}</div>
-            <div className="service-card-title">{s.title}</div>
-            <div className="service-card-sub">{s.sub}</div>
-          </div>
-        ))}
-      </div>
-
-      {/* ── BOTTOM BAR ── */}
-      <div className="bottom-bar a5" style={{ zIndex: 20 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '28px' }}>
-          <div className="bottom-stat"><strong>Ilmainen</strong>Ei luottokorttia</div>
-          <div className="v-line" />
-          <div className="bottom-stat"><strong>Kaikki osakkaalle</strong>Jaettu dashboard</div>
-          <div className="v-line" />
-          <div className="bottom-stat"><strong>Suomenkielinen</strong>Selkeät ohjeet</div>
-        </div>
-        <span className="top-bar-label" style={{ opacity: 0.3, fontSize: '9px' }}>
-          Inspiraatio: forthetimes.law
-        </span>
-      </div>
 
     </div>
   )
