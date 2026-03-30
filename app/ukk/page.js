@@ -1,6 +1,8 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { supabase } from '../supabase'
+import GlobalNav from '../components/GlobalNav'
 
 const C = {
   bg: '#0A0806',
@@ -173,6 +175,15 @@ const faqs = [
 export default function UKK() {
   const router = useRouter()
   const [open, setOpen] = useState(null)
+  const [kirjautunut, setKirjautunut] = useState(false)
+
+  useEffect(() => {
+    const tarkista = async () => {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user) setKirjautunut(true)
+    }
+    tarkista()
+  }, [])
 
   const toggle = (i) => setOpen(open === i ? null : i)
 
@@ -188,12 +199,16 @@ export default function UKK() {
         <button className="nav-item" onClick={() => router.push('/hinnat')}>Hinnat</button>
         <div className="nav-right">
           <button className="nav-item">Suomi</button>
-          <button className="btn-primary" onClick={() => router.push('/valitse')}>
-            Aloita ilmaiseksi
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-              <path d="M5 12h14M12 5l7 7-7 7"/>
-            </svg>
-          </button>
+          {kirjautunut ? (
+            <GlobalNav />
+          ) : (
+            <button className="btn-primary" onClick={() => router.push('/valitse')}>
+              Aloita ilmaiseksi
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                <path d="M5 12h14M12 5l7 7-7 7"/>
+              </svg>
+            </button>
+          )}
         </div>
       </nav>
 
