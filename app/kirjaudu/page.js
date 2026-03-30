@@ -3,97 +3,182 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '../supabase'
 
+const C = {
+  bg: '#0A0806',
+  text: '#F0EBE3',
+  secondary: '#7A7268',
+  accent: '#C9A84C',
+  border: 'rgba(240,235,227,0.06)',
+  borderWarm: 'rgba(201,168,76,0.18)',
+}
+
+const css = `
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .a1 { animation: fadeUp 0.9s cubic-bezier(0.22,1,0.36,1) 0.1s both; }
+  .a2 { animation: fadeUp 0.9s cubic-bezier(0.22,1,0.36,1) 0.25s both; }
+
+  .form-input {
+    width: 100%;
+    background: rgba(240,235,227,0.03);
+    border: 1px solid ${C.border};
+    color: ${C.text};
+    font-family: var(--font-body), sans-serif;
+    font-size: 14px;
+    padding: 14px 16px;
+    outline: none;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    -webkit-appearance: none;
+    color-scheme: dark;
+  }
+  .form-input::placeholder { color: ${C.secondary}; opacity: 0.6; }
+  .form-input:focus {
+    border-color: rgba(201,168,76,0.4);
+    box-shadow: 0 0 0 3px rgba(201,168,76,0.06);
+  }
+
+  .form-label {
+    display: block;
+    font-family: var(--font-body), sans-serif;
+    font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase;
+    color: ${C.secondary}; margin-bottom: 8px;
+  }
+
+  .btn-submit {
+    width: 100%;
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+    font-family: var(--font-body), sans-serif;
+    font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase;
+    color: ${C.accent}; background: transparent;
+    border: 1px solid rgba(201,168,76,0.35);
+    padding: 16px; cursor: pointer;
+    transition: background 0.2s, box-shadow 0.2s, border-color 0.2s;
+    margin-top: 8px;
+  }
+  .btn-submit:hover:not(:disabled) {
+    background: rgba(201,168,76,0.08);
+    border-color: rgba(201,168,76,0.7);
+    box-shadow: 0 0 24px rgba(201,168,76,0.2);
+  }
+  .btn-submit:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .back-link {
+    font-family: var(--font-body), sans-serif;
+    font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase;
+    color: ${C.secondary}; background: none; border: none;
+    cursor: pointer; display: inline-flex; align-items: center; gap: 8px;
+    transition: color 0.2s ease;
+  }
+  .back-link:hover { color: ${C.accent}; }
+`
+
 export default function Kirjaudu() {
   const router = useRouter()
   const [tiedot, setTiedot] = useState({ sahkoposti: '', salasana: '' })
   const [virhe, setVirhe] = useState('')
   const [lataa, setLataa] = useState(false)
 
-  const paivita = (kentta, arvo) => {
-    setTiedot({...tiedot, [kentta]: arvo})
-  }
+  const paivita = (kentta, arvo) => setTiedot({ ...tiedot, [kentta]: arvo })
 
   const kirjauduSisaan = async () => {
     setLataa(true)
     setVirhe('')
     const { error } = await supabase.auth.signInWithPassword({
       email: tiedot.sahkoposti,
-      password: tiedot.salasana
+      password: tiedot.salasana,
     })
-    if (error) {
-      setVirhe('Väärä sähköposti tai salasana')
-      setLataa(false)
-    } else {
-      router.push('/dashboard')
-    }
+    if (error) { setVirhe('Väärä sähköposti tai salasana'); setLataa(false) }
+    else router.push('/dashboard')
+  }
+
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter') kirjauduSisaan()
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-6 py-12" style={{backgroundColor: '#0F1E3C'}}>
-      
-      <div className="w-full max-w-md mb-6">
-        <button onClick={() => router.push('/')} style={{color: '#C9A84C'}} className="text-sm hover:opacity-75">
-          ← Takaisin etusivulle
-        </button>
-      </div>
+    <div style={{
+      backgroundColor: C.bg, color: C.text,
+      minHeight: '100vh', display: 'flex', flexDirection: 'column',
+      alignItems: 'center', justifyContent: 'center',
+      padding: '80px 24px', fontFamily: 'var(--font-body), sans-serif',
+    }}>
+      <style>{css}</style>
 
-      <div className="w-full max-w-md rounded-lg p-8" style={{backgroundColor: '#1B2A4A', border: '1px solid #C9A84C'}}>
-        
-        <div style={{color: '#C9A84C', letterSpacing: '3px'}} className="text-xs uppercase mb-2 text-center">
-          — Tervetuloa takaisin —
+      <div style={{ width: '100%', maxWidth: '440px' }}>
+
+        {/* Takaisin */}
+        <button className="back-link a1" onClick={() => router.push('/')} style={{ marginBottom: '40px' }}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+            <path d="M19 12H5M12 5l-7 7 7 7"/>
+          </svg>
+          Etusivulle
+        </button>
+
+        {/* Header */}
+        <div className="a1" style={{
+          fontSize: '10px', letterSpacing: '0.28em', textTransform: 'uppercase',
+          color: C.accent, display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px',
+        }}>
+          <div style={{ width: '20px', height: '1px', background: C.accent }} />
+          Tervetuloa takaisin
         </div>
-        <h1 className="text-white text-2xl font-bold text-center mb-8">
-          Kirjaudu sisään
+
+        <h1 className="a1" style={{
+          fontFamily: 'var(--font-display), Georgia, serif',
+          fontSize: '36px', fontWeight: 300, letterSpacing: '-0.02em',
+          color: C.text, marginBottom: '40px', lineHeight: 1.1,
+        }}>
+          Kirjaudu<br />
+          <em style={{ fontStyle: 'italic', color: C.accent }}>sisään.</em>
         </h1>
 
-        <div className="flex flex-col gap-5">
-          
+        {/* Form */}
+        <div className="a2" style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+
           <div>
-            <label className="text-sm mb-1 block" style={{color: '#A0AEC0'}}>Sähköpostiosoite</label>
-            <input
-              type="email"
-              placeholder="sinun@email.fi"
-              value={tiedot.sahkoposti}
-              onChange={(e) => paivita('sahkoposti', e.target.value)}
-              className="w-full px-4 py-3 rounded text-white placeholder-gray-500 outline-none"
-              style={{backgroundColor: '#0F1E3C', border: '1px solid #2D3E5C'}}
-            />
+            <label className="form-label">Sähköpostiosoite</label>
+            <input className="form-input" type="email" placeholder="sinun@email.fi"
+              value={tiedot.sahkoposti} onChange={e => paivita('sahkoposti', e.target.value)}
+              onKeyDown={handleKeyDown} />
           </div>
 
           <div>
-            <label className="text-sm mb-1 block" style={{color: '#A0AEC0'}}>Salasana</label>
-            <input
-              type="password"
-              placeholder="Salasanasi"
-              value={tiedot.salasana}
-              onChange={(e) => paivita('salasana', e.target.value)}
-              className="w-full px-4 py-3 rounded text-white placeholder-gray-500 outline-none"
-              style={{backgroundColor: '#0F1E3C', border: '1px solid #2D3E5C'}}
-            />
+            <label className="form-label">Salasana</label>
+            <input className="form-input" type="password" placeholder="Salasanasi"
+              value={tiedot.salasana} onChange={e => paivita('salasana', e.target.value)}
+              onKeyDown={handleKeyDown} />
           </div>
 
           {virhe && (
-            <p className="text-sm text-center" style={{color: '#FC8181'}}>{virhe}</p>
+            <p style={{ fontSize: '13px', color: '#e07070', textAlign: 'center', fontFamily: 'var(--font-body)' }}>
+              {virhe}
+            </p>
           )}
 
-          <button
-            style={{backgroundColor: '#C9A84C', color: '#0F1E3C'}}
-            className="w-full py-4 font-bold rounded mt-2 hover:opacity-90"
-            onClick={kirjauduSisaan}
-            disabled={lataa}
-          >
-            {lataa ? 'Kirjaudutaan...' : 'Kirjaudu sisään →'}
+          <button className="btn-submit" onClick={kirjauduSisaan} disabled={lataa}>
+            {lataa ? 'Kirjaudutaan...' : 'Kirjaudu sisään'}
+            {!lataa && (
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                <path d="M5 12h14M12 5l7 7-7 7"/>
+              </svg>
+            )}
           </button>
+
+          <p style={{ textAlign: 'center', fontSize: '12px', color: C.secondary, lineHeight: 1.7 }}>
+            Ei vielä tiliä?{' '}
+            <button onClick={() => router.push('/aloita')} style={{
+              color: C.accent, background: 'none', border: 'none', cursor: 'pointer',
+              fontSize: '12px', fontFamily: 'var(--font-body)', transition: 'opacity 0.2s',
+            }}>
+              Aloita tästä
+            </button>
+          </p>
 
         </div>
-
-        <p className="text-center mt-6 text-xs" style={{color: '#4A5568'}}>
-          Ei vielä tiliä?{' '}
-          <button onClick={() => router.push('/aloita')} style={{color: '#C9A84C'}}>
-            Aloita tästä
-          </button>
-        </p>
-
       </div>
     </div>
   )

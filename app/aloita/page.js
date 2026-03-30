@@ -2,126 +2,204 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '../supabase'
+
+const C = {
+  bg: '#0A0806',
+  text: '#F0EBE3',
+  secondary: '#7A7268',
+  accent: '#C9A84C',
+  border: 'rgba(240,235,227,0.06)',
+  borderWarm: 'rgba(201,168,76,0.18)',
+}
+
+const css = `
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .a1 { animation: fadeUp 0.9s cubic-bezier(0.22,1,0.36,1) 0.1s both; }
+  .a2 { animation: fadeUp 0.9s cubic-bezier(0.22,1,0.36,1) 0.25s both; }
+
+  .form-input {
+    width: 100%;
+    background: rgba(240,235,227,0.03);
+    border: 1px solid ${C.border};
+    color: ${C.text};
+    font-family: var(--font-body), sans-serif;
+    font-size: 14px;
+    padding: 14px 16px;
+    outline: none;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    -webkit-appearance: none;
+    color-scheme: dark;
+  }
+  .form-input::placeholder { color: ${C.secondary}; opacity: 0.6; }
+  .form-input:focus {
+    border-color: rgba(201,168,76,0.4);
+    box-shadow: 0 0 0 3px rgba(201,168,76,0.06);
+  }
+
+  .form-label {
+    display: block;
+    font-family: var(--font-body), sans-serif;
+    font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase;
+    color: ${C.secondary}; margin-bottom: 8px;
+  }
+
+  .btn-submit {
+    width: 100%;
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+    font-family: var(--font-body), sans-serif;
+    font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase;
+    color: ${C.accent}; background: transparent;
+    border: 1px solid rgba(201,168,76,0.35);
+    padding: 16px; cursor: pointer;
+    transition: background 0.2s, box-shadow 0.2s, border-color 0.2s;
+    margin-top: 8px;
+  }
+  .btn-submit:hover:not(:disabled) {
+    background: rgba(201,168,76,0.08);
+    border-color: rgba(201,168,76,0.7);
+    box-shadow: 0 0 24px rgba(201,168,76,0.2);
+  }
+  .btn-submit:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .back-link {
+    font-family: var(--font-body), sans-serif;
+    font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase;
+    color: ${C.secondary}; background: none; border: none;
+    cursor: pointer; display: inline-flex; align-items: center; gap: 8px;
+    transition: color 0.2s ease;
+  }
+  .back-link:hover { color: ${C.accent}; }
+`
+
 export default function Aloita() {
   const router = useRouter()
-  const [vaihe, setVaihe] = useState(1)
-  const [tiedot, setTiedot] = useState({
-    vainajanNimi: '',
-    kuolinpaiva: '',
-    sahkoposti: '',
-    salasana: ''
-  })
+  const [tiedot, setTiedot] = useState({ vainajanNimi: '', kuolinpaiva: '', sahkoposti: '', salasana: '' })
+  const [lataa, setLataa] = useState(false)
+  const [virhe, setVirhe] = useState('')
 
-  const paivita = (kentta, arvo) => {
-    setTiedot({...tiedot, [kentta]: arvo})
+  const paivita = (kentta, arvo) => setTiedot({ ...tiedot, [kentta]: arvo })
+
+  const laheta = async () => {
+    setLataa(true)
+    setVirhe('')
+    const { error: authError } = await supabase.auth.signUp({
+      email: tiedot.sahkoposti,
+      password: tiedot.salasana,
+    })
+    if (authError) { setVirhe('Virhe: ' + authError.message); setLataa(false); return }
+    const { error } = await supabase.from('kuolinpesat').insert({
+      vainajan_nimi: tiedot.vainajanNimi,
+      kuolinpaiva: tiedot.kuolinpaiva || null,
+      kayttaja_email: tiedot.sahkoposti,
+    })
+    if (error) { setVirhe('Virhe: ' + error.message); setLataa(false) }
+    else router.push('/dashboard')
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-6 py-12" style={{backgroundColor: '#0F1E3C'}}>
-      
-      {/* Takaisin-linkki */}
-      <div className="w-full max-w-md mb-6">
-        <button onClick={() => router.push('/')} style={{color: '#C9A84C'}} className="text-sm hover:opacity-75">
-          ← Takaisin etusivulle
-        </button>
-      </div>
+    <div style={{
+      backgroundColor: C.bg, color: C.text,
+      minHeight: '100vh', display: 'flex', flexDirection: 'column',
+      alignItems: 'center', justifyContent: 'center',
+      padding: '80px 24px', fontFamily: 'var(--font-body), sans-serif',
+    }}>
+      <style>{css}</style>
 
-      {/* Kortti */}
-      <div className="w-full max-w-md rounded-lg p-8" style={{backgroundColor: '#1B2A4A', border: '1px solid #C9A84C'}}>
-        
-        <div style={{color: '#C9A84C', letterSpacing: '3px'}} className="text-xs uppercase mb-2 text-center">
-          — Uusi kuolinpesä —
+      <div style={{ width: '100%', maxWidth: '440px' }}>
+
+        {/* Takaisin */}
+        <button className="back-link a1" onClick={() => router.push('/valitse')} style={{ marginBottom: '40px' }}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+            <path d="M19 12H5M12 5l-7 7 7 7"/>
+          </svg>
+          Takaisin
+        </button>
+
+        {/* Header */}
+        <div className="a1" style={{
+          fontSize: '10px', letterSpacing: '0.28em', textTransform: 'uppercase',
+          color: C.accent, display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px',
+        }}>
+          <div style={{ width: '20px', height: '1px', background: C.accent }} />
+          Uusi kuolinpesä
         </div>
-        <h1 className="text-white text-2xl font-bold text-center mb-8">
-          Aloita kuolinpesän hoito
+
+        <h1 className="a1" style={{
+          fontFamily: 'var(--font-display), Georgia, serif',
+          fontSize: '36px', fontWeight: 300, letterSpacing: '-0.02em',
+          color: C.text, marginBottom: '40px', lineHeight: 1.1,
+        }}>
+          Aloita kuolinpesän<br />
+          <em style={{ fontStyle: 'italic', color: C.accent }}>hoito.</em>
         </h1>
 
-        {/* Lomake */}
-        <div className="flex flex-col gap-5">
-          
+        {/* Form */}
+        <div className="a2" style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+
           <div>
-            <label className="text-sm mb-1 block" style={{color: '#A0AEC0'}}>Vainajan nimi *</label>
-            <input
-              type="text"
-              placeholder="Etunimi Sukunimi"
-              value={tiedot.vainajanNimi}
-              onChange={(e) => paivita('vainajanNimi', e.target.value)}
-              className="w-full px-4 py-3 rounded text-white placeholder-gray-500 outline-none"
-              style={{backgroundColor: '#0F1E3C', border: '1px solid #2D3E5C'}}
-            />
+            <label className="form-label">Vainajan nimi *</label>
+            <input className="form-input" type="text" placeholder="Etunimi Sukunimi"
+              value={tiedot.vainajanNimi} onChange={e => paivita('vainajanNimi', e.target.value)} />
           </div>
 
           <div>
-            <label className="text-sm mb-1 block" style={{color: '#A0AEC0'}}>Kuolinpäivä <span style={{color: '#4A5568'}}>(valinnainen)</span></label>
-            <input
-              type="date"
-              value={tiedot.kuolinpaiva}
-              onChange={(e) => paivita('kuolinpaiva', e.target.value)}
-              className="w-full px-4 py-3 rounded text-white outline-none"
-              style={{backgroundColor: '#0F1E3C', border: '1px solid #2D3E5C'}}
-            />
+            <label className="form-label">
+              Kuolinpäivä{' '}
+              <span style={{ opacity: 0.5, letterSpacing: '0.1em' }}>(valinnainen)</span>
+            </label>
+            <input className="form-input" type="date"
+              value={tiedot.kuolinpaiva} onChange={e => paivita('kuolinpaiva', e.target.value)} />
+          </div>
+
+          <div style={{ height: '1px', background: C.border }} />
+
+          <div>
+            <label className="form-label">Sähköpostiosoitteesi *</label>
+            <input className="form-input" type="email" placeholder="sinun@email.fi"
+              value={tiedot.sahkoposti} onChange={e => paivita('sahkoposti', e.target.value)} />
           </div>
 
           <div>
-            <label className="text-sm mb-1 block" style={{color: '#A0AEC0'}}>Sähköpostiosoitteesi *</label>
-            <input
-              type="email"
-              placeholder="sinun@email.fi"
-              value={tiedot.sahkoposti}
-              onChange={(e) => paivita('sahkoposti', e.target.value)}
-              className="w-full px-4 py-3 rounded text-white placeholder-gray-500 outline-none"
-              style={{backgroundColor: '#0F1E3C', border: '1px solid #2D3E5C'}}
-            />
+            <label className="form-label">Salasana *</label>
+            <input className="form-input" type="password" placeholder="Vähintään 8 merkkiä"
+              value={tiedot.salasana} onChange={e => paivita('salasana', e.target.value)} />
           </div>
 
-          <div>
-            <label className="text-sm mb-1 block" style={{color: '#A0AEC0'}}>Salasana *</label>
-            <input
-              type="password"
-              placeholder="Vähintään 8 merkkiä"
-              value={tiedot.salasana}
-              onChange={(e) => paivita('salasana', e.target.value)}
-              className="w-full px-4 py-3 rounded text-white placeholder-gray-500 outline-none"
-              style={{backgroundColor: '#0F1E3C', border: '1px solid #2D3E5C'}}
-            />
-          </div>
+          {virhe && (
+            <p style={{ fontSize: '13px', color: '#e07070', textAlign: 'center', fontFamily: 'var(--font-body)' }}>
+              {virhe}
+            </p>
+          )}
 
-          <button
-            style={{backgroundColor: '#C9A84C', color: '#0F1E3C'}}
-            className="w-full py-4 font-bold rounded mt-2 hover:opacity-90"
-            onClick={async () => {
-  const { error: authError } = await supabase.auth.signUp({
-  email: tiedot.sahkoposti,
-  password: tiedot.salasana
-})
-if (authError) {
-  alert('Virhe: ' + authError.message)
-  return
-}
-
-const { error } = await supabase
-  .from('kuolinpesat')
-  .insert({
-    vainajan_nimi: tiedot.vainajanNimi,
-    kuolinpaiva: tiedot.kuolinpaiva || null,
-    kayttaja_email: tiedot.sahkoposti
-  })
-if (error) {
-  alert('Virhe: ' + error.message)
-} else {
-  router.push('/dashboard')
-}
-}}
-          >
-            Luo kuolinpesä →
+          <button className="btn-submit" onClick={laheta} disabled={lataa}>
+            {lataa ? 'Luodaan...' : 'Luo kuolinpesä'}
+            {!lataa && (
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                <path d="M5 12h14M12 5l7 7-7 7"/>
+              </svg>
+            )}
           </button>
 
+          <p style={{ textAlign: 'center', fontSize: '12px', color: C.secondary, lineHeight: 1.7 }}>
+            Onko sinulla jo tili?{' '}
+            <button onClick={() => router.push('/kirjaudu')} style={{
+              color: C.accent, background: 'none', border: 'none', cursor: 'pointer',
+              fontSize: '12px', fontFamily: 'var(--font-body)', transition: 'opacity 0.2s',
+            }}>
+              Kirjaudu sisään
+            </button>
+          </p>
+
+          <p style={{ textAlign: 'center', fontSize: '11px', color: C.secondary, opacity: 0.5, lineHeight: 1.6 }}>
+            Tietosi ovat turvassa. Emme jaa tietojasi kolmansille osapuolille.
+          </p>
+
         </div>
-
-        <p className="text-center mt-6 text-s" style={{color: '#4A5568'}}>
-          Tietosi ovat turvassa. Emme jaa tietojasi kolmansille osapuolille.
-        </p>
-
       </div>
     </div>
   )
