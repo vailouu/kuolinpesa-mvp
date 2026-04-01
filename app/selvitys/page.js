@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '../supabase'
+import TopBar from '../components/TopBar'
 
 const kategoriat = [
   {
@@ -694,6 +695,7 @@ export default function Selvitys() {
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: '#0F1E3C' }}>
+      <TopBar />
       <nav style={{ borderBottom: '1px solid #C9A84C' }} className="px-8 py-4 flex items-center justify-between">
         <div style={{ color: '#C9A84C' }} className="text-xl font-bold tracking-widest uppercase">Pesänhoitaja</div>
         <button onClick={() => router.push('/dashboard')} style={{ color: '#C9A84C' }} className="text-sm hover:opacity-75">
