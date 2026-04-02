@@ -362,7 +362,11 @@ export default function Home() {
   useEffect(() => {
     const tarkista = async () => {
       const { data: { user } } = await supabase.auth.getUser()
-      if (user) setKirjautunut(true)
+      if (user) {
+        router.replace('/dashboard')
+      } else {
+        setKirjautunut(false)
+      }
     }
     tarkista()
   }, [])

@@ -324,16 +324,13 @@ const poistaVahvistettu = async (id, index) => {
       }}>
         {/* Logo */}
         <div style={{ padding: '28px 24px', borderBottom: '1px solid rgba(201,168,76,0.28)' }}>
-          <button onClick={() => router.push('/')} style={{
+          <span style={{
             fontFamily: 'var(--font-body), sans-serif',
             fontSize: '10px', letterSpacing: '0.24em', textTransform: 'uppercase',
-            color: '#F0EBE3', background: 'none', border: 'none', cursor: 'pointer',
-            transition: 'color 0.2s',
-          }}
-          onMouseEnter={e => e.currentTarget.style.color = '#C9A84C'}
-          onMouseLeave={e => e.currentTarget.style.color = '#F0EBE3'}>
+            color: '#F0EBE3',
+          }}>
             Pesänhoitaja
-          </button>
+          </span>
         </div>
 
         {/* Navigaatio */}
@@ -467,39 +464,11 @@ const poistaVahvistettu = async (id, index) => {
               </p>
             </div>
 
-            {/* Prosessin vaiheet */}
-            <div style={{ backgroundColor: '#0D0B09', border: '1px solid rgba(201,168,76,0.28)', padding: '28px', marginBottom: '28px' }}>
-              <div style={{ fontSize: '9px', letterSpacing: '0.2em', textTransform: 'uppercase', color: '#4E4840', marginBottom: '24px' }}>Prosessin vaiheet</div>
-              <div style={{ display: 'flex', flexDirection: 'column' }}>
-                {[
-                  { nro: '01', nimi: 'Ensitoimet', kuvaus: 'Viranomaisilmoitukset, pankki, Kela, posti — hoidetaan ensimmäisten viikkojen aikana.', aika: 'Heti' },
-                  { nro: '02', nimi: 'Omaisuuden selvitys', kuvaus: 'Kaikki varat ja velat listataan. Sopimukset irtisanotaan tai siirretään.', aika: '1–4 vk' },
-                  { nro: '03', nimi: 'Perunkirjoitus', kuvaus: 'Virallinen tilaisuus jossa laaditaan perukirja. Pidettävä 3 kuukauden kuluessa.', aika: '3 kk mennessä' },
-                  { nro: '04', nimi: 'Hoito ja toimeenpano', kuvaus: 'Pesän omaisuutta hallinnoidaan kunnes jako on valmis.', aika: 'Tarpeen mukaan' },
-                  { nro: '05', nimi: 'Päätös', kuvaus: 'Omaisuus jaetaan tai myydään osakkaiden kesken.', aika: 'Lopuksi' },
-                ].map((v, i, arr) => (
-                  <div key={v.nro} style={{ display: 'flex', gap: '20px', paddingBottom: i < arr.length - 1 ? '20px' : '0', marginBottom: i < arr.length - 1 ? '20px' : '0', borderBottom: i < arr.length - 1 ? '1px solid rgba(240,235,227,0.04)' : 'none' }}>
-                    <div style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
-                      <div style={{ fontSize: '9px', letterSpacing: '0.1em', color: '#C9A84C', fontFamily: 'var(--font-body)' }}>{v.nro}</div>
-                      {i < arr.length - 1 && <div style={{ width: '1px', flex: 1, minHeight: '20px', backgroundColor: 'rgba(240,235,227,0.06)' }} />}
-                    </div>
-                    <div style={{ flex: 1, paddingBottom: '4px' }}>
-                      <div style={{ display: 'flex', alignItems: 'baseline', gap: '10px', marginBottom: '5px' }}>
-                        <span style={{ fontSize: '14px', color: '#F0EBE3', fontWeight: 400 }}>{v.nimi}</span>
-                        <span style={{ fontSize: '9px', letterSpacing: '0.1em', color: '#3A3630', textTransform: 'uppercase' }}>{v.aika}</span>
-                      </div>
-                      <p style={{ fontSize: '12px', color: '#4E4840', lineHeight: 1.7 }}>{v.kuvaus}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
             {/* Avauskysymykset */}
-            <div style={{ backgroundColor: '#0D0B09', border: '1px solid rgba(240,235,227,0.07)', padding: '28px', marginBottom: '32px' }}>
+            <div style={{ backgroundColor: '#0D0B09', border: '1px solid rgba(240,235,227,0.07)', padding: '28px', marginBottom: '28px' }}>
               <div style={{ fontSize: '9px', letterSpacing: '0.2em', textTransform: 'uppercase', color: '#4E4840', marginBottom: '6px' }}>Tarkista ensin</div>
               <p style={{ fontSize: '13px', color: '#5A5248', lineHeight: 1.7, marginBottom: '20px' }}>
-                Nämä asiat hoidetaan yleensä jo ennen kuin palveluun tullaan. Rastita ne jotka on jo hoidettu.
+                Nämä kolme asiaa hoidetaan yleensä ennen kuin kuolinpesän virallinen selvitys alkaa. Rastita ne jotka on jo hoidettu — näin tiedät mistä aloitat.
               </p>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 {[
@@ -532,6 +501,28 @@ const poistaVahvistettu = async (id, index) => {
                       <p style={{ fontSize: '13px', color: esiTarkistukset[kentta] ? '#5A5248' : '#D0C8BC', marginBottom: '3px', textDecoration: esiTarkistukset[kentta] ? 'line-through' : 'none' }}>{teksti}</p>
                       <p style={{ fontSize: '11px', color: '#3A3630', lineHeight: 1.5 }}>{kuvaus}</p>
                     </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Miten navigoida */}
+            <div style={{ backgroundColor: '#0D0B09', border: '1px solid rgba(240,235,227,0.07)', padding: '28px', marginBottom: '32px' }}>
+              <div style={{ fontSize: '9px', letterSpacing: '0.2em', textTransform: 'uppercase', color: '#4E4840', marginBottom: '6px' }}>Miten tämä toimii</div>
+              <p style={{ fontSize: '13px', color: '#5A5248', lineHeight: 1.7, marginBottom: '20px' }}>
+                Kuolinpesän hoitaminen etenee vaiheittain. Vasemmalta löydät <strong style={{ color: '#8A8278', fontWeight: 500 }}>Tehtävät</strong>-osion, joka on jaettu viiteen vaiheeseen — Ensitoimista Päätökseen. Etene vaiheesta toiseen omaan tahtiisi.
+              </p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                {[
+                  { num: '1', text: 'Klikkaa tehtävää avataksesi ohjeet ja kommentit oikealle paneelille.' },
+                  { num: '2', text: 'Rastita tehtävä valmiiksi kun se on hoidettu — tilanne tallentuu automaattisesti.' },
+                  { num: '3', text: 'Voit kutsua muut osakkaat mukaan Osakkaat-osiosta — kaikki näkevät saman tilanteen reaaliajassa.' },
+                ].map(({ num, text }) => (
+                  <div key={num} style={{ display: 'flex', gap: '14px', alignItems: 'flex-start' }}>
+                    <div style={{ flexShrink: 0, width: '20px', height: '20px', borderRadius: '50%', backgroundColor: 'rgba(201,168,76,0.1)', border: '1px solid rgba(201,168,76,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <span style={{ fontSize: '9px', color: '#C9A84C', fontWeight: 600 }}>{num}</span>
+                    </div>
+                    <p style={{ fontSize: '13px', color: '#5A5248', lineHeight: 1.65, margin: 0 }}>{text}</p>
                   </div>
                 ))}
               </div>
@@ -924,10 +915,6 @@ const poistaVahvistettu = async (id, index) => {
 )}
             </div>
 
-            <div className="rounded-lg p-6 mt-6" style={{backgroundColor: '#1C1916', border: '1px solid rgba(240,235,227,0.08)'}}>
-              <h2 className="text-white font-bold text-lg mb-6">Tiimi</h2>
-              <KutsuJasen kuolinpesaId={kuolinpesa?.id} />
-            </div>
 
           </div>
 
@@ -1589,9 +1576,277 @@ const perunkirjoitusTehtavat = [
   { id: 'pk9', nimi: 'Toimita perukirja pankille', miksi: 'Pankki tarvitsee perukirjan ennen kuin kuolinpesän tilejä voidaan käyttää tai sulkea.', miten: ['Toimita perukirja kaikkiin pankkeihin joissa vainajalla oli tilejä','Pyydä pankista tiliotteet kuolinpäivältä','Sovi pankin kanssa tilien jatkosta'] },
 ]
 
+const varatKategoriatMeta = [
+  { id: 'pankkitilit', teksti: 'Pankkitilit' },
+  { id: 'kateinen', teksti: 'Käteinen' },
+  { id: 'sijoitukset', teksti: 'Sijoitukset (osakkeet, rahastot)' },
+  { id: 'asunnot', teksti: 'Asunto-osakkeet ja kiinteistöt' },
+  { id: 'ajoneuvot', teksti: 'Ajoneuvot' },
+  { id: 'metsa', teksti: 'Metsätilat' },
+  { id: 'mokki', teksti: 'Kesämökki / vapaa-ajan kiinteistö' },
+  { id: 'tallelokero', teksti: 'Tallelokero pankissa' },
+  { id: 'krypto', teksti: 'Kryptovaluutat' },
+  { id: 'osuuskunnat', teksti: 'Osuuskunnat' },
+  { id: 'elakesaastot', teksti: 'Eläkesäästöt / kapitalisaatiosopimukset' },
+  { id: 'veronpalautus', teksti: 'Veronpalautukset' },
+  { id: 'lomarahat', teksti: 'Ansaitsemattomat lomarahat' },
+  { id: 'vakuutuskorvaukset', teksti: 'Vakuutuskorvaukset (kesken)' },
+  { id: 'arvoesineet', teksti: 'Arvoesineet (korut, taide, antiikki)' },
+]
+const velatKategoriatMeta = [
+  { id: 'asuntolaina', teksti: 'Asuntolaina' },
+  { id: 'kulutusluotot', teksti: 'Kulutusluotot ja pikavipit' },
+  { id: 'autolaina', teksti: 'Autolaina / rahoitussopimus' },
+  { id: 'opintolaina', teksti: 'Opintolaina' },
+  { id: 'osamaksut', teksti: 'Osamaksusopimukset' },
+  { id: 'takaukset', teksti: 'Takaukset' },
+  { id: 'maksamattomat', teksti: 'Maksamattomat laskut' },
+  { id: 'verorästit', teksti: 'Verorästit' },
+]
+
+function PerukirjaModal({ kuolinpesa, vahvistetutKirjaukset, onSulje }) {
+  const [lataamassa, setLataamassa] = useState(false)
+  const vahv = vahvistetutKirjaukset || {}
+
+  const varatLoydetyt = varatKategoriatMeta.filter(k => Array.isArray(vahv[k.id]) && vahv[k.id].length > 0)
+  const velatLoydetyt = velatKategoriatMeta.filter(k => Array.isArray(vahv['velat_' + k.id]) && vahv['velat_' + k.id].length > 0)
+
+  const kuolinpaivaFormatted = kuolinpesa?.kuolinpaiva
+    ? new Date(kuolinpesa.kuolinpaiva).toLocaleDateString('fi-FI')
+    : null
+
+  async function lataaWord() {
+    setLataamassa(true)
+    try {
+      const res = await fetch('/api/generate-perukirja', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ kuolinpesa, vahvistetutKirjaukset }),
+      })
+      if (!res.ok) throw new Error('Generointi epäonnistui')
+      const blob = await res.blob()
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      const safeNimi = (kuolinpesa?.vainajan_nimi || 'Perukirja').replace(/[^a-zA-Z0-9_\-äöåÄÖÅ]/g, '_')
+      a.download = `Perukirja_${safeNimi}_${new Date().toISOString().slice(0, 10)}.docx`
+      a.click()
+      URL.revokeObjectURL(url)
+    } catch (e) {
+      alert('Virhe tiedoston luomisessa: ' + e.message)
+    } finally {
+      setLataamassa(false)
+    }
+  }
+
+  const TK = () => (
+    <span style={{ color: '#8A8278', fontStyle: 'italic', fontSize: '12px' }}>[täydennettävä]</span>
+  )
+
+  const Row = ({ label, value }) => (
+    <div style={{ display: 'flex', gap: '8px', padding: '4px 0', borderBottom: '1px solid rgba(240,235,227,0.05)' }}>
+      <span style={{ color: '#8A8278', fontSize: '12px', minWidth: '180px', flexShrink: 0 }}>{label}:</span>
+      {value ? <span style={{ color: '#E0DAD2', fontSize: '12px' }}>{value}</span> : <TK />}
+    </div>
+  )
+
+  const SectionTitle = ({ num, title }) => (
+    <div style={{ marginTop: '20px', marginBottom: '8px', paddingBottom: '6px', borderBottom: '1px solid rgba(201,168,76,0.3)' }}>
+      <span style={{ color: '#C9A84C', fontSize: '11px', letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 700 }}>
+        {num}. {title}
+      </span>
+    </div>
+  )
+
+  const SubTitle = ({ title }) => (
+    <div style={{ marginTop: '12px', marginBottom: '4px' }}>
+      <span style={{ color: '#A09284', fontSize: '11px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{title}</span>
+    </div>
+  )
+
+  return (
+    <div style={{
+      position: 'fixed', inset: 0, zIndex: 9999,
+      backgroundColor: 'rgba(0,0,0,0.75)',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      padding: '24px',
+    }}
+      onClick={(e) => { if (e.target === e.currentTarget) onSulje() }}
+    >
+      <div style={{
+        backgroundColor: '#111009', border: '1px solid rgba(201,168,76,0.4)',
+        borderRadius: '12px', width: '100%', maxWidth: '720px',
+        maxHeight: '88vh', display: 'flex', flexDirection: 'column',
+        boxShadow: '0 24px 64px rgba(0,0,0,0.6)',
+      }}>
+        {/* Header */}
+        <div style={{ padding: '20px 24px', borderBottom: '1px solid rgba(240,235,227,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
+          <div>
+            <div style={{ color: '#FFFFFF', fontWeight: 700, fontSize: '16px' }}>Perukirjapohja — esikatselu</div>
+            <div style={{ color: '#8A8278', fontSize: '12px', marginTop: '2px' }}>
+              Tarkista sisältö. <span style={{ color: '#C9A84C' }}>[täydennettävä]</span>-kohdat täytetään ennen allekirjoitusta.
+            </div>
+          </div>
+          <button onClick={onSulje} style={{ color: '#4E4840', fontSize: '18px', background: 'none', border: 'none', cursor: 'pointer', lineHeight: 1 }}>✕</button>
+        </div>
+
+        {/* Scrollable preview */}
+        <div style={{ overflowY: 'auto', padding: '20px 24px', flex: 1 }}>
+
+          {/* 1. Johdanto */}
+          <SectionTitle num="1" title="Johdanto" />
+          <Row label="Toimituspaikka" value={null} />
+          <Row label="Toimitusaika" value={null} />
+          <SubTitle title="Pesän ilmoittaja" />
+          <Row label="Nimi" value={kuolinpesa?.kayttaja_nimi} />
+          <Row label="Osoite" value={null} />
+          <SubTitle title="Uskottu mies 1" />
+          <Row label="Nimi" value={null} />
+          <Row label="Osoite" value={null} />
+          <SubTitle title="Uskottu mies 2" />
+          <Row label="Nimi" value={null} />
+          <Row label="Osoite" value={null} />
+          <SubTitle title="Liiteasiakirjat" />
+          <div style={{ color: '#8A8278', fontSize: '12px', paddingLeft: '8px', lineHeight: '1.8' }}>
+            ☐ Virkatodistus vainajasta &nbsp;·&nbsp; ☐ Sukuselvitys &nbsp;·&nbsp; ☐ Testamentti &nbsp;·&nbsp; ☐ Avioehto
+          </div>
+
+          {/* 2. Vainajan tiedot */}
+          <SectionTitle num="2" title="Vainajan tiedot" />
+          <Row label="Täydellinen nimi" value={kuolinpesa?.vainajan_nimi} />
+          <Row label="Henkilötunnus" value={null} />
+          <Row label="Kuolinpäivä" value={kuolinpaivaFormatted} />
+          <Row label="Kotikunta" value={null} />
+          <Row label="Viimeinen osoite" value={null} />
+          <Row label="Siviilisääty" value={null} />
+          <Row label="Ammatti / Eläkeläinen" value={null} />
+
+          {/* 3. Osakkaat */}
+          <SectionTitle num="3" title="Kuolinpesän osakkaat" />
+          <div style={{ color: '#8A8278', fontSize: '12px', fontStyle: 'italic', marginBottom: '6px' }}>
+            Perillinen 1, 2, 3… sekä mahdollinen leski ja testamentinsaajat — kaikki täydennetään asiakirjaan.
+          </div>
+          {[1, 2, 3].map(i => (
+            <div key={i} style={{ marginBottom: '6px' }}>
+              <SubTitle title={`Perillinen ${i}`} />
+              <Row label="Nimi" value={null} />
+              <Row label="Sukulaissuhde" value={null} />
+              <Row label="Henkilötunnus" value={null} />
+              <Row label="Osoite" value={null} />
+            </div>
+          ))}
+
+          {/* 4. Varallisuusluettelo */}
+          <SectionTitle num="4" title="Varallisuusluettelo" />
+
+          <SubTitle title="Varat — kirjatut löydöt" />
+          {varatLoydetyt.length === 0 ? (
+            <div style={{ color: '#8A8278', fontSize: '12px', fontStyle: 'italic' }}>Ei kirjattuja varoja Omaisuuden selvitys -osiossa.</div>
+          ) : (
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
+              <thead>
+                <tr style={{ borderBottom: '1px solid rgba(240,235,227,0.12)' }}>
+                  <th style={{ textAlign: 'left', color: '#C9A84C', padding: '4px 8px 4px 0', fontWeight: 600, fontSize: '11px' }}>Kategoria</th>
+                  <th style={{ textAlign: 'left', color: '#C9A84C', padding: '4px 8px', fontWeight: 600, fontSize: '11px' }}>Kuvaus</th>
+                  <th style={{ textAlign: 'right', color: '#C9A84C', padding: '4px 0 4px 8px', fontWeight: 600, fontSize: '11px' }}>Arvo</th>
+                </tr>
+              </thead>
+              <tbody>
+                {varatLoydetyt.flatMap(k =>
+                  vahv[k.id].map((v, i) => (
+                    <tr key={k.id + i} style={{ borderBottom: '1px solid rgba(240,235,227,0.04)' }}>
+                      <td style={{ color: '#E0DAD2', padding: '4px 8px 4px 0', verticalAlign: 'top' }}>{i === 0 ? k.teksti : ''}</td>
+                      <td style={{ color: '#A09284', padding: '4px 8px', verticalAlign: 'top' }}>{v}</td>
+                      <td style={{ color: '#8A8278', padding: '4px 0 4px 8px', textAlign: 'right', fontStyle: 'italic', verticalAlign: 'top' }}>[täydennettävä]</td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          )}
+
+          <SubTitle title="Velat — kirjatut löydöt" />
+          {velatLoydetyt.length === 0 ? (
+            <div style={{ color: '#8A8278', fontSize: '12px', fontStyle: 'italic' }}>Ei kirjattuja velkoja Omaisuuden selvitys -osiossa.</div>
+          ) : (
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
+              <thead>
+                <tr style={{ borderBottom: '1px solid rgba(240,235,227,0.12)' }}>
+                  <th style={{ textAlign: 'left', color: '#C9A84C', padding: '4px 8px 4px 0', fontWeight: 600, fontSize: '11px' }}>Kategoria</th>
+                  <th style={{ textAlign: 'left', color: '#C9A84C', padding: '4px 8px', fontWeight: 600, fontSize: '11px' }}>Kuvaus</th>
+                  <th style={{ textAlign: 'right', color: '#C9A84C', padding: '4px 0 4px 8px', fontWeight: 600, fontSize: '11px' }}>Arvo</th>
+                </tr>
+              </thead>
+              <tbody>
+                {velatLoydetyt.flatMap(k =>
+                  vahv['velat_' + k.id].map((v, i) => (
+                    <tr key={k.id + i} style={{ borderBottom: '1px solid rgba(240,235,227,0.04)' }}>
+                      <td style={{ color: '#E0DAD2', padding: '4px 8px 4px 0', verticalAlign: 'top' }}>{i === 0 ? k.teksti : ''}</td>
+                      <td style={{ color: '#A09284', padding: '4px 8px', verticalAlign: 'top' }}>{v}</td>
+                      <td style={{ color: '#8A8278', padding: '4px 0 4px 8px', textAlign: 'right', fontStyle: 'italic', verticalAlign: 'top' }}>[täydennettävä]</td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          )}
+
+          <SubTitle title="Hautauskulut" />
+          <Row label="Hautajaiskulut" value={null} />
+          <Row label="Muistotilaisuus" value={null} />
+          <Row label="Hautakivi / hautapaikka" value={null} />
+
+          <SubTitle title="Yhteenveto" />
+          {['Varat yhteensä', 'Velat yhteensä', 'Hautauskulut', 'Nettovarallisuus'].map(r => (
+            <Row key={r} label={r} value={null} />
+          ))}
+
+          {/* 5. Vakuutukset */}
+          <SectionTitle num="5" title="Vakuutukset ja allekirjoitukset" />
+          <div style={{ color: '#8A8278', fontSize: '12px', fontStyle: 'italic', lineHeight: '1.6', marginBottom: '8px' }}>
+            Pesän ilmoittajan vakuutus + uskottujen miesten vakuutukset allekirjoituksineen.
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+            {['Pesän ilmoittaja', 'Uskottu mies 1', 'Uskottu mies 2'].map(r => (
+              <div key={r} style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <span style={{ color: '#8A8278', fontSize: '12px', minWidth: '140px' }}>{r}:</span>
+                <div style={{ flex: 1, borderBottom: '1px solid rgba(240,235,227,0.15)', height: '20px' }} />
+              </div>
+            ))}
+          </div>
+
+        </div>
+
+        {/* Footer actions */}
+        <div style={{ padding: '16px 24px', borderTop: '1px solid rgba(240,235,227,0.08)', display: 'flex', gap: '12px', flexShrink: 0 }}>
+          <button onClick={onSulje} style={{
+            flex: 1, padding: '12px', borderRadius: '6px', border: '1px solid rgba(240,235,227,0.15)',
+            backgroundColor: 'transparent', color: '#8A8278', fontSize: '14px', cursor: 'pointer', fontWeight: 600,
+          }}>
+            Sulje
+          </button>
+          <button
+            onClick={lataaWord}
+            disabled={lataamassa}
+            style={{
+              flex: 2, padding: '12px', borderRadius: '6px', border: 'none',
+              backgroundColor: lataamassa ? '#8A7030' : '#C9A84C',
+              color: '#111009', fontSize: '14px', fontWeight: 700, cursor: lataamassa ? 'default' : 'pointer',
+              transition: 'background-color 0.15s',
+            }}
+          >
+            {lataamassa ? 'Luodaan tiedostoa…' : '⬇ Lataa Word-tiedostona (.docx)'}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 function PerunkirjoitusOsio({ kuolinpesa, vahvistetutKirjaukset, kayttajaEmail, kayttajaNimi }) {
   const [avattuTehtava, setAvattuTehtava] = useState(null)
   const [perunkirjoitusTehty, setPerunkirjoitusTehty] = useState({})
+  const [modalAuki, setModalAuki] = useState(false)
 const togglePerunkirjoitusTehty = (id) => setPerunkirjoitusTehty(prev => ({...prev, [id]: !prev[id]}))
   const avattuOhje = perunkirjoitusTehtavat.find(t => t.id === avattuTehtava)
 
@@ -1642,9 +1897,17 @@ const togglePerunkirjoitusTehty = (id) => setPerunkirjoitusTehty(prev => ({...pr
       </div>
 
       <button className="w-full py-4 rounded font-bold text-lg mt-8" style={{backgroundColor: '#C9A84C', color: '#111009'}}
-        onClick={() => alert('Perukirjapohja tulossa pian!')}>
-        Generoi perukirjapohja →
+        onClick={() => setModalAuki(true)}>
+        Generoi valmis perukirjapohja →
       </button>
+
+      {modalAuki && (
+        <PerukirjaModal
+          kuolinpesa={kuolinpesa}
+          vahvistetutKirjaukset={vahvistetutKirjaukset}
+          onSulje={() => setModalAuki(false)}
+        />
+      )}
     </div>
   )
 }
