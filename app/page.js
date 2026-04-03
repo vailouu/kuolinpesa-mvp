@@ -417,8 +417,8 @@ export default function Home() {
           {kirjautunut ? (
             <GlobalNav />
           ) : (
-            <button className="btn-primary" onClick={() => router.push('/valitse')}>
-              Aloita ilmaiseksi
+            <button className="btn-primary" onClick={() => router.push('/kirjaudu')}>
+              Kirjaudu sisään
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                 <path d="M5 12h14M12 5l7 7-7 7"/>
               </svg>

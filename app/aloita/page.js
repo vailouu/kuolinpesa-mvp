@@ -87,18 +87,23 @@ export default function Aloita() {
   const laheta = async () => {
     setLataa(true)
     setVirhe('')
-    const { error: authError } = await supabase.auth.signUp({
+    const { data: authData, error: authError } = await supabase.auth.signUp({
       email: tiedot.sahkoposti,
       password: tiedot.salasana,
     })
     if (authError) { setVirhe('Virhe: ' + authError.message); setLataa(false); return }
+    if (authData.user?.identities?.length === 0) {
+      setVirhe('Tällä sähköpostiosoitteella on jo tili. Kirjaudu sisään.')
+      setLataa(false)
+      return
+    }
     const { error } = await supabase.from('kuolinpesat').insert({
       vainajan_nimi: tiedot.vainajanNimi,
       kuolinpaiva: tiedot.kuolinpaiva || null,
       kayttaja_email: tiedot.sahkoposti,
     })
     if (error) { setVirhe('Virhe: ' + error.message); setLataa(false) }
-    else router.push('/dashboard')
+    else { localStorage.setItem('uusi_kayttaja', 'true'); router.push('/dashboard') }
   }
 
   return (

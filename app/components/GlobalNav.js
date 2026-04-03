@@ -16,6 +16,7 @@ export default function GlobalNav() {
   const router = useRouter()
   const [kayttaja, setKayttaja] = useState(null)
   const [auki, setAuki] = useState(false)
+  const [asetuksetAuki, setAsetuksetAuki] = useState(false)
 
   useEffect(() => {
     const haeKayttaja = async () => {
@@ -49,8 +50,11 @@ export default function GlobalNav() {
       label: 'Asetukset',
       sub: null,
       icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={C.accent} strokeWidth="1.5"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>,
-      onClick: () => { setAuki(false); router.push('/asetukset') },
+      onClick: () => setAsetuksetAuki(prev => !prev),
       danger: false,
+      alakohdat: [
+        { label: 'Tilini', onClick: () => { setAuki(false); setAsetuksetAuki(false); router.push('/asetukset/tilini') } },
+      ],
     },
     {
       label: 'Kirjaudu ulos',
@@ -128,32 +132,48 @@ export default function GlobalNav() {
 
           {/* Menu items */}
           {menuItems.map((item, i) => (
-            <div
-              key={i}
-              onClick={item.onClick}
-              style={{
-                display: 'flex', alignItems: 'center', gap: '13px',
-                padding: '13px 18px',
-                cursor: 'pointer',
-                borderBottom: i < menuItems.length - 1 ? `1px solid ${C.border}` : 'none',
-                transition: 'background 0.15s ease',
-              }}
-              onMouseEnter={e => {
-                e.currentTarget.style.background = item.danger
-                  ? 'rgba(240,235,227,0.03)'
-                  : 'rgba(201,168,76,0.05)'
-              }}
-              onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}
-            >
-              <span style={{ flexShrink: 0, opacity: item.danger ? 0.5 : 1 }}>{item.icon}</span>
-              <span style={{
-                fontFamily: 'var(--font-body), sans-serif',
-                fontSize: '11px', letterSpacing: '0.12em', textTransform: 'uppercase',
-                color: item.danger ? C.secondary : C.text,
-                transition: 'color 0.15s ease',
-              }}>
-                {item.label}
-              </span>
+            <div key={i}>
+              <div
+                onClick={item.onClick}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: '13px',
+                  padding: '13px 18px',
+                  cursor: 'pointer',
+                  borderBottom: (!item.alakohdat || !asetuksetAuki) && i < menuItems.length - 1 ? `1px solid ${C.border}` : 'none',
+                  transition: 'background 0.15s ease',
+                }}
+                onMouseEnter={e => { e.currentTarget.style.background = item.danger ? 'rgba(240,235,227,0.03)' : 'rgba(201,168,76,0.05)' }}
+                onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}
+              >
+                <span style={{ flexShrink: 0, opacity: item.danger ? 0.5 : 1 }}>{item.icon}</span>
+                <span style={{ flex: 1, fontFamily: 'var(--font-body), sans-serif', fontSize: '11px', letterSpacing: '0.12em', textTransform: 'uppercase', color: item.danger ? C.secondary : C.text }}>
+                  {item.label}
+                </span>
+                {item.alakohdat && (
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke={C.secondary} strokeWidth="2" style={{ transition: 'transform 0.2s', transform: asetuksetAuki ? 'rotate(180deg)' : 'rotate(0deg)' }}>
+                    <path d="M6 9l6 6 6-6"/>
+                  </svg>
+                )}
+              </div>
+
+              {item.alakohdat && asetuksetAuki && (
+                <div style={{ borderBottom: `1px solid ${C.border}` }}>
+                  {item.alakohdat.map((alakohta, j) => (
+                    <div
+                      key={j}
+                      onClick={alakohta.onClick}
+                      style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 18px 10px 44px', cursor: 'pointer', transition: 'background 0.15s' }}
+                      onMouseEnter={e => { e.currentTarget.style.background = 'rgba(201,168,76,0.05)' }}
+                      onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}
+                    >
+                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke={C.secondary} strokeWidth="1.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                      <span style={{ fontFamily: 'var(--font-body), sans-serif', fontSize: '11px', letterSpacing: '0.1em', textTransform: 'uppercase', color: C.secondary }}>
+                        {alakohta.label}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           ))}
 
