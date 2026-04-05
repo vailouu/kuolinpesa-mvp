@@ -92,7 +92,7 @@ export default function Kirjaudu() {
       password: tiedot.salasana,
     })
     if (error) { setVirhe('Väärä sähköposti tai salasana'); setLataa(false) }
-    else router.push('/dashboard')
+    else { localStorage.setItem('uusi_kayttaja', 'true'); router.push('/dashboard') }
   }
 
   const handleKeyDown = (e) => {

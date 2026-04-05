@@ -138,6 +138,7 @@ export default function Valitse() {
         <button className="nav-item" onClick={() => router.push('/miten-toimii')}>Miten toimii</button>
         <button className="nav-item" onClick={() => router.push('/ukk')}>UKK</button>
         <button className="nav-item" onClick={() => router.push('/hinnat')}>Hinnat</button>
+        <button className="nav-item" onClick={() => router.push('/ota-yhteytta')}>Ota yhteyttä</button>
         <div className="nav-right">
           <button className="nav-item">Suomi</button>
           {kirjautunut ? <GlobalNav /> : (
