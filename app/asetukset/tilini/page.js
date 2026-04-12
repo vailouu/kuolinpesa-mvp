@@ -41,9 +41,9 @@ export default function Tilini() {
     <div style={{ backgroundColor: C.bg, minHeight: '100vh', color: C.text, fontFamily: 'var(--font-body), sans-serif' }}>
       <div style={{ maxWidth: '640px', margin: '0 auto', padding: '60px 24px' }}>
 
-        <button onClick={() => router.push('/dashboard')} style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'none', border: 'none', color: C.secondary, cursor: 'pointer', fontSize: '11px', letterSpacing: '0.14em', textTransform: 'uppercase', marginBottom: '48px' }}>
+        <button onClick={() => router.back()} style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'none', border: 'none', color: C.secondary, cursor: 'pointer', fontSize: '11px', letterSpacing: '0.14em', textTransform: 'uppercase', marginBottom: '48px' }}>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
-          Dashboard
+          Takaisin
         </button>
 
         <div style={{ fontSize: '9px', letterSpacing: '0.24em', textTransform: 'uppercase', color: C.accent, opacity: 0.7, marginBottom: '10px' }}>Hallinta</div>

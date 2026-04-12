@@ -329,6 +329,7 @@ function useParticles(canvasRef) {
 export default function Home() {
   const router = useRouter()
   const [kirjautunut, setKirjautunut] = useState(false)
+  const [tiliTyyppi, setTiliTyyppi] = useState(null)
   const canvasRef = useRef(null)
   const heroRef  = useRef(null)
   useParticles(canvasRef)
@@ -363,7 +364,8 @@ export default function Home() {
     const tarkista = async () => {
       const { data: { user } } = await supabase.auth.getUser()
       if (user) {
-        router.replace('/dashboard')
+        setKirjautunut(true)
+        setTiliTyyppi(user.user_metadata?.tili_tyyppi || 'kuolinpesa')
       } else {
         setKirjautunut(false)
       }
@@ -461,12 +463,21 @@ export default function Home() {
         </p>
 
         <div className="a4">
-          <button className="btn-primary" onClick={() => router.push('/valitse')}>
-            Aloita ilmaiseksi
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-              <path d="M5 12h14M12 5l7 7-7 7"/>
-            </svg>
-          </button>
+          {kirjautunut ? (
+            <button className="btn-primary" onClick={() => router.push(tiliTyyppi === 'valmistelu' ? '/valmistele/dashboard' : '/dashboard')}>
+              Jatka dashboardille
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                <path d="M5 12h14M12 5l7 7-7 7"/>
+              </svg>
+            </button>
+          ) : (
+            <button className="btn-primary" onClick={() => router.push('/valitse')}>
+              Aloita ilmaiseksi
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                <path d="M5 12h14M12 5l7 7-7 7"/>
+              </svg>
+            </button>
+          )}
         </div>
       </div>
 

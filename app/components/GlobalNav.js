@@ -43,7 +43,11 @@ export default function GlobalNav() {
       label: 'Pesäni',
       sub: 'Dashboard',
       icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={C.accent} strokeWidth="1.5"><rect x="3" y="3" width="18" height="18" rx="1"/><path d="M3 9h18M9 21V9"/></svg>,
-      onClick: () => { setAuki(false); router.push('/dashboard') },
+      onClick: () => {
+        setAuki(false)
+        const tiliTyyppi = kayttaja?.user_metadata?.tili_tyyppi
+        router.push(tiliTyyppi === 'valmistelu' ? '/valmistele/dashboard' : '/dashboard')
+      },
       danger: false,
     },
     {
@@ -60,7 +64,7 @@ export default function GlobalNav() {
       label: 'Kirjaudu ulos',
       sub: null,
       icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(240,235,227,0.35)" strokeWidth="1.5"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>,
-      onClick: async () => { setAuki(false); await supabase.auth.signOut(); router.push('/') },
+      onClick: async () => { setAuki(false); await supabase.auth.signOut(); window.location.href = '/' },
       danger: true,
     },
   ]

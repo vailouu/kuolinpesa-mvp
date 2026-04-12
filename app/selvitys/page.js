@@ -609,6 +609,7 @@ export default function Selvitys() {
     const haeData = async () => {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { router.push('/kirjaudu'); return }
+      if (user.user_metadata?.tili_tyyppi === 'valmistelu') { router.replace('/valmistele/dashboard'); return }
 
       const { data: pesaData } = await supabase
         .from('kuolinpesat')
@@ -699,7 +700,7 @@ export default function Selvitys() {
       <nav style={{ borderBottom: '1px solid #C9A84C' }} className="px-8 py-4 flex items-center justify-between">
         <div style={{ color: '#C9A84C' }} className="text-xl font-bold tracking-widest uppercase">Pesänhoitaja</div>
         <button onClick={() => router.push('/dashboard')} style={{ color: '#C9A84C' }} className="text-sm hover:opacity-75">
-          ← Takaisin dashboardille
+          ← Dashboard
         </button>
       </nav>
 

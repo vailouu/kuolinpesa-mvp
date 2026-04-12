@@ -19,8 +19,8 @@ export default function Asetukset() {
   useEffect(() => {
     const tarkista = async () => {
       const { data: { user } } = await supabase.auth.getUser()
-      if (!user) router.push('/kirjaudu')
-      else setLadataan(false)
+      if (!user) { router.push('/kirjaudu'); return }
+      setLadataan(false)
     }
     tarkista()
   }, [])

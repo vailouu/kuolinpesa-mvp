@@ -188,6 +188,7 @@ useEffect(() => {
     const haeData = async () => {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { router.push('/kirjaudu'); setLadataan(false); return }
+      if (user.user_metadata?.tili_tyyppi === 'valmistelu') { router.replace('/valmistele/dashboard'); return }
       const { data: pesaData } = await supabase.from('kuolinpesat').select('*').eq('kayttaja_email', user.email).not('vainajan_nimi', 'is', null).neq('vainajan_nimi', '').order('created_at', { ascending: false }).limit(1).single()
       if (pesaData) {
         setKuolinpesa(pesaData)
@@ -334,13 +335,18 @@ const poistaVahvistettu = async (id, index) => {
       }}>
         {/* Logo */}
         <div style={{ padding: '28px 24px', borderBottom: '1px solid rgba(201,168,76,0.28)' }}>
-          <span style={{
+          <button onClick={() => router.push('/')} style={{
+            background: 'none', border: 'none', cursor: 'pointer', padding: 0,
             fontFamily: 'var(--font-body), sans-serif',
             fontSize: '10px', letterSpacing: '0.24em', textTransform: 'uppercase',
             color: '#F0EBE3',
-          }}>
+            transition: 'color 0.2s ease',
+          }}
+          onMouseEnter={e => e.currentTarget.style.color = '#C9A84C'}
+          onMouseLeave={e => e.currentTarget.style.color = '#F0EBE3'}
+          >
             Pesänhoitaja
-          </span>
+          </button>
         </div>
 
         {/* Navigaatio */}
@@ -573,7 +579,6 @@ const poistaVahvistettu = async (id, index) => {
                 onMouseEnter={e => e.currentTarget.style.backgroundColor = '#D4B55C'}
                 onMouseLeave={e => e.currentTarget.style.backgroundColor = '#C9A84C'}
               >Siirry tehtäviin →</button>
-              <span style={{ fontSize: '11px', color: '#3A3630' }}>tai valitse osio vasemmalta</span>
             </div>
 
           </div>
@@ -1254,10 +1259,16 @@ function KommenttiKentta({ kuolinpesaId, kayttajaEmail, kontekstiTyyppi = 'ylein
 }
 
 function ViestitNakyma({ kuolinpesaId, kayttajaEmail, onKommenttiLisatty, onAvaPopup, kaikkiKommentit }) {
+  const osioNimiMap = {
+    'pankkivarat': '🏦 Pankkivarat',
+    'sijoitukset': '📈 Sijoitukset',
+    'kiinteistot': '🏠 Kiinteistöt',
+    'omaisuus': '🚗 Omaisuus',
+  }
   const osiokohtaiset = kaikkiKommentit.filter(k => k.konteksti_tyyppi !== 'yleinen' && k.konteksti_id)
   const ryhmitelty = osiokohtaiset.reduce((acc, k) => {
     const avain = `${k.konteksti_tyyppi}::${k.konteksti_id}`
-    if (!acc[avain]) acc[avain] = { tyyppi: k.konteksti_tyyppi, id: k.konteksti_id, nimi: k.konteksti_id, kommentit: [] }
+    if (!acc[avain]) acc[avain] = { tyyppi: k.konteksti_tyyppi, id: k.konteksti_id, nimi: osioNimiMap[k.konteksti_id] || k.konteksti_id, kommentit: [] }
     acc[avain].kommentit.push(k)
     return acc
   }, {})
@@ -1284,25 +1295,24 @@ function ViestitNakyma({ kuolinpesaId, kayttajaEmail, onKommenttiLisatty, onAvaP
 
       {/* Osiokohtaiset */}
       <div style={{ backgroundColor: '#0D0B09', border: '1px solid rgba(240,235,227,0.15)', padding: '24px' }}>
-        <div style={{ fontSize: '9px', letterSpacing: '0.2em', textTransform: 'uppercase', color: '#7A7268', marginBottom: '16px' }}>Osiokohtaiset viestit</div>
+        <div style={{ fontSize: '9px', letterSpacing: '0.2em', textTransform: 'uppercase', color: '#C9A84C', marginBottom: '16px' }}>Osiokohtaiset viestit</div>
         {Object.keys(ryhmitelty).length === 0 ? (
           <p style={{ fontSize: '12px', color: '#7A7268' }}>Ei vielä osiokohtaisia viestejä. Voit jättää viestin suoraan tehtävän tai omaisuuskohdan yhteydessä.</p>
         ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1px', backgroundColor: 'rgba(240,235,227,0.05)' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1px' }}>
             {Object.values(ryhmitelty).map(osio => (
               <button key={`${osio.tyyppi}::${osio.id}`}
                 onClick={() => onAvaPopup({ tyyppi: osio.tyyppi, id: osio.id, nimi: osio.nimi, kategoriaNimi: osio.tyyppi === 'tehtava' ? 'Tehtävä' : 'Omaisuuden selvitys' })}
-                style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#0D0B09', padding: '14px 16px', border: 'none', cursor: 'pointer', textAlign: 'left', width: '100%' }}
-                onMouseEnter={e => e.currentTarget.style.backgroundColor = '#110E0B'}
+                style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#0D0B09', padding: '14px 16px', border: 'none', borderBottom: '1px solid rgba(240,235,227,0.04)', cursor: 'pointer', textAlign: 'left', width: '100%', transition: 'background 0.15s' }}
+                onMouseEnter={e => e.currentTarget.style.backgroundColor = '#131109'}
                 onMouseLeave={e => e.currentTarget.style.backgroundColor = '#0D0B09'}
               >
-                <div>
-                  <div style={{ fontSize: '11px', color: '#7A7268', letterSpacing: '0.06em', marginBottom: '2px', textTransform: 'uppercase' }}>{osio.tyyppi === 'tehtava' ? 'Tehtävä' : 'Omaisuuden selvitys'}</div>
-                  <div style={{ fontSize: '13px', color: '#D0C8BC' }}>{osio.nimi}</div>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
-                  <span style={{ fontSize: '11px', color: '#C9A84C' }}>{osio.kommentit.length} viestiä</span>
-                  <span style={{ color: '#4E4840', fontSize: '12px' }}>→</span>
+                <span style={{ fontSize: '13px', color: '#D0C8BC' }}>{osio.nimi}</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                  </svg>
+                  <span style={{ fontSize: '11px', color: '#C9A84C' }}>{osio.kommentit.length}</span>
                 </div>
               </button>
             ))}

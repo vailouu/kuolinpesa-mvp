@@ -76,40 +76,94 @@ const css = `
   .back-link:hover { color: ${C.accent}; }
 `
 
-export default function Aloita() {
+export default function Valmistele() {
   const router = useRouter()
-  const [tiedot, setTiedot] = useState({ vainajanNimi: '', kuolinpaiva: '', sahkoposti: '', salasana: '' })
+  const [tiedot, setTiedot] = useState({ nimi: '', sahkoposti: '', salasana: '' })
   const [lataa, setLataa] = useState(false)
   const [virhe, setVirhe] = useState('')
+  const [tarkistaEmail, setTarkistaEmail] = useState(false)
 
   const paivita = (kentta, arvo) => setTiedot({ ...tiedot, [kentta]: arvo })
 
   const laheta = async () => {
+    if (!tiedot.nimi || !tiedot.sahkoposti || !tiedot.salasana) {
+      setVirhe('Täytä kaikki kentät.')
+      return
+    }
     setLataa(true)
     setVirhe('')
+
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email: tiedot.sahkoposti,
       password: tiedot.salasana,
       options: {
         data: {
-          tili_tyyppi: 'kuolinpesa',
+          tili_tyyppi: 'valmistelu',
+          full_name: tiedot.nimi,
         },
       },
     })
+
     if (authError) { setVirhe('Virhe: ' + authError.message); setLataa(false); return }
     if (authData.user?.identities?.length === 0) {
       setVirhe('Tällä sähköpostiosoitteella on jo tili. Kirjaudu sisään.')
       setLataa(false)
       return
     }
-    const { error } = await supabase.from('kuolinpesat').insert({
-      vainajan_nimi: tiedot.vainajanNimi,
-      kuolinpaiva: tiedot.kuolinpaiva || null,
-      kayttaja_email: tiedot.sahkoposti,
-    })
-    if (error) { setVirhe('Virhe: ' + error.message); setLataa(false) }
-    else { localStorage.setItem('uusi_kayttaja', 'true'); router.push('/dashboard') }
+
+    // Jos sessio on heti olemassa (email-vahvistus pois päältä) → ohjaa dashboardille
+    // Jos ei sessiota (email-vahvistus päällä) → näytä viesti
+    if (authData.session) {
+      router.push('/valmistele/dashboard')
+    } else {
+      setVirhe('')
+      setTarkistaEmail(true)
+    }
   }
+
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter') laheta()
+  }
+
+  if (tarkistaEmail) return (
+    <div style={{
+      backgroundColor: C.bg, color: C.text,
+      minHeight: '100vh', display: 'flex', flexDirection: 'column',
+      alignItems: 'center', justifyContent: 'center',
+      padding: '80px 24px', fontFamily: 'var(--font-body), sans-serif',
+      textAlign: 'center',
+    }}>
+      <style>{css}</style>
+      <div style={{ maxWidth: '400px' }}>
+        <div style={{
+          fontSize: '10px', letterSpacing: '0.28em', textTransform: 'uppercase',
+          color: C.accent, display: 'flex', alignItems: 'center', justifyContent: 'center',
+          gap: '14px', marginBottom: '24px',
+        }}>
+          <div style={{ width: '24px', height: '1px', background: C.accent }} />
+          Tili luotu
+          <div style={{ width: '24px', height: '1px', background: C.accent }} />
+        </div>
+        <h1 style={{
+          fontFamily: 'var(--font-display), Georgia, serif',
+          fontSize: '32px', fontWeight: 300, color: C.text,
+          marginBottom: '16px', lineHeight: 1.1,
+        }}>
+          Tarkista<br />
+          <em style={{ fontStyle: 'italic', color: C.accent }}>sähköpostisi.</em>
+        </h1>
+        <p style={{ color: C.secondary, fontSize: '14px', lineHeight: 1.8, marginBottom: '32px' }}>
+          Lähetimme vahvistuslinkin osoitteeseen <strong style={{ color: C.text }}>{tiedot.sahkoposti}</strong>. Klikkaa linkkiä ja pääset kirjautumaan sisään.
+        </p>
+        <button className="btn-submit" onClick={() => router.push('/kirjaudu')}>
+          Kirjaudu sisään
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+            <path d="M5 12h14M12 5l7 7-7 7"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  )
 
   return (
     <div style={{
@@ -136,48 +190,49 @@ export default function Aloita() {
           color: C.accent, display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px',
         }}>
           <div style={{ width: '20px', height: '1px', background: C.accent }} />
-          Uusi kuolinpesä
+          Valmistelu
         </div>
 
         <h1 className="a1" style={{
           fontFamily: 'var(--font-display), Georgia, serif',
           fontSize: '36px', fontWeight: 300, letterSpacing: '-0.02em',
-          color: C.text, marginBottom: '40px', lineHeight: 1.1,
+          color: C.text, marginBottom: '16px', lineHeight: 1.1,
         }}>
-          Aloita kuolinpesän<br />
-          <em style={{ fontStyle: 'italic', color: C.accent }}>hoito.</em>
+          Lahjoita omaisillesi<br />
+          <em style={{ fontStyle: 'italic', color: C.accent }}>selkeys.</em>
         </h1>
+
+        <p className="a1" style={{
+          fontSize: '14px', color: C.secondary, lineHeight: 1.8,
+          marginBottom: '40px', fontWeight: 300,
+        }}>
+          Täytä tietosi etukäteen. Omaisesi löytävät kaiken tarvitsemansa yhdestä paikasta.
+        </p>
 
         {/* Form */}
         <div className="a2" style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
 
           <div>
-            <label className="form-label">Vainajan nimi *</label>
+            <label className="form-label">Nimesi *</label>
             <input className="form-input" type="text" placeholder="Etunimi Sukunimi"
-              value={tiedot.vainajanNimi} onChange={e => paivita('vainajanNimi', e.target.value)} />
-          </div>
-
-          <div>
-            <label className="form-label">
-              Kuolinpäivä{' '}
-              <span style={{ opacity: 0.5, letterSpacing: '0.1em' }}>(valinnainen)</span>
-            </label>
-            <input className="form-input" type="date"
-              value={tiedot.kuolinpaiva} onChange={e => paivita('kuolinpaiva', e.target.value)} />
+              value={tiedot.nimi} onChange={e => paivita('nimi', e.target.value)}
+              onKeyDown={handleKeyDown} />
           </div>
 
           <div style={{ height: '1px', background: C.border }} />
 
           <div>
-            <label className="form-label">Sähköpostiosoitteesi *</label>
+            <label className="form-label">Sähköpostiosoite *</label>
             <input className="form-input" type="email" placeholder="sinun@email.fi"
-              value={tiedot.sahkoposti} onChange={e => paivita('sahkoposti', e.target.value)} />
+              value={tiedot.sahkoposti} onChange={e => paivita('sahkoposti', e.target.value)}
+              onKeyDown={handleKeyDown} />
           </div>
 
           <div>
             <label className="form-label">Salasana *</label>
             <input className="form-input" type="password" placeholder="Vähintään 8 merkkiä"
-              value={tiedot.salasana} onChange={e => paivita('salasana', e.target.value)} />
+              value={tiedot.salasana} onChange={e => paivita('salasana', e.target.value)}
+              onKeyDown={handleKeyDown} />
           </div>
 
           {virhe && (
@@ -187,7 +242,7 @@ export default function Aloita() {
           )}
 
           <button className="btn-submit" onClick={laheta} disabled={lataa}>
-            {lataa ? 'Luodaan...' : 'Luo kuolinpesä'}
+            {lataa ? 'Luodaan tiliä...' : 'Luo tili'}
             {!lataa && (
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                 <path d="M5 12h14M12 5l7 7-7 7"/>

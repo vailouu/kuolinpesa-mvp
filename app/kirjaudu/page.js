@@ -92,7 +92,16 @@ export default function Kirjaudu() {
       password: tiedot.salasana,
     })
     if (error) { setVirhe('Väärä sähköposti tai salasana'); setLataa(false) }
-    else { localStorage.setItem('uusi_kayttaja', 'true'); router.push('/dashboard') }
+    else {
+      const { data: { user } } = await supabase.auth.getUser()
+      const tiliTyyppi = user?.user_metadata?.tili_tyyppi
+      if (tiliTyyppi === 'valmistelu') {
+        router.push('/valmistele/dashboard')
+      } else {
+        localStorage.setItem('uusi_kayttaja', 'true')
+        router.push('/dashboard')
+      }
+    }
   }
 
   const handleKeyDown = (e) => {
