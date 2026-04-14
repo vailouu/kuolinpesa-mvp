@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '../../supabase'
 import TopBar from '../../components/TopBar'
@@ -231,6 +231,25 @@ export default function ValmisteleDashboard() {
 
   // Omaisuus
   const [valittuKategoria, setValittuKategoria] = useState(null)
+
+  const navPush = useCallback((vaihe, kategoria = null) => {
+    window.history.pushState({ vaihe, kategoria }, '')
+    setAktiivinenVaihe(vaihe)
+    setValittuKategoria(kategoria)
+  }, [])
+
+  useEffect(() => {
+    window.history.replaceState({ vaihe: 1, kategoria: null }, '')
+    const handlePop = (e) => {
+      const s = e.state
+      if (!s) return
+      setAktiivinenVaihe(s.vaihe ?? 1)
+      setValittuKategoria(s.kategoria ?? null)
+    }
+    window.addEventListener('popstate', handlePop)
+    return () => window.removeEventListener('popstate', handlePop)
+  }, [])
+
   const [omaisuusItems, setOmaisuusItems] = useState({}) // { kategoriaId: [{kentat}] }
   const [uusiItem, setUusiItem] = useState({})
 
@@ -331,7 +350,7 @@ export default function ValmisteleDashboard() {
             <button
               key={v.id}
               className={`nav-item${aktiivinenVaihe === v.id ? ' active' : ''}`}
-              onClick={() => { setAktiivinenVaihe(v.id); setValittuKategoria(null) }}
+              onClick={() => navPush(v.id, null)}
             >
               <span style={{ fontSize: '14px', opacity: 0.8 }}>{v.ikoni}</span>
               {v.nimi}
@@ -431,7 +450,7 @@ export default function ValmisteleDashboard() {
                 {omaisuusKategoriat.map(k => {
                   const maara = omaisuusLukumaara(k.id)
                   return (
-                    <div key={k.id} className="omaisuus-card" onClick={() => setValittuKategoria(k.id)}>
+                    <div key={k.id} className="omaisuus-card" onClick={() => navPush(aktiivinenVaihe, k.id)}>
                       <div style={{ fontSize: '22px', marginBottom: '12px' }}>{k.ikoni}</div>
                       <div style={{
                         fontFamily: 'var(--font-body), sans-serif',
@@ -464,7 +483,7 @@ export default function ValmisteleDashboard() {
           {/* ── 2b. OMAISUUS — KATEGORIA AUKI ── */}
           {aktiivinenVaihe === 2 && valittuKategoria && kat && (
             <div className="fade-up">
-              <button className="btn-ghost" onClick={() => setValittuKategoria(null)} style={{ marginBottom: '28px' }}>
+              <button className="btn-ghost" onClick={() => window.history.back()} style={{ marginBottom: '28px' }}>
                 <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                   <path d="M19 12H5M12 5l-7 7 7 7"/>
                 </svg>

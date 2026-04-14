@@ -17,18 +17,12 @@ const kategoriat = [
       { nimi: 'Hälytyspalvelu / turvapuhelin', miksi: 'Usein ikäihmisillä on turvapuhelin tai kotihälytyspalvelu — laskutetaan kuukausittain.', miten: ['Ota yhteyttä palveluntarjoajaan','Ilmoita kuolemasta ja pyydä sopimuksen päättämistä','Palauta laitteet jos tarpeen'] },
       { nimi: 'Siivouspalvelu', miksi: 'Jos vainajalla oli säännöllinen siivouspalvelu, se jatkuu kunnes perutaan.', miten: ['Ota yhteyttä siivousyritykseen','Ilmoita kuolemasta ja peru tulevat käynnit'] },
       { nimi: 'Piha- tai lumityöpalvelu', miksi: 'Kausisopimukset jatkuvat automaattisesti ellei niitä irtisanota.', miten: ['Ota yhteyttä palveluntarjoajaan','Ilmoita kuolemasta ja peru sopimus'] },
-      { nimi: 'Parkkipaikka / autohalli', miksi: 'Parkkipaikkasopimus jatkuu ja kuukausimaksu juoksee kunnes irtisanotaan.', miten: ['Ota yhteyttä parkkipaikan omistajaan tai taloyhtiöön','Irtisano sopimus kirjallisesti','Palauta mahdollinen avain tai kaukosäädin'] },
       { nimi: 'Säilytystila / varasto', miksi: 'Ulkoinen säilytystila laskutetaan kuukausittain — jatkuu kunnes irtisanotaan.', miten: ['Ota yhteyttä palveluntarjoajaan','Tyhjennä tila ja irtisano sopimus','Palauta avain'] },
-      { nimi: 'Autovakuutus (liikennevakuutus + kasko)', miksi: 'Traficom merkitsee kuolinpesän automaattisesti ajoneuvon omistajaksi. Vakuutukset jäävät voimaan mutta muutokset vaativat kaikkien osakkaiden suostumuksen.', miten: ['Ilmoita vakuutusyhtiölle kuolemasta','Pidä vakuutus voimassa kunnes ajoneuvo on myyty tai siirretty','Kun ajoneuvo myydään — vakuutus päättyy automaattisesti'] },
-      { nimi: 'Moottoripyörän / veneen vakuutus', miksi: 'Sama periaate kuin autovakuutuksessa — vakuutus siirtyy kuolinpesän nimiin automaattisesti.', miten: ['Ilmoita vakuutusyhtiölle kuolemasta','Pidä voimassa kunnes omaisuus on myyty tai jaettu'] },
+      { nimi: 'Parkkipaikka / autohalli', miksi: 'Parkkipaikkasopimus jatkuu ja kuukausimaksu juoksee kunnes irtisanotaan.', miten: ['Ota yhteyttä parkkipaikan omistajaan tai taloyhtiöön','Irtisano sopimus kirjallisesti','Palauta mahdollinen avain tai kaukosäädin'] },
+      { nimi: 'Pysäköintikortti / aluekortti', miksi: 'Kuukausittain laskutettava pysäköintisopimus jatkuu kunnes irtisanotaan.', miten: ['Ota yhteyttä pysäköintiyhtiöön tai taloyhtiöön','Irtisano sopimus ja palauta kortti tai kaukosäädin'] },
+      { nimi: 'Autopesusopimus', miksi: 'Kuukausittain laskutettava autopesusopimus jatkuu kunnes irtisanotaan.', miten: ['Ota yhteyttä autopesuyrityksen asiakaspalveluun','Irtisano sopimus'] },
       { nimi: 'Autolaina / rahoitussopimus', miksi: 'Autolaina siirtyy kuolinpesälle — se pitää maksaa tai neuvotella uudelleen rahoitusyhtiön kanssa.', miten: ['Ota yhteyttä rahoitusyhtiöön','Selvitä lainan jäljellä oleva summa','Sovi jatkosta — maksetaanko laina pois vai siirretäänkö uudelle omistajalle'] },
       { nimi: 'Leasingsopimus', miksi: 'Leasingauto ei kuulu kuolinpesään — se on leasingyhtiön omaisuutta. Sopimus pitää irtisanoa erikseen.', miten: ['Ota yhteyttä leasingyhtiöön välittömästi','Palauta ajoneuvo sovitusti','Selvitä mahdolliset jäljellä olevat maksut'] },
-      { nimi: 'Pysäköintikortti / aluekortti', miksi: 'Kuukausittain laskutettava pysäköintisopimus jatkuu kunnes irtisanotaan.', miten: ['Ota yhteyttä pysäköintiyhtiöön tai taloyhtiöön','Irtisano sopimus ja palauta kortti tai kaukosäädin'] },
-      { nimi: 'Kotihoito', miksi: 'Säännölliset kotihoidon käynnit laskutetaan kunnes peruutetaan.', miten: ['Ota yhteyttä palveluntarjoajaan tai kotihoitoon','Peruuta tulevat käynnit','Palauta mahdolliset avaimet'] },
-      { nimi: 'Ateriapalvelu', miksi: 'Ateriapalvelu toimittaa ruokaa säännöllisesti ja laskuttaa kuukausittain.', miten: ['Ota yhteyttä palveluntarjoajaan välittömästi','Peruuta tulevat toimitukset'] },
-      { nimi: 'Taksikortti / Kela-taksi', miksi: 'Kela-taksi päättyy automaattisesti kun Kela saa tiedon — mutta ilmoitus kannattaa tehdä itse.', miten: ['Ilmoita Kelalle kuolemasta','Palauta mahdollinen taksikortti'] },
-      { nimi: 'Autopesusopimus', miksi: 'Kuukausittain laskutettava autopesusopimus jatkuu kunnes irtisanotaan.', miten: ['Ota yhteyttä autopesuyrityksen asiakaspalveluun','Irtisano sopimus'] },
-      { nimi: 'Lemmikin hoitopalvelu', miksi: 'Jos vainajalla oli lemmikki ja säännöllinen hoitopalvelu.', miten: ['Peruuta tulevat hoitoajat','Selvitä lemmikin jatkosta'] },
     ]
   },
   {
@@ -37,21 +31,22 @@ const kategoriat = [
       { nimi: 'Henkivakuutus', miksi: 'Henkivakuutuskorvaus ei tule automaattisesti — se pitää hakea erikseen. Mitään keskitettyä rekisteriä henkivakuutuksista ei ole.', miten: ['Etsi vakuutuskirjat vainajan papereiden joukosta','Ota yhteyttä vakuutusyhtiöön ja hae korvausta','Jos et tiedä missä yhtiössä vakuutus on — kysy kaikilta vakuutusyhtiöiltä','Korvaushakemus pitää tehdä yleensä vuoden sisällä kuolemasta'] },
       { nimi: 'Ryhmähenkivakuutus (työnantajan kautta)', miksi: 'Monilla palkansaajilla on työnantajan ottama ryhmähenkivakuutus — tätä ei aina tiedetä. Korvaus voi olla merkittävä.', miten: ['Kysy vainajan viimeiseltä työnantajalta','Tai tarkista Työntekijäin ryhmähenkivakuutuspoolista: tvk.fi'] },
       { nimi: 'Tapaturmavakuutus', miksi: 'Jos vainaja kuoli tapaturmaisesti tai vakuutuksessa on kuolemantapausturva, siitä voi saada korvausta.', miten: ['Tarkista vakuutuskirjoista onko tapaturmavakuutusta','Ota yhteyttä vakuutusyhtiöön','Hae korvaus vuoden sisällä'] },
+      { nimi: 'Autovakuutus (liikennevakuutus + kasko)', miksi: 'Traficom merkitsee kuolinpesän automaattisesti ajoneuvon omistajaksi. Vakuutukset jäävät voimaan mutta muutokset vaativat kaikkien osakkaiden suostumuksen.', miten: ['Ilmoita vakuutusyhtiölle kuolemasta','Pidä vakuutus voimassa kunnes ajoneuvo on myyty tai siirretty','Kun ajoneuvo myydään — vakuutus päättyy automaattisesti'] },
+      { nimi: 'Moottoripyörän / veneen vakuutus', miksi: 'Sama periaate kuin autovakuutuksessa — vakuutus siirtyy kuolinpesän nimiin automaattisesti.', miten: ['Ilmoita vakuutusyhtiölle kuolemasta','Pidä voimassa kunnes omaisuus on myyty tai jaettu'] },
+      { nimi: 'Kotivakuutus', miksi: 'Kotivakuutus siirtyy automaattisesti kuolinpesän nimiin — pidä voimassa kunnes omaisuus on jaettu tai myyty.', miten: ['Ilmoita vakuutusyhtiölle kuolemasta','Vakuutus jatkuu pesän nimissä — älä irtisano ennenaikaisesti','Irtisano vasta kun asunto on myyty tai jaettu'] },
+      { nimi: 'Kiinteistövakuutus', miksi: 'Koskee omakotitaloa tai muuta kiinteistöä. Pidä voimassa kunnes kiinteistö on myyty.', miten: ['Ilmoita vakuutusyhtiölle kuolemasta','Pidä vakuutus voimassa kunnes kiinteistö on siirtynyt uudelle omistajalle','Irtisanomiseen tarvitaan kaikkien osakkaiden suostumus'] },
       { nimi: 'Matkavakuutus (vuosivakuutus)', miksi: 'Vuosittain uusiutuva matkavakuutus jatkuu kunnes irtisanotaan.', miten: ['Ota yhteyttä vakuutusyhtiöön','Irtisano vakuutus'] },
       { nimi: 'Sairausvakuutus (yksityinen)', miksi: 'Yksityinen sairausvakuutus päättyy kuolinpäivänä automaattisesti — mutta vakuutusyhtiölle pitää silti ilmoittaa.', miten: ['Ilmoita vakuutusyhtiölle kuolemasta','Selvitä onko avoinna olevia korvauksia joita voi vielä hakea'] },
       { nimi: 'Eläkevakuutus (vapaaehtoinen)', miksi: 'Vapaaehtoinen eläkesäästö kuuluu kuolinpesään ja voidaan nostaa — tai se voi sisältää kuolemanvaraturvan.', miten: ['Ota yhteyttä vakuutusyhtiöön','Selvitä onko kuolemanvaraturvaa tai nostomahdollisuus','Hae korvaus tai nosto'] },
       { nimi: 'Lainaturva', miksi: 'Jos vainajalla oli lainaturva lainassa, se voi kattaa lainan loppusumman kuoleman jälkeen.', miten: ['Tarkista onko lainassa lainaturva — kysy pankista','Ota yhteyttä vakuutusyhtiöön ja hae korvausta','Korvaus voi maksaa koko lainan jäljellä olevan summan'] },
       { nimi: 'Oikeusturvavakuutus', miksi: 'Oikeusturvavakuutus on usein liitetty kotivakuutukseen. Se voi kattaa kuolinpesän oikeudellisia kuluja.', miten: ['Tarkista kotivakuutuksesta onko oikeusturva mukana','Pidä voimassa perunkirjoitukseen asti'] },
-      { nimi: 'Kotivakuutus', miksi: 'Kotivakuutus siirtyy automaattisesti kuolinpesän nimiin — pidä voimassa kunnes omaisuus on jaettu tai myyty.', miten: ['Ilmoita vakuutusyhtiölle kuolemasta','Vakuutus jatkuu pesän nimissä — älä irtisano ennenaikaisesti','Irtisano vasta kun asunto on myyty tai jaettu'] },
-      { nimi: 'Kiinteistövakuutus', miksi: 'Koskee omakotitaloa tai muuta kiinteistöä. Pidä voimassa kunnes kiinteistö on myyty.', miten: ['Ilmoita vakuutusyhtiölle kuolemasta','Pidä vakuutus voimassa kunnes kiinteistö on siirtynyt uudelle omistajalle','Irtisanomiseen tarvitaan kaikkien osakkaiden suostumus'] },
     ]
   },
   {
     id: 'tilaukset-media', nimi: 'Tilaukset ja media', ikoni: '📺',
     sopimukset: [
       { nimi: 'Puhelinliittymät', miksi: 'Puhelinliittymä ei pääty automaattisesti. Tarkista onko vainajalla useampia liittymiä. Kuolemantapauksessa myös määräaikainen liittymä voidaan irtisanoa.', miten: ['Ota yhteyttä operaattorin asiakaspalveluun puhelimitse tai myymälässä','Ilmoita vainajan nimi ja kuolinpäivä','Pyydä listaus kaikista liittymistä saman asiakkaan nimissä','Irtisano kaikki liittymät'] },
-      { nimi: 'Lehtitilaukset', miksi: 'Sanomalehdet jatkuvat kunnes irtisanotaan. Käännetty posti paljastaa usein mitkä lehdet vainajalla oli.', miten: ['Ota yhteyttä kustantajaan puhelimitse tai verkkosivujen kautta','Ilmoita kuolemasta ja pyydä tilauksen päättämistä'] },
-      { nimi: 'Aikakauslehdet', miksi: 'Vuositilaukset uusiutuvat automaattisesti ellei niitä irtisanota.', miten: ['Ota yhteyttä kustantajaan','Irtisano tilaus'] },
+      { nimi: 'Lehtitilaukset (sanomalehdet ja aikakauslehdet)', miksi: 'Lehdet jatkuvat kunnes irtisanotaan — sekä päivälehdet että vuositilaukset uusiutuvat automaattisesti. Käännetty posti paljastaa usein mitkä lehdet vainajalla oli.', miten: ['Ota yhteyttä kustantajaan puhelimitse tai verkkosivujen kautta','Ilmoita kuolemasta ja pyydä kaikkien tilausten päättämistä'] },
       { nimi: 'Netflix', miksi: 'Kuukausittain laskutettava tilaus jatkuu kunnes peruutetaan.', miten: ['Kirjaudu Netflix-tilille jos tiedät salasanan ja peruuta tilaus asetuksista','Jos salasana ei ole tiedossa — kuoleta luottokortti jolla Netflix laskutetaan'] },
       { nimi: 'Spotify / Apple Music', miksi: 'Kuukausittain laskutettava musiikkipalvelu.', miten: ['Kirjaudu tilille ja peruuta tilaus','Jos salasana ei ole tiedossa — kuoleta luottokortti'] },
       { nimi: 'Disney+ / C More / Viaplay / Elisa Viihde', miksi: 'Striimipalvelut laskutetaan kuukausittain.', miten: ['Kirjaudu tilille ja peruuta tilaus','Jos Elisa Viihde — palauta digiboksi Elisalle','Jos salasana ei ole tiedossa — kuoleta luottokortti'] },
@@ -69,10 +64,19 @@ const kategoriat = [
       { nimi: 'Eläkeläisjärjestö', miksi: 'Eläkeläisjärjestöjen jäsenmaksut laskutetaan vuosittain.', miten: ['Ota yhteyttä järjestöön','Ilmoita kuolemasta'] },
       { nimi: 'Kuntosalijäsenyys', miksi: 'Kuntosalijäsenyys laskutetaan kuukausittain — ei pääty automaattisesti.', miten: ['Ota yhteyttä kuntosalin asiakaspalveluun','Ilmoita kuolemasta ja pyydä sopimuksen päättämistä','Palauta mahdollinen avainkortti tai kulkukortti'] },
       { nimi: 'Uimahalli / liikuntakeskus', miksi: 'Kausi- tai kuukausijäsenyys jatkuu kunnes irtisanotaan.', miten: ['Ota yhteyttä palveluntarjoajaan','Irtisano jäsenyys ja palauta kortti'] },
-      { nimi: 'Jumppatunnit / ryhmäliikunta', miksi: 'Säännölliset jumppatunnit tai sarjakortit.', miten: ['Ota yhteyttä ohjaajaan tai palveluntarjoajaan','Selvitä onko käyttämättömiä tunteja joista voi saada hyvitystä'] },
+    ]
+  },
+  {
+    id: 'hoiva-terveys', nimi: 'Hoiva ja terveys', ikoni: '🏥',
+    sopimukset: [
+      { nimi: 'Kotihoito', miksi: 'Säännölliset kotihoidon käynnit laskutetaan kunnes peruutetaan.', miten: ['Ota yhteyttä palveluntarjoajaan tai kotihoitoon','Peruuta tulevat käynnit','Palauta mahdolliset avaimet'] },
+      { nimi: 'Ateriapalvelu', miksi: 'Ateriapalvelu toimittaa ruokaa säännöllisesti ja laskuttaa kuukausittain.', miten: ['Ota yhteyttä palveluntarjoajaan välittömästi','Peruuta tulevat toimitukset'] },
+      { nimi: 'Taksikortti / Kela-taksi', miksi: 'Kela-taksi päättyy automaattisesti kun Kela saa tiedon — mutta ilmoitus kannattaa tehdä itse.', miten: ['Ilmoita Kelalle kuolemasta','Palauta mahdollinen taksikortti'] },
+      { nimi: 'Yksityislääkärisopimus', miksi: 'Jatkuva sopimus yksityislääkäripalveluista laskutetaan säännöllisesti.', miten: ['Ota yhteyttä palveluntarjoajaan','Irtisano sopimus'] },
+      { nimi: 'Hammaslääkärisopimus', miksi: 'Jatkuva sopimus hammashoitopalveluista tai hammasvakuutus laskutetaan kuukausittain.', miten: ['Ota yhteyttä hammaslääkärille tai palveluntarjoajaan','Irtisano sopimus tai vakuutus'] },
       { nimi: 'Hierontapalvelu', miksi: 'Säännölliset hieronta-ajat tai sarjakortit.', miten: ['Peruuta tulevat ajat','Kysy hyvitystä käyttämättömistä sarjakortin kerroista'] },
-      { nimi: 'Yksityislääkärisopimus', miksi: 'Jatkuva sopimus yksityislääkäripalveluista.', miten: ['Ota yhteyttä palveluntarjoajaan','Irtisano sopimus'] },
-      { nimi: 'Hammaslääkärisopimus', miksi: 'Jatkuva sopimus hammashoitopalveluista tai hammasvakuutus.', miten: ['Ota yhteyttä hammaslääkärille tai palveluntarjoajaan','Irtisano sopimus tai vakuutus'] },
+      { nimi: 'Jumppatunnit / ryhmäliikunta', miksi: 'Säännölliset jumppatunnit tai sarjakortit.', miten: ['Ota yhteyttä ohjaajaan tai palveluntarjoajaan','Selvitä onko käyttämättömiä tunteja joista voi saada hyvitystä'] },
+      { nimi: 'Lemmikin hoitopalvelu', miksi: 'Jos vainajalla oli lemmikki ja säännöllinen hoitopalvelu.', miten: ['Peruuta tulevat hoitoajat','Selvitä lemmikin jatkosta'] },
     ]
   },
   {
@@ -95,12 +99,18 @@ const kategoriat = [
 const varatJaVelatMuistilista = {
   varat: [
     { id: 'pankkitilit', teksti: 'Pankkitilit', ohje: 'Pyydä pankista täydellinen tililistaus. Tarkista kaikki pankit joissa vainaja saattoi olla asiakkaana.', esimerkki: 'Esim. OP-tili, Nordea säästötili' },
+    { id: 'ulkomaantilit', teksti: 'Ulkomaiset pankkitilit', ohje: 'Jos vainaja asui tai työskenteli ulkomailla, tarkista onko ulkomaisia tilejä. Tieto voidaan pyytää suoraan ulkomaiselta pankilta.', esimerkki: 'Esim: tili Ruotsalaisessa pankissa' },
     { id: 'kateinen', teksti: 'Käteinen kotona', ohje: 'Tarkista kodin yleisimmät piilopaikat — lipasto, kaappi, kassakirja.', esimerkki: 'Esim: käteistä löytyi lipastosta' },
     { id: 'sijoitukset', teksti: 'Sijoitukset (osakkeet, rahastot)', ohje: 'Tarkista OmaVero ja pankin verkkopankki. Sijoitukset näkyvät myös verottajan tiedoissa.', esimerkki: 'Esim: Nordnet-tili, OP-rahasto' },
+    { id: 'ps-tili', teksti: 'PS-tili (pitkäaikaissäästäminen)', ohje: 'PS-tili on erillinen tili eläkevakuutuksesta. Kysy pankilta tai palveluntarjoajalta saldo ja nostoehdot kuoleman jälkeen.', esimerkki: 'Esim: PS-tili Nordea Säästöpankissa' },
+    { id: 'joukkovelkakirjat', teksti: 'Joukkovelkakirjat ja obligaatiot', ohje: 'Tarkista arvo-osuustili ja pankin sijoitustili. Joukkovelkakirjat näkyvät usein erillään osakkeista.', esimerkki: 'Esim: valtion obligaatio, yrityslaina' },
     { id: 'asunnot', teksti: 'Asunto-osakkeet ja kiinteistöt', ohje: 'Tarkista lainhuutotodistus maanmittauslaitokselta. Asunto-osakkeet näkyvät isännöitsijäntodistuksessa.', esimerkki: 'Esim: 2h+k Helsinki Kallio, As Oy Kallionkatu' },
     { id: 'ajoneuvot', teksti: 'Ajoneuvot (auto, mopo, vene, mönkijä)', ohje: 'Tarkista Traficomin ajoneuvorekisteri. Kaikki vainajan nimissä olevat ajoneuvot siirtyvät kuolinpesälle.', esimerkki: 'Esim: Toyota Corolla 2015' },
     { id: 'metsa', teksti: 'Metsätilat', ohje: 'Tarkista maanmittauslaitoksen kiinteistörekisteri. Metsätilat ovat usein unohdettua omaisuutta.', esimerkki: 'Esim: metsätila Kuopiossa' },
     { id: 'mokki', teksti: 'Kesämökki tai vapaa-ajan kiinteistö', ohje: 'Tarkista maanmittauslaitoksen lainhuutotodistus.', esimerkki: 'Esim: mökki Savonlinnassa' },
+    { id: 'tontti', teksti: 'Tontti tai rakentamaton maapalsta', ohje: 'Tarkista maanmittauslaitoksen kiinteistörekisteri. Tontit ovat usein unohtuneita, etenkin perintönä saadut.', esimerkki: 'Esim: rakentamaton tontti Espoossa' },
+    { id: 'maatila', teksti: 'Maatila tai peltoalue', ohje: 'Tarkista maanmittauslaitoksen kiinteistörekisteri. Maatiloihin voi liittyä myös tukioikeuksia ja koneita.', esimerkki: 'Esim: peltoalue Etelä-Pohjanmaalla' },
+    { id: 'autotalli', teksti: 'Autotalli tai osakemuotoinen parkkipaikka', ohje: 'Autotalli voi olla erillinen asunto-osake. Tarkista isännöitsijäntodistuksesta tai taloyhtiöltä.', esimerkki: 'Esim: autotalliosake As Oy Kalliossa' },
     { id: 'tallelokero', teksti: 'Tallelokero pankissa', ohje: 'Kysy kaikilta pankeilta onko vainajalla tallelokeroa. Tallelokero vaatii avaamista pesänselvittäjän läsnäollessa.', esimerkki: 'Esim: tallelokero OP Helsingin konttorissa' },
     { id: 'krypto', teksti: 'Kryptovaluutat', ohje: 'Tarkista vainajan tietokoneen lompakkosovellukset ja sähköpostit kryptopörssien vahvistuksista.', esimerkki: 'Esim: Bitcoin Coinbase-lompakossa' },
     { id: 'osuuskunnat', teksti: 'Osuuskunnat (S-osuus, OP-osuus, HOK)', ohje: 'Osuuskunnan jäsenyys näkyy jäsenkirjeistä tai kysymällä suoraan osuuskunnalta.', esimerkki: 'Esim: S-osuus, OP-osuudet' },
@@ -108,7 +118,19 @@ const varatJaVelatMuistilista = {
     { id: 'veronpalautus', teksti: 'Veronpalautukset', ohje: 'Tarkista OmaVero.fi — avoinna olevat veronpalautukset kuuluvat kuolinpesälle.', esimerkki: 'Esim: veronpalautus OmaVerossa' },
     { id: 'lomarahat', teksti: 'Ansaitsemattomat lomarahat', ohje: 'Kysy viimeiseltä työnantajalta onko maksamattomia palkkoja tai lomarahoja.', esimerkki: 'Esim: maksamattomat lomarahat työnantajalta' },
     { id: 'vakuutuskorvaukset', teksti: 'Keskeneräiset vakuutuskorvaukset', ohje: 'Tarkista onko vainajalla vireillä olevia vakuutuskorvauksia joita ei ole vielä maksettu.', esimerkki: 'Esim: vireillä oleva korvaus If vakuutukselta' },
-    { id: 'arvoesineet', teksti: 'Arvoesineet (korut, taide, antiikki)', ohje: 'Arvoesineet pitää arvioida perunkirjoitusta varten. Ota yhteyttä arvioijaan.', esimerkki: 'Esim: kultakello, öljymaalaus' },
+    { id: 'vuokravakuus', teksti: 'Palautettava vuokravakuus', ohje: 'Jos vainaja asui vuokralla, vuokravakuus palautetaan kuolinpesälle. Ota yhteyttä vuokranantajaan.', esimerkki: 'Esim: kahden kuukauden vuokravakuus' },
+    { id: 'myyntisaatavat', teksti: 'Myyntisaatavat (yrittäjille)', ohje: 'Jos vainaja oli yrittäjä, tarkista onko avoimia laskuja tai laskuttamatonta työtä. Nämä ovat kuolinpesän saatavia.', esimerkki: 'Esim: lähettämätön lasku asiakkaalle' },
+    { id: 'osuuskunnat', teksti: 'Osuuskunnat (S-osuus, OP-osuus)', ohje: 'Osuuskunnan jäsenyys päättyy kuolemaan ja jäsenpääoma palautetaan kuolinpesälle. Kysy suoraan osuuskunnalta.', esimerkki: 'Esim: S-osuus, OP-osuudet, HOK' },
+    { id: 'peravaunu', teksti: 'Perävaunu ja matkailuauto', ohje: 'Tarkista Traficomin ajoneuvorekisteri. Perävaunu ja matkailuauto rekisteröidään erikseen ja siirtyvät kuolinpesälle.', esimerkki: 'Esim: asuntovaunu, veneen perävaunu' },
+    { id: 'tyokone', teksti: 'Työkone (traktori, kaivinkone)', ohje: 'Tarkista Traficomin rekisteri ja maatilan omaisuusluettelo. Työkoneet voivat olla merkittävä osa maatilan omaisuutta.', esimerkki: 'Esim: traktori, mönkijä, lumilinkous' },
+    { id: 'korut', teksti: 'Korut ja kellot', ohje: 'Tarkista tallelokero, kassalipas ja korurasiat. Arvokkaat korut ja kellot pitää arvioida ammattilaisen toimesta perunkirjoitusta varten.', esimerkki: 'Esim: kultasormus, Rolex-kello, kaulaketjut' },
+    { id: 'taide', teksti: 'Taide-esineet ja taulut', ohje: 'Listaa kaikki taulut ja taide-esineet. Arvokkaammat teokset kannattaa arvioida taidehuutokaupassa tai asiantuntijalla.', esimerkki: 'Esim: öljymaalaus, pronssiveistos' },
+    { id: 'antiikki', teksti: 'Antiikki ja keräilyesineet', ohje: 'Vanhat esineet, posliini, hopea-astiastot ja keräilytavara voivat olla arvokkaita. Arvioita saa antiikkiliikkeistä.', esimerkki: 'Esim: hopea-astia, keräilyviinat, vanha posliini' },
+    { id: 'soittimet', teksti: 'Soittimet', ohje: 'Listaa kaikki soittimet. Laadukkaat soittimet kuten piano tai viulu voivat olla merkittäviä arvoesineitä.', esimerkki: 'Esim: piano, akustinen kitara, viulu' },
+    { id: 'arvoesineet', teksti: 'Muut arvoesineet', ohje: 'Kaikki muu arvokas irtain omaisuus joka ei sovi muihin kategorioihin. Arvioita saa alan liikkeistä.', esimerkki: 'Esim: arvokkaat astiastot, käsintehdyt matot, turkikset' },
+    { id: 'jalometallit', teksti: 'Jalometallit (kulta, hopea)', ohje: 'Kultaharkot, hopeaset ja muut jalometallit ovat perunkirjoituksessa arvostettavaa omaisuutta. Tarkista tallelokero ja koti.', esimerkki: 'Esim: kultaharkko, hopeakolikot' },
+    { id: 'asekokoelma', teksti: 'Asekokoelma', ohje: 'Aseet eivät siirry automaattisesti — kuolinpesän on ilmoitettava aseista poliisille. Aseet pitää luovuttaa tai hakea lupa omistukselle.', esimerkki: 'Esim: metsästyspyssy, antiikkiase' },
+    { id: 'viinikokoelma', teksti: 'Viini- tai viskikokoelma', ohje: 'Arvokkaat alkoholikokoelmat voivat olla merkittäviä. Laadi luettelo pullot ja arviot.', esimerkki: 'Esim: vintage-viinejä kellarissa' },
   ],
   velat: [
     { id: 'asuntolaina', teksti: 'Asuntolaina', ohje: 'Kysy pankista lainan jäljellä oleva saldo. Tarkista onko lainassa lainaturva.', esimerkki: 'Esim: asuntolaina OP:ssa' },
@@ -116,9 +138,12 @@ const varatJaVelatMuistilista = {
     { id: 'autolaina', teksti: 'Autolaina / rahoitussopimus', ohje: 'Kysy rahoitusyhtiöltä lainan jäljellä oleva saldo.', esimerkki: 'Esim: Toyota Financial Services rahoitus' },
     { id: 'opintolaina', teksti: 'Opintolaina', ohje: 'Tarkista Kelasta onko opintolainaa jäljellä.', esimerkki: 'Esim: opintolaina Kelasta' },
     { id: 'osamaksut', teksti: 'Osamaksusopimukset (puhelin, kodinkone)', ohje: 'Tarkista laskut ja sopimukset — osamaksut jatkuvat kunnes ne maksetaan pois.', esimerkki: 'Esim: iPhone osamaksu Elisalta' },
+    { id: 'muupankkilaina', teksti: 'Muu pankkilaina', ohje: 'Kysy kaikilta pankeilta täydellinen luetttelo vainajan lainoista. Tarkista myös muut rahoituslaitokset.', esimerkki: 'Esim: henkilökohtainen laina Nordeassa' },
     { id: 'takaukset', teksti: 'Takaukset toisten lainoille', ohje: 'Takaukset siirtyvät kuolinpesälle. Kysy pankista onko vainaja taannut jonkun toisen lainaa.', esimerkki: 'Esim: taannut pojan asuntolainan OP:ssa' },
     { id: 'maksamattomat', teksti: 'Maksamattomat laskut', ohje: 'Tarkista vainajan posti ja sähköposti. Maksamattomat laskut ovat kuolinpesän velkoja.', esimerkki: 'Esim: maksamaton sähkölasku, lääkärilasku' },
     { id: 'verorästit', teksti: 'Verorästit', ohje: 'Tarkista OmaVero.fi — avoinna olevat verot ovat kuolinpesän velkoja.', esimerkki: 'Esim: verorästit OmaVerossa' },
+    { id: 'vuokrarästit', teksti: 'Vuokrarästit', ohje: 'Jos vainaja asui vuokralla ja jätti vuokria maksamatta, nämä ovat kuolinpesän velkoja. Kysy vuokranantajalta.', esimerkki: 'Esim: maksamatta jäänyt vuokra' },
+    { id: 'yksityisvelat', teksti: 'Velat yksityishenkilöille', ohje: 'Tarkista vainajan paperit ja muistiinpanot. Sukulaisille tai tuttaville olevat velat ovat kuolinpesän velkoja jos ne voidaan todistaa.', esimerkki: 'Esim: lainaa veljeältä, velkakirja ystävälle' },
   ]
 }
 
@@ -298,6 +323,26 @@ const poistaVahvistettu = async (id, index) => {
   const [aktiivisetNav, setAktiivisetNav] = React.useState('aloita')
   const [valittuVaihe, setValittuVaihe] = React.useState(null)
 
+  const navPush = React.useCallback((osioId, extra = {}) => {
+    window.history.pushState({ nav: osioId, ...extra }, '')
+    setAktiivisetNav(osioId)
+    if (extra.vaihe != null) { setAktiivinenVaihe(extra.vaihe); localStorage.setItem('aktiivinenVaihe', extra.vaihe) }
+    if (extra.valittuVaihe !== undefined) setValittuVaihe(extra.valittuVaihe)
+  }, [])
+
+  React.useEffect(() => {
+    window.history.replaceState({ nav: 'aloita' }, '')
+    const handlePop = (e) => {
+      const s = e.state
+      if (!s) return
+      if (s.nav) setAktiivisetNav(s.nav)
+      if (s.vaihe != null) { setAktiivinenVaihe(s.vaihe); localStorage.setItem('aktiivinenVaihe', s.vaihe) }
+      if (s.valittuVaihe !== undefined) setValittuVaihe(s.valittuVaihe)
+    }
+    window.addEventListener('popstate', handlePop)
+    return () => window.removeEventListener('popstate', handlePop)
+  }, [])
+
   const navItems = [
     {
       id: 'aloita', label: 'Aloita tästä',
@@ -356,7 +401,7 @@ const poistaVahvistettu = async (id, index) => {
             return (
               <button
                 key={item.id}
-                onClick={() => setAktiivisetNav(item.id)}
+                onClick={() => navPush(item.id)}
                 style={{
                   display: 'flex', alignItems: 'center', gap: '12px',
                   width: '100%', padding: '11px 20px',
@@ -417,7 +462,7 @@ const poistaVahvistettu = async (id, index) => {
           const pctLabel = `${Math.round(pct * 100)}%`
           return (
             <button
-              onClick={() => setAktiivisetNav('pesani')}
+              onClick={() => navPush('pesani')}
               style={{
                 display: 'flex', alignItems: 'center', gap: '14px',
                 width: '100%', padding: '16px 18px',
@@ -569,7 +614,7 @@ const poistaVahvistettu = async (id, index) => {
             {/* CTA */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
               <button
-                onClick={() => setAktiivisetNav('tehtavat')}
+                onClick={() => navPush('tehtavat')}
                 style={{
                   fontSize: '11px', letterSpacing: '0.16em', textTransform: 'uppercase',
                   color: '#110E0B', backgroundColor: '#C9A84C',
@@ -755,7 +800,7 @@ const poistaVahvistettu = async (id, index) => {
                           {v.kaikki > 0 && <span style={{ fontSize: '12px', color: '#4E4840', marginLeft: '10px' }}>{v.tehty}/{v.kaikki} tehty</span>}
                         </div>
                         <button
-                          onClick={() => { setAktiivisetNav('tehtavat'); setAktiivinenVaihe(v.numero); localStorage.setItem('aktiivinenVaihe', v.numero); setValittuVaihe(null) }}
+                          onClick={() => navPush('tehtavat', { vaihe: v.numero, valittuVaihe: null })}
                           style={{ fontSize: '10px', letterSpacing: '0.14em', textTransform: 'uppercase', color: '#110E0B', backgroundColor: '#C9A84C', border: 'none', padding: '9px 20px', cursor: 'pointer', transition: 'background 0.15s' }}
                           onMouseEnter={e => e.currentTarget.style.backgroundColor = '#D4B55C'}
                           onMouseLeave={e => e.currentTarget.style.backgroundColor = '#C9A84C'}
@@ -994,33 +1039,10 @@ const poistaVahvistettu = async (id, index) => {
     </div>
     <div className="flex gap-6">
       <div className="flex-1 min-w-0">
-        {aktiivinenAlivaihe === 1 && <VaratJaVelat rastitattu={varatRastitattu} onToggle={toggleVaraRasti} kirjaukset={varatKirjaukset} onKirjaus={tallennaKirjaus} vahvistetut={vahvistetutKirjaukset} onVahvista={tallennaVahvistettu} avattuKohta={avattuKohta} setAvattuKohta={setAvattuKohta} kommenttiMaara={kommenttiMaara} onAvaPopup={setKommenttiPopup} kuolinpesaId={kuolinpesa?.id} kayttajaEmail={kuolinpesa?.kayttaja_email} onKommenttiLisatty={(k) => setKaikkiKommentit(prev => [k, ...prev])} />}
+        {aktiivinenAlivaihe === 1 && <VaratJaVelat rastitattu={varatRastitattu} onToggle={toggleVaraRasti} kirjaukset={varatKirjaukset} onKirjaus={tallennaKirjaus} vahvistetut={vahvistetutKirjaukset} onVahvista={tallennaVahvistettu} onPoista={poistaVahvistettu} avattuKohta={avattuKohta} setAvattuKohta={setAvattuKohta} kommenttiMaara={kommenttiMaara} onAvaPopup={setKommenttiPopup} kuolinpesaId={kuolinpesa?.id} kayttajaEmail={kuolinpesa?.kayttaja_email} onKommenttiLisatty={(k) => setKaikkiKommentit(prev => [k, ...prev])} />}
         {aktiivinenAlivaihe === 2 && <SelvitysOsio onValmis={() => { setAktiivinenAlivaihe(3); localStorage.setItem('aktiivinenAlivaihe', 3) }} onEdistyminen={setSelvitysHoidettu} avattuSopimus={avattuSopimus} setAvattuSopimus={setAvattuSopimus} sopimusTilat={sopimusTilat} tallennaSopimusTila={tallennaSopimusTila} />}
         {aktiivinenAlivaihe === 3 && <Yhteenveto varatRastitattu={varatRastitattu} vahvistetutKirjaukset={vahvistetutKirjaukset} sopimusTilat={sopimusTilat} tallennaSopimusTila={tallennaSopimusTila} onValmis={() => { setAktiivinenVaihe(3); localStorage.setItem('aktiivinenVaihe', 3) }} />}
       </div>
-       {aktiivinenAlivaihe === 1 && (
- <div className="lg:w-80 flex-shrink-0" style={{marginTop: '60px', alignSelf: 'flex-start', position: 'sticky', top: '24px'}}>
-          <div className="flex flex-col gap-4">
-  <div className="rounded-lg p-5" style={{backgroundColor: '#1C1916', border: '1px solid #C9A84C'}}>
-    <h3 className="text-white font-bold text-base mb-3">Näin Varat ja velat toimii</h3>
-    <p style={{color: '#8A8278'}} className="text-sm mb-4">Käy lista läpi ja merkitse Kyllä tai Ei jokaiselle kohdalle.</p>
-    <p style={{color: '#8A8278'}} className="text-sm mb-4">Klikkaa riviä nähdäksesi ohjeet ja kirjauskentän. Merkitse Kyllä jos asia koskee vainajaa, Ei jos ei koske.</p>
-    <p style={{color: '#8A8278'}} className="text-sm">Löydöt kerääntyvät automaattisesti yhteenvetoon sivun alareunaan.</p>
-  </div>
-  {avattuKohta && (
-    <VaratJaVelatPaneeli
-      kohta={avattuKohta}
-      kirjaukset={varatKirjaukset}
-      onKirjaus={tallennaKirjaus}
-      vahvistetut={vahvistetutKirjaukset}
-      onVahvista={tallennaVahvistettu}
-      onSulje={() => setAvattuKohta(null)}
-      onPoista={poistaVahvistettu}
-    />
-  )}
-</div>
-        </div>
-      )}
     </div>
   </>
 )}
@@ -1263,7 +1285,15 @@ function ViestitNakyma({ kuolinpesaId, kayttajaEmail, onKommenttiLisatty, onAvaP
     'pankkivarat': '🏦 Pankkivarat',
     'sijoitukset': '📈 Sijoitukset',
     'kiinteistot': '🏠 Kiinteistöt',
-    'omaisuus': '🚗 Omaisuus',
+    'ajoneuvot': '🚗 Ajoneuvot',
+    'muu-arvo-omaisuus': '💎 Muu arvo-omaisuus',
+    'saatavat': '📋 Saatavat',
+    'asuminen-liikenne': '🏠 Asuminen ja liikenne',
+    'vakuutukset': '🛡️ Vakuutukset',
+    'tilaukset-media': '📺 Tilaukset ja media',
+    'jasenydet': '🤝 Jäsenyydet',
+    'hoiva-terveys': '🏥 Hoiva ja terveys',
+    'digitaaliset': '💻 Digitaaliset tilit',
   }
   const osiokohtaiset = kaikkiKommentit.filter(k => k.konteksti_tyyppi !== 'yleinen' && k.konteksti_id)
   const ryhmitelty = osiokohtaiset.reduce((acc, k) => {
@@ -1354,75 +1384,107 @@ function Tapahtumaloki({ kuolinpesaId }) {
   )
 }
 
-function VaratJaVelat({ rastitattu, onToggle, kirjaukset, onKirjaus, vahvistetut, onVahvista, avattuKohta, setAvattuKohta, kommenttiMaara, onAvaPopup, kuolinpesaId, kayttajaEmail, onKommenttiLisatty }) {
-  const [avatutKategoriat, setAvatutKategoriat] = useState({})
-
-  const toggleKategoria = (id) => setAvatutKategoriat(prev => ({ ...prev, [id]: !prev[id] }))
+function VaratJaVelat({ rastitattu, onToggle, kirjaukset, onKirjaus, vahvistetut, onVahvista, onPoista, avattuKohta, setAvattuKohta, kommenttiMaara, onAvaPopup, kuolinpesaId, kayttajaEmail, onKommenttiLisatty }) {
+  const [valittuKategoria, setValittuKategoria] = useState(null)
 
   const varatKategoriat = [
-    { id: 'pankkivarat', otsikko: '🏦 Pankkivarat', kohteet: ['pankkitilit', 'kateinen', 'tallelokero'] },
-    { id: 'sijoitukset', otsikko: '📈 Sijoitukset', kohteet: ['sijoitukset', 'krypto', 'elakesaastot', 'osuuskunnat'] },
-    { id: 'kiinteistot', otsikko: '🏠 Kiinteistöt', kohteet: ['asunnot', 'mokki', 'metsa'] },
-    { id: 'omaisuus', otsikko: '🚗 Omaisuus', kohteet: ['ajoneuvot', 'arvoesineet'] },
-    { id: 'saatavat', otsikko: '📋 Saatavat', kohteet: ['veronpalautus', 'lomarahat', 'vakuutuskorvaukset'] },
+    { id: 'pankkivarat', otsikko: '🏦 Pankkivarat', kohteet: ['pankkitilit', 'tallelokero', 'ulkomaantilit'] },
+    { id: 'sijoitukset', otsikko: '📈 Sijoitukset', kohteet: ['sijoitukset', 'ps-tili', 'joukkovelkakirjat', 'krypto', 'elakesaastot'] },
+    { id: 'kiinteistot', otsikko: '🏠 Kiinteistöt', kohteet: ['asunnot', 'mokki', 'metsa', 'tontti', 'maatila', 'autotalli'] },
+    { id: 'ajoneuvot', otsikko: '🚗 Ajoneuvot', kohteet: ['ajoneuvot', 'peravaunu', 'tyokone'] },
+    { id: 'muu-arvo-omaisuus', otsikko: '💎 Muu arvo-omaisuus', kohteet: ['kateinen', 'korut', 'jalometallit', 'taide', 'antiikki', 'soittimet', 'asekokoelma', 'viinikokoelma', 'arvoesineet'] },
+    { id: 'saatavat', otsikko: '📋 Saatavat', kohteet: ['veronpalautus', 'lomarahat', 'vakuutuskorvaukset', 'vuokravakuus', 'myyntisaatavat', 'osuuskunnat'] },
   ]
 
   const velatKategoriat = [
-    { id: 'lainat', otsikko: '🏦 Lainat', kohteet: ['asuntolaina', 'autolaina', 'opintolaina'] },
+    { id: 'lainat', otsikko: '🏦 Lainat', kohteet: ['asuntolaina', 'autolaina', 'opintolaina', 'muupankkilaina'] },
     { id: 'luotot', otsikko: '💳 Luotot', kohteet: ['kulutusluotot', 'osamaksut'] },
-    { id: 'muutvelat', otsikko: '📄 Muut velat', kohteet: ['takaukset', 'maksamattomat', 'verorästit'] },
+    { id: 'muutvelat', otsikko: '📄 Muut velat', kohteet: ['takaukset', 'maksamattomat', 'verorästit', 'vuokrarästit', 'yksityisvelat'] },
   ]
 
-  const renderKategoria = (kategoria, lista, etuliite = '') => {
-    const auki = avatutKategoriat[kategoria.id]
-    const kohteet = lista.filter(k => kategoria.kohteet.includes(k.id))
-    const kyllaMaara = kohteet.filter(k => rastitattu[etuliite + k.id] === 'kylla').length
+  const renderKorttiRyhma = (ryhmaOtsikko, kategoriat, lista, etuliite = '') => (
+    <div style={{ marginBottom: '32px' }}>
+      <div style={{ fontSize: '9px', letterSpacing: '0.2em', textTransform: 'uppercase', color: '#C9A84C', marginBottom: '14px' }}>{ryhmaOtsikko}</div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1px', background: 'rgba(240,235,227,0.06)' }}>
+        {kategoriat.map(kat => {
+          const kohteet = lista.filter(k => kat.kohteet.includes(k.id))
+          const kyllaMaara = kohteet.filter(k => rastitattu[etuliite + k.id] === 'kylla').length
+          const kasitelty = kohteet.filter(k => rastitattu[etuliite + k.id] === 'kylla' || rastitattu[etuliite + k.id] === 'ei').length
+          const valmis = kyllaMaara === kohteet.length && kyllaMaara > 0
+          const emoji = kat.otsikko.slice(0, 2)
+          const nimi = kat.otsikko.slice(3)
+          return (
+            <div key={kat.id}
+              onClick={() => setValittuKategoria({ ...kat, lista, etuliite })}
+              style={{ padding: '22px 18px', cursor: 'pointer', backgroundColor: '#110E0B', border: `1px solid ${valmis ? 'rgba(201,168,76,0.35)' : 'transparent'}`, transition: 'background 0.15s' }}
+              onMouseEnter={e => e.currentTarget.style.backgroundColor = '#161210'}
+              onMouseLeave={e => e.currentTarget.style.backgroundColor = '#110E0B'}
+            >
+              <div style={{ fontSize: '20px', marginBottom: '10px' }}>{emoji}</div>
+              <div style={{ fontSize: '13px', color: '#F0EBE3', fontWeight: 500, marginBottom: '6px' }}>{nimi}</div>
+              <div style={{ fontSize: '11px', color: kyllaMaara > 0 ? '#C9A84C' : '#4E4840', marginBottom: '14px' }}>
+                {kyllaMaara}/{kohteet.length} löytyi
+              </div>
+              <div style={{ height: '2px', backgroundColor: 'rgba(240,235,227,0.06)' }}>
+                <div style={{ height: '2px', backgroundColor: valmis ? '#C9A84C' : 'rgba(201,168,76,0.4)', width: `${kohteet.length > 0 ? (kasitelty / kohteet.length) * 100 : 0}%`, transition: 'width 0.4s' }} />
+              </div>
+              {valmis && <div style={{ fontSize: '9px', color: '#C9A84C', letterSpacing: '0.12em', marginTop: '8px' }}>✓ VALMIS</div>}
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
 
+  // Yksityisnäkymä — valittu kategoria auki
+  if (valittuKategoria) {
+    const { lista, etuliite, otsikko, id: katId } = valittuKategoria
+    const kohteet = lista.filter(k => valittuKategoria.kohteet.includes(k.id))
     return (
-      <div key={kategoria.id} className="rounded-lg overflow-hidden" style={{backgroundColor: '#110E0B', border: `1px solid ${kyllaMaara === kohteet.length && kyllaMaara > 0 ? '#C9A84C' : 'rgba(240,235,227,0.08)'}`}}>
-        <div className="flex items-center justify-between p-4 cursor-pointer hover:opacity-80" onClick={() => toggleKategoria(kategoria.id)}>
-    <div>
-  <p className="text-white font-bold text-sm">{kategoria.otsikko}</p>
-  <p style={{color: kyllaMaara > 0 ? '#C9A84C' : '#4E4840'}} className="text-xs">{kyllaMaara}/{kohteet.length} löytyi</p>
-</div>
-          <div className="flex items-center gap-2">
-  {kyllaMaara === kohteet.length && kyllaMaara > 0 && <span style={{color: '#C9A84C'}} className="text-xs">✓ Valmis</span>}
-  {kommenttiMaara && onAvaPopup && (
-    <button onClick={e => { e.stopPropagation(); onAvaPopup({ tyyppi: 'omaisuus', id: kategoria.id, nimi: kategoria.otsikko.replace(/^.{2}/, '').trim(), kategoriaNimi: 'Omaisuuden selvitys' }) }}
-      style={{ fontSize: '11px', color: kommenttiMaara('omaisuus', kategoria.id) > 0 ? '#C9A84C' : '#4E4840', background: 'none', border: '1px solid', borderColor: kommenttiMaara('omaisuus', kategoria.id) > 0 ? 'rgba(201,168,76,0.3)' : 'rgba(240,235,227,0.08)', padding: '2px 8px', cursor: 'pointer', fontFamily: 'var(--font-body)' }}>
-      💬 {kommenttiMaara('omaisuus', kategoria.id) || '+'}
-    </button>
-  )}
-  <span style={{color: '#C9A84C'}} className="text-xs">{auki ? '▲' : '▼'}</span>
-</div>
+      <div>
+        <button
+          onClick={() => { setValittuKategoria(null); setAvattuKohta(null) }}
+          style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'none', border: 'none', cursor: 'pointer', color: '#7A7268', fontSize: '12px', letterSpacing: '0.08em', marginBottom: '24px', padding: 0, transition: 'color 0.15s' }}
+          onMouseEnter={e => e.currentTarget.style.color = '#F0EBE3'}
+          onMouseLeave={e => e.currentTarget.style.color = '#7A7268'}
+        >
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+          Takaisin
+        </button>
+
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+          <div style={{ fontSize: '15px', color: '#F0EBE3', fontWeight: 500 }}>{otsikko}</div>
+          {kommenttiMaara && onAvaPopup && (
+            <button onClick={() => onAvaPopup({ tyyppi: 'omaisuus', id: katId, nimi: otsikko.replace(/^.{2}/, '').trim(), kategoriaNimi: 'Omaisuuden selvitys' })}
+              style={{ fontSize: '11px', color: kommenttiMaara('omaisuus', katId) > 0 ? '#C9A84C' : '#4E4840', background: 'none', border: '1px solid', borderColor: kommenttiMaara('omaisuus', katId) > 0 ? 'rgba(201,168,76,0.3)' : 'rgba(240,235,227,0.08)', padding: '4px 10px', cursor: 'pointer', fontFamily: 'var(--font-body)' }}>
+              💬 {kommenttiMaara('omaisuus', katId) || '+'}
+            </button>
+          )}
         </div>
-        {auki && (
-          <div className="px-4 pb-4 border-t flex flex-col gap-2" style={{borderColor: 'rgba(240,235,227,0.08)'}}>
-            <div className="mt-3 flex flex-col gap-2">
+
+        <div style={{ display: 'flex', gap: '24px' }}>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
               {kohteet.map(kohta => {
                 const id = etuliite + kohta.id
                 const onValittu = avattuKohta === id
                 const onKylla = rastitattu[id] === 'kylla'
                 const onEi = rastitattu[id] === 'ei'
-                const handleRiviClick = () => {
-                  if (onEi) return
-                  if (onKylla) { setAvattuKohta(onValittu ? null : id); return }
-                  setAvattuKohta(onValittu ? null : id)
-                }
                 return (
-                  <div key={kohta.id} className="rounded"
-                    style={{backgroundColor: '#1C1916', border: `1px solid ${onValittu ? '#C9A84C' : 'rgba(240,235,227,0.08)'}`, opacity: onEi ? 0.5 : 1, cursor: onEi ? 'default' : 'pointer'}}
-                    onClick={handleRiviClick}>
-                    <div className="flex items-center justify-between p-3 gap-3">
-                      <span className="text-sm flex-1 text-white">{kohta.teksti}</span>
-
-                      <div className="flex gap-2 flex-shrink-0" onClick={e => e.stopPropagation()}>
-                        <button onClick={() => { onToggle(id, 'kylla'); setAvattuKohta(onKylla ? null : id) }} className="text-xs px-3 py-1 rounded font-bold"
-                          style={{backgroundColor: onKylla ? '#C9A84C' : '#110E0B', color: onKylla ? '#110E0B' : '#6A6258', border: '1px solid rgba(240,235,227,0.08)'}}>
+                  <div key={kohta.id}
+                    style={{ backgroundColor: '#110E0B', border: `1px solid ${onValittu ? '#C9A84C' : 'rgba(240,235,227,0.06)'}`, opacity: onEi ? 0.5 : 1 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '13px 16px', gap: '12px' }}>
+                      <span style={{ fontSize: '13px', color: '#D0C8BC', flex: 1, cursor: 'pointer' }}
+                        onClick={() => setAvattuKohta(onValittu ? null : id)}>
+                        {kohta.teksti}
+                      </span>
+                      <div style={{ display: 'flex', gap: '6px', flexShrink: 0 }}>
+                        <button onClick={() => { onToggle(id, 'kylla'); setAvattuKohta(id) }}
+                          style={{ fontSize: '11px', padding: '5px 14px', border: 'none', cursor: 'pointer', fontFamily: 'var(--font-body)', letterSpacing: '0.06em', backgroundColor: onKylla ? '#C9A84C' : '#1C1916', color: onKylla ? '#110E0B' : '#6A6258', transition: 'background 0.15s' }}>
                           Kyllä
                         </button>
-                        <button onClick={() => { onToggle(id, 'ei'); setAvattuKohta(null) }} className="text-xs px-3 py-1 rounded font-bold"
-                          style={{backgroundColor: onEi ? '#4E4840' : '#110E0B', color: onEi ? '#8A8278' : '#6A6258', border: '1px solid rgba(240,235,227,0.08)'}}>
+                        <button onClick={() => { onToggle(id, 'ei'); setAvattuKohta(null) }}
+                          style={{ fontSize: '11px', padding: '5px 14px', border: 'none', cursor: 'pointer', fontFamily: 'var(--font-body)', letterSpacing: '0.06em', backgroundColor: onEi ? '#4E4840' : '#1C1916', color: onEi ? '#8A8278' : '#6A6258', transition: 'background 0.15s' }}>
                           Ei
                         </button>
                       </div>
@@ -1432,49 +1494,50 @@ function VaratJaVelat({ rastitattu, onToggle, kirjaukset, onKirjaus, vahvistetut
               })}
             </div>
           </div>
-        )}
+
+          <div style={{ width: '300px', flexShrink: 0, position: 'sticky', top: '24px', alignSelf: 'flex-start' }}>
+            {avattuKohta ? (
+              <VaratJaVelatPaneeli
+                kohta={avattuKohta}
+                kirjaukset={kirjaukset}
+                onKirjaus={onKirjaus}
+                vahvistetut={vahvistetut}
+                onVahvista={onVahvista}
+                onSulje={() => setAvattuKohta(null)}
+                onPoista={onPoista}
+              />
+            ) : (
+              <div className="rounded-lg p-5" style={{ backgroundColor: '#1C1916', border: '1px solid rgba(240,235,227,0.12)' }}>
+                <h3 className="text-white font-bold text-base mb-3">Näin Varat ja velat toimii</h3>
+                <p style={{ color: '#8A8278' }} className="text-sm mb-3">Käy jokainen kohta läpi ja merkitse <strong style={{ color: 'white' }}>Kyllä</strong> jos se koskee vainajaa, tai <strong style={{ color: 'white' }}>Ei</strong> jos ei koske.</p>
+                <p style={{ color: '#8A8278' }} className="text-sm mb-3">Klikkaa kohdan nimeä nähdäksesi ohjeet ja kirjauskentän löydöille.</p>
+                <p style={{ color: '#8A8278' }} className="text-sm">Kirjatut löydöt siirtyvät automaattisesti perukirjapohjaan.</p>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
     )
   }
 
+  // Korttinäkymä
   return (
     <div>
-      <div className="mb-6">
-        <h3 className="text-white font-bold mb-4">Varat</h3>
-        <div className="flex flex-col gap-3">
-          {varatKategoriat.map(k => renderKategoria(k, varatJaVelatMuistilista.varat))}
-        </div>
-      </div>
-
-      <div className="mb-6">
-        <h3 className="text-white font-bold mb-4">Velat</h3>
-        <div className="flex flex-col gap-3">
-          {velatKategoriat.map(k => renderKategoria(k, varatJaVelatMuistilista.velat, 'velat_'))}
-        </div>
-      </div>
+      {renderKorttiRyhma('Varat', varatKategoriat, varatJaVelatMuistilista.varat)}
+      {renderKorttiRyhma('Velat', velatKategoriat, varatJaVelatMuistilista.velat, 'velat_')}
 
       {(varatJaVelatMuistilista.varat.some(k => rastitattu[k.id] === 'kylla' && vahvistetut[k.id]) ||
         varatJaVelatMuistilista.velat.some(k => rastitattu['velat_' + k.id] === 'kylla' && vahvistetut['velat_' + k.id])) && (
-        <div className="p-4 rounded-lg" style={{backgroundColor: '#110E0B', border: '1px solid rgba(240,235,227,0.08)'}}>
-          <h3 className="text-white font-bold mb-4">📊 Yhteenveto löydöistä</h3>
-          {varatJaVelatMuistilista.varat.some(k => rastitattu[k.id] === 'kylla' && vahvistetut[k.id]) && (
-            <div className="mb-4">
-              <p style={{color: '#C9A84C'}} className="text-xs uppercase tracking-widest mb-2">Varat</p>
-              {varatJaVelatMuistilista.varat.filter(k => rastitattu[k.id] === 'kylla' && vahvistetut[k.id]?.length > 0).flatMap(k =>
-                (vahvistetut[k.id] || []).map((v, i) => (
-                  <p key={k.id + i} className="text-white text-sm mb-1">- {k.teksti} — {v}</p>
-                ))
-              )}
-            </div>
+        <div style={{ backgroundColor: '#110E0B', border: '1px solid rgba(240,235,227,0.08)', padding: '20px' }}>
+          <div style={{ fontSize: '9px', letterSpacing: '0.2em', textTransform: 'uppercase', color: '#C9A84C', marginBottom: '12px' }}>📊 Yhteenveto löydöistä</div>
+          {varatJaVelatMuistilista.varat.filter(k => rastitattu[k.id] === 'kylla' && vahvistetut[k.id]?.length > 0).flatMap(k =>
+            (vahvistetut[k.id] || []).map((v, i) => (
+              <p key={k.id + i} style={{ fontSize: '13px', color: '#F0EBE3', marginBottom: '4px' }}>— {k.teksti}: {v}</p>
+            ))
           )}
-          {varatJaVelatMuistilista.velat.some(k => rastitattu['velat_' + k.id] === 'kylla' && vahvistetut['velat_' + k.id]) && (
-            <div>
-              <p style={{color: '#C9A84C'}} className="text-xs uppercase tracking-widest mb-2">Velat</p>
-              {varatJaVelatMuistilista.velat.filter(k => rastitattu['velat_' + k.id] === 'kylla' && vahvistetut['velat_' + k.id]).map(k => (
-                <p key={k.id} className="text-white text-sm mb-1">- {k.teksti} — {vahvistetut['velat_' + k.id]}</p>
-              ))}
-            </div>
-          )}
+          {varatJaVelatMuistilista.velat.filter(k => rastitattu['velat_' + k.id] === 'kylla' && vahvistetut['velat_' + k.id]).map(k => (
+            <p key={k.id} style={{ fontSize: '13px', color: '#F0EBE3', marginBottom: '4px' }}>— {k.teksti}: {vahvistetut['velat_' + k.id]}</p>
+          ))}
         </div>
       )}
     </div>
@@ -1482,7 +1545,7 @@ function VaratJaVelat({ rastitattu, onToggle, kirjaukset, onKirjaus, vahvistetut
 }
 
 function SelvitysOsio({ onValmis, onEdistyminen, avattuSopimus, setAvattuSopimus, sopimusTilat, tallennaSopimusTila }) {
-  const [avatutKategoriat, setAvatutKategoriat] = useState({})
+  const [valittuKategoria, setValittuKategoria] = useState(null)
   const [muistiinpanot, setMuistiinpanot] = useState({})
 
   useEffect(() => {
@@ -1490,125 +1553,167 @@ function SelvitysOsio({ onValmis, onEdistyminen, avattuSopimus, setAvattuSopimus
     onEdistyminen?.(kasitelty)
   }, [sopimusTilat])
 
-  const toggleKategoria = (id) => setAvatutKategoriat(prev => ({ ...prev, [id]: !prev[id] }))
+  const sopimusDetailPanel = (
+    avattuSopimus ? (
+      <div className="rounded-lg p-5 flex flex-col gap-4" style={{backgroundColor: '#1C1916', border: '1px solid #C9A84C'}}>
+        <div className="flex items-start justify-between">
+          <div>
+            <h3 className="text-white font-bold text-base">{avattuSopimus.nimi}</h3>
+            {sopimusTilat[avattuSopimus.nimi] === 'kesken' && <span className="text-xs" style={{color: '#8A8278'}}>⏳ Kesken</span>}
+            {sopimusTilat[avattuSopimus.nimi] === 'hoidettu' && <span className="text-xs" style={{color: '#C9A84C'}}>✓ Hoidettu</span>}
+          </div>
+          <button onClick={() => setAvattuSopimus(null)} style={{color: '#4E4840'}} className="text-sm hover:opacity-75">✕</button>
+        </div>
+        <p style={{color: '#8A8278'}} className="text-sm">{avattuSopimus.miksi}</p>
+        <div>
+          <p className="text-white font-bold text-sm mb-3">Miten hoidetaan</p>
+          <ul className="flex flex-col gap-2">
+            {avattuSopimus.miten.map((askel, i) => (
+              <li key={i} className="flex gap-3 text-sm text-white">
+                <span className="flex-shrink-0">{i + 1}.</span>{askel}
+              </li>
+            ))}
+          </ul>
+        </div>
+        <div>
+          <p className="text-white font-bold text-sm mb-2">Muistiinpano</p>
+          <textarea
+            value={muistiinpanot[avattuSopimus.nimi] || ''}
+            onChange={e => setMuistiinpanot(prev => ({ ...prev, [avattuSopimus.nimi]: e.target.value }))}
+            placeholder="Esim. Soitin ti 25.3, odotan kirjallista vahvistusta..."
+            rows={3}
+            className="w-full rounded p-2 text-sm resize-none"
+            style={{backgroundColor: '#110E0B', color: 'white', border: '1px solid rgba(240,235,227,0.08)'}}
+          />
+        </div>
+        <div className="flex flex-col gap-2">
+          <button onClick={() => { tallennaSopimusTila(avattuSopimus.nimi, 'ei'); setAvattuSopimus(null) }}
+            className="w-full py-2 rounded text-sm font-bold" style={{backgroundColor: 'transparent', color: '#4E4840', border: '1px solid rgba(240,235,227,0.08)'}}>
+            Ei kuulu tähän pesään
+          </button>
+          <button onClick={() => { tallennaSopimusTila(avattuSopimus.nimi, 'kesken'); setAvattuSopimus(null) }}
+            className="w-full py-2 rounded text-sm font-bold" style={{backgroundColor: 'rgba(240,235,227,0.08)', color: '#8A8278'}}>
+            ⏳ Merkitse kesken
+          </button>
+          <button onClick={() => { tallennaSopimusTila(avattuSopimus.nimi, 'hoidettu'); setAvattuSopimus(null) }}
+            className="w-full py-2 rounded text-sm font-bold" style={{backgroundColor: '#C9A84C', color: '#110E0B'}}>
+            ✓ Merkitse hoidetuksi
+          </button>
+        </div>
+      </div>
+    ) : (
+      <div className="rounded-lg p-5" style={{backgroundColor: '#1C1916', border: '1px solid rgba(240,235,227,0.12)'}}>
+        <h3 className="text-white font-bold text-base mb-3">Näin Sopimukset toimii</h3>
+        <p style={{color: '#8A8278'}} className="text-sm mb-4">Klikkaa sopimusta nähdäksesi ohjeet miten se hoidetaan.</p>
+        <p style={{color: '#8A8278'}} className="text-sm mb-4">Kun olet hoitanut asian, paina <strong style={{color: 'white'}}>"Merkitse hoidetuksi"</strong> paneelissa.</p>
+        <p style={{color: '#8A8278'}} className="text-sm">Paina <strong style={{color: 'white'}}>"Ei kuulu"</strong> jos sopimusta ei ollut, tai se on jo hoidettu.</p>
+      </div>
+    )
+  )
 
-  return (
-    <div className="flex gap-6">
-      <div className="flex-1 min-w-0">
-        <div className="flex flex-col gap-3 mb-6">
-          {kategoriat.map(kategoria => {
-            const kasitelty = kategoria.sopimukset.filter(s => sopimusTilat[s.nimi] === 'hoidettu' || sopimusTilat[s.nimi] === 'ei').length
-            const kaikki = kategoria.sopimukset.length
-            const auki = avatutKategoriat[kategoria.id]
+  // Kategoriakortit — päänäkymä
+  if (!valittuKategoria) {
+    return (
+      <div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1px', background: 'rgba(240,235,227,0.06)', marginBottom: '32px' }}>
+          {kategoriat.map(kat => {
+            const kasitelty = kat.sopimukset.filter(s => sopimusTilat[s.nimi] === 'hoidettu' || sopimusTilat[s.nimi] === 'ei').length
+            const hoidettu = kat.sopimukset.filter(s => sopimusTilat[s.nimi] === 'hoidettu').length
+            const kesken = kat.sopimukset.filter(s => sopimusTilat[s.nimi] === 'kesken').length
+            const kasittelematta = kat.sopimukset.length - kasitelty - kesken
+            const kaikki = kat.sopimukset.length
+            const valmis = kasitelty === kaikki && kaikki > 0
             return (
-              <div key={kategoria.id} className="rounded-lg overflow-hidden" style={{backgroundColor: '#110E0B', border: `1px solid ${kasitelty === kaikki && kasitelty > 0 ? '#C9A84C' : 'rgba(240,235,227,0.08)'}`}}>
-                <div className="flex items-center justify-between p-4 cursor-pointer hover:opacity-80" onClick={() => toggleKategoria(kategoria.id)}>
-                  <div className="flex items-center gap-3">
-                    <span className="text-xl">{kategoria.ikoni}</span>
-                    <div>
-                      <p className="text-white font-bold text-sm">{kategoria.nimi}</p>
-                      <p style={{color: kasitelty > 0 ? '#C9A84C' : '#4E4840'}} className="text-xs">{`${kasitelty}/${kaikki} käsitelty`}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    {kasitelty === kaikki && kasitelty > 0 && <span style={{color: '#C9A84C'}} className="text-xs">✓ Valmis</span>}
-                    <span style={{color: '#C9A84C'}} className="text-xs">{auki ? '▲' : '▼'}</span>
-                  </div>
+              <div key={kat.id}
+                onClick={() => setValittuKategoria(kat.id)}
+                style={{ padding: '22px 18px', cursor: 'pointer', backgroundColor: '#110E0B', border: `1px solid ${valmis ? 'rgba(201,168,76,0.35)' : 'transparent'}`, transition: 'background 0.15s' }}
+                onMouseEnter={e => e.currentTarget.style.backgroundColor = '#161210'}
+                onMouseLeave={e => e.currentTarget.style.backgroundColor = '#110E0B'}
+              >
+                <div style={{ fontSize: '20px', marginBottom: '10px' }}>{kat.ikoni}</div>
+                <div style={{ fontSize: '13px', color: '#F0EBE3', fontWeight: 500, marginBottom: '8px' }}>{kat.nimi}</div>
+                <div style={{ display: 'flex', gap: '10px', marginBottom: '14px' }}>
+                  {hoidettu > 0 && <span style={{ fontSize: '11px', color: '#C9A84C' }}>✓ {hoidettu} hoidettu</span>}
+                  {kesken > 0 && <span style={{ fontSize: '11px', color: '#8A8278' }}>⏳ {kesken} kesken</span>}
+                  {kasittelematta > 0 && <span style={{ fontSize: '11px', color: '#4E4840' }}>{kasittelematta} käsittelemättä</span>}
+                  {kasitelty === 0 && kesken === 0 && <span style={{ fontSize: '11px', color: '#4E4840' }}>{kaikki} käsittelemättä</span>}
                 </div>
-                {auki && (
-                  <div className="px-4 pb-4 border-t flex flex-col gap-2" style={{borderColor: 'rgba(240,235,227,0.08)'}}>
-                    <div className="mt-3 flex flex-col gap-2">
-                      {kategoria.sopimukset.map(sopimus => {
-                        const tila = sopimusTilat[sopimus.nimi]
-                        const onHoidettu = tila === 'hoidettu'
-                        const onOhitettu = tila === 'ei'
-                        const onKesken = tila === 'kesken'
-                        const onValittu = avattuSopimus?.nimi === sopimus.nimi
-                        return (
-                          <div key={sopimus.nimi} className="rounded cursor-pointer"
-                            style={{backgroundColor: '#1C1916', border: `1px solid ${onValittu ? '#C9A84C' : 'rgba(240,235,227,0.08)'}`}}
-                            onClick={() => setAvattuSopimus(onValittu ? null : { ...sopimus, kategoriaId: kategoria.id })}>
-                            <div className="flex items-center justify-between p-3 gap-3">
-                              <span className="text-sm flex-1 min-w-0 truncate text-white">{sopimus.nimi}</span>
-                              {onHoidettu && <button onClick={e => { e.stopPropagation(); tallennaSopimusTila(sopimus.nimi, 'hoidettu') }} className="text-xs px-2 py-1 rounded font-bold flex-shrink-0" style={{backgroundColor: '#C9A84C', color: '#110E0B', cursor: 'pointer', border: 'none'}}>✓ Hoidettu</button>}
-                              {onKesken && <button onClick={e => { e.stopPropagation(); tallennaSopimusTila(sopimus.nimi, 'kesken') }} className="text-xs px-2 py-1 rounded font-bold flex-shrink-0" style={{backgroundColor: 'rgba(240,235,227,0.08)', color: '#8A8278', cursor: 'pointer', border: 'none'}}>⏳ Kesken</button>}
-                              {onOhitettu && <button onClick={e => { e.stopPropagation(); tallennaSopimusTila(sopimus.nimi, 'ei') }} className="text-xs px-2 py-1 rounded font-bold flex-shrink-0" style={{backgroundColor: 'rgba(240,235,227,0.08)', color: '#6A6258', cursor: 'pointer', border: 'none'}}>Ei kuulu</button>}
-                              {!tila && (
-                                <button onClick={e => { e.stopPropagation(); tallennaSopimusTila(sopimus.nimi, 'ei'); setAvattuSopimus(null) }}
-                                  className="text-xs px-3 py-1 rounded font-bold flex-shrink-0"
-                                  style={{backgroundColor: '#110E0B', color: '#6A6258', border: '1px solid rgba(240,235,227,0.08)'}}>
-                                  Ei kuulu
-                                </button>
-                              )}
-                            </div>
-                          </div>
-                        )
-                      })}
-                    </div>
-                  </div>
-                )}
+                <div style={{ height: '2px', backgroundColor: 'rgba(240,235,227,0.06)' }}>
+                  <div style={{ height: '2px', backgroundColor: valmis ? '#C9A84C' : 'rgba(201,168,76,0.4)', width: `${kaikki > 0 ? (kasitelty / kaikki) * 100 : 0}%`, transition: 'width 0.4s' }} />
+                </div>
+                {valmis && <div style={{ fontSize: '9px', color: '#C9A84C', letterSpacing: '0.12em', marginTop: '8px' }}>✓ VALMIS</div>}
               </div>
             )
           })}
         </div>
         <button className="w-full py-3 rounded font-bold" style={{backgroundColor: 'transparent', color: '#C9A84C', border: '1px solid rgba(240,235,227,0.08)'}} onClick={onValmis}>Siirry yhteenvetoon →</button>
       </div>
+    )
+  }
 
-      <div className="lg:w-80 flex-shrink-0 flex flex-col gap-4" style={{position: 'sticky', top: '24px', alignSelf: 'flex-start'}}>
-        <div className="rounded-lg p-5" style={{backgroundColor: '#1C1916', border: '1px solid #C9A84C'}}>
-          <h3 className="text-white font-bold text-base mb-3">Näin Sopimukset toimii</h3>
-          <p style={{color: '#8A8278'}} className="text-sm mb-4">Klikkaa sopimusta nähdäksesi ohjeet miten se hoidetaan.</p>
-          <p style={{color: '#8A8278'}} className="text-sm mb-4">Kun olet hoitanut asian, paina <strong style={{color: 'white'}}>"Merkitse hoidetuksi"</strong> paneelissa.</p>
-          <p style={{color: '#8A8278'}} className="text-sm">Paina <strong style={{color: 'white'}}>"Ei kuulu"</strong> jos sopimusta ei ollut, tai se on jo hoidettu.</p>
-        </div>
-        {avattuSopimus && (
-          <div className="rounded-lg p-5 flex flex-col gap-4" style={{backgroundColor: '#1C1916', border: '1px solid #C9A84C'}}>
-            <div className="flex items-start justify-between">
-              <div>
-                <h3 className="text-white font-bold text-base">{avattuSopimus.nimi}</h3>
-                {sopimusTilat[avattuSopimus.nimi] === 'kesken' && (
-                  <span className="text-xs" style={{color: '#8A8278'}}>⏳ Kesken</span>
-                )}
-                {sopimusTilat[avattuSopimus.nimi] === 'hoidettu' && (
-                  <span className="text-xs" style={{color: '#C9A84C'}}>✓ Hoidettu</span>
-                )}
-              </div>
-              <button onClick={() => setAvattuSopimus(null)} style={{color: '#4E4840'}} className="text-sm hover:opacity-75">✕</button>
-            </div>
-            <p style={{color: '#8A8278'}} className="text-sm">{avattuSopimus.miksi}</p>
-            <div>
-              <p className="text-white font-bold text-sm mb-3">Miten hoidetaan</p>
-              <ul className="flex flex-col gap-2">
-                {avattuSopimus.miten.map((askel, i) => (
-                  <li key={i} className="flex gap-3 text-sm text-white">
-                    <span className="flex-shrink-0">{i + 1}.</span>{askel}
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <div>
-              <p className="text-white font-bold text-sm mb-2">Muistiinpano</p>
-              <textarea
-                value={muistiinpanot[avattuSopimus.nimi] || ''}
-                onChange={e => setMuistiinpanot(prev => ({ ...prev, [avattuSopimus.nimi]: e.target.value }))}
-                placeholder="Esim. Soitin ti 25.3, odotan kirjallista vahvistusta..."
-                rows={3}
-                className="w-full rounded p-2 text-sm resize-none"
-                style={{backgroundColor: '#110E0B', color: 'white', border: '1px solid rgba(240,235,227,0.08)'}}
-              />
-            </div>
-            <div className="flex flex-col gap-2">
-              <button onClick={() => { tallennaSopimusTila(avattuSopimus.nimi, 'kesken'); setAvattuSopimus(null) }}
-                className="w-full py-2 rounded text-sm font-bold" style={{backgroundColor: 'rgba(240,235,227,0.08)', color: '#8A8278'}}>
-                ⏳ Merkitse kesken
-              </button>
-              <button onClick={() => { tallennaSopimusTila(avattuSopimus.nimi, 'hoidettu'); setAvattuSopimus(null) }}
-                className="w-full py-2 rounded text-sm font-bold" style={{backgroundColor: '#C9A84C', color: '#110E0B'}}>
-                ✓ Merkitse hoidetuksi
-              </button>
-            </div>
+  // Kategoria auki — sopimus-lista + detail-paneeli
+  const kategoria = kategoriat.find(k => k.id === valittuKategoria)
+  return (
+    <div>
+      <button
+        onClick={() => { setValittuKategoria(null); setAvattuSopimus(null) }}
+        style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'none', border: 'none', cursor: 'pointer', color: '#7A7268', fontSize: '12px', letterSpacing: '0.08em', marginBottom: '24px', padding: 0, transition: 'color 0.15s' }}
+        onMouseEnter={e => e.currentTarget.style.color = '#F0EBE3'}
+        onMouseLeave={e => e.currentTarget.style.color = '#7A7268'}
+      >
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+        Takaisin
+      </button>
+
+      <div className="flex gap-6">
+        <div className="flex-1 min-w-0">
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+            <div style={{ fontSize: '15px', color: '#F0EBE3', fontWeight: 500 }}>{kategoria.ikoni} {kategoria.nimi}</div>
+            <button
+              onClick={() => { kategoria.sopimukset.forEach(s => tallennaSopimusTila(s.nimi, 'ei')); setAvattuSopimus(null) }}
+              style={{ fontSize: '11px', color: '#4E4840', background: 'none', border: '1px solid rgba(240,235,227,0.08)', padding: '5px 12px', cursor: 'pointer', letterSpacing: '0.04em', fontFamily: 'var(--font-body)', transition: 'color 0.15s' }}
+              onMouseEnter={e => e.currentTarget.style.color = '#8A8278'}
+              onMouseLeave={e => e.currentTarget.style.color = '#4E4840'}
+            >
+              Ei koske tätä pesää
+            </button>
           </div>
-        )}
+          <div className="flex flex-col gap-2">
+            {kategoria.sopimukset.map(sopimus => {
+              const tila = sopimusTilat[sopimus.nimi]
+              const onHoidettu = tila === 'hoidettu'
+              const onOhitettu = tila === 'ei'
+              const onKesken = tila === 'kesken'
+              const onValittu = avattuSopimus?.nimi === sopimus.nimi
+              return (
+                <div key={sopimus.nimi}
+                  style={{ backgroundColor: '#110E0B', border: `1px solid ${onValittu ? '#C9A84C' : 'rgba(240,235,227,0.06)'}`, opacity: onOhitettu ? 0.5 : 1 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '13px 16px', gap: '12px' }}>
+                    <span style={{ fontSize: '13px', color: onOhitettu ? '#6A6258' : '#D0C8BC', flex: 1, cursor: 'pointer' }}
+                      onClick={() => setAvattuSopimus(onValittu ? null : { ...sopimus, kategoriaId: kategoria.id })}>
+                      {sopimus.nimi}
+                      {onKesken && <span style={{ marginLeft: '8px', fontSize: '11px', color: '#8A8278' }}>⏳</span>}
+                    </span>
+                    <div style={{ display: 'flex', gap: '6px', flexShrink: 0 }}>
+                      <button onClick={() => { tallennaSopimusTila(sopimus.nimi, 'hoidettu'); setAvattuSopimus(null) }}
+                        style={{ fontSize: '11px', padding: '5px 14px', border: 'none', cursor: 'pointer', fontFamily: 'var(--font-body)', letterSpacing: '0.06em', backgroundColor: onHoidettu ? '#C9A84C' : '#1C1916', color: onHoidettu ? '#110E0B' : '#6A6258', transition: 'background 0.15s' }}>
+                        Kyllä
+                      </button>
+                      <button onClick={() => { tallennaSopimusTila(sopimus.nimi, 'ei'); setAvattuSopimus(null) }}
+                        style={{ fontSize: '11px', padding: '5px 14px', border: 'none', cursor: 'pointer', fontFamily: 'var(--font-body)', letterSpacing: '0.06em', backgroundColor: onOhitettu ? '#4E4840' : '#1C1916', color: onOhitettu ? '#8A8278' : '#6A6258', transition: 'background 0.15s' }}>
+                        Ei
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+
+        <div className="lg:w-80 flex-shrink-0 flex flex-col gap-4" style={{position: 'sticky', top: '24px', alignSelf: 'flex-start'}}>
+          {sopimusDetailPanel}
+        </div>
       </div>
     </div>
   )
@@ -1826,13 +1931,30 @@ const varatKategoriatMeta = [
   { id: 'metsa', teksti: 'Metsätilat' },
   { id: 'mokki', teksti: 'Kesämökki / vapaa-ajan kiinteistö' },
   { id: 'tallelokero', teksti: 'Tallelokero pankissa' },
+  { id: 'ulkomaantilit', teksti: 'Ulkomaiset pankkitilit' },
+  { id: 'ps-tili', teksti: 'PS-tili (pitkäaikaissäästäminen)' },
+  { id: 'joukkovelkakirjat', teksti: 'Joukkovelkakirjat ja obligaatiot' },
   { id: 'krypto', teksti: 'Kryptovaluutat' },
-  { id: 'osuuskunnat', teksti: 'Osuuskunnat' },
   { id: 'elakesaastot', teksti: 'Eläkesäästöt / kapitalisaatiosopimukset' },
+  { id: 'tontti', teksti: 'Tontti tai rakentamaton maapalsta' },
+  { id: 'maatila', teksti: 'Maatila tai peltoalue' },
+  { id: 'autotalli', teksti: 'Autotalli tai osakemuotoinen parkkipaikka' },
   { id: 'veronpalautus', teksti: 'Veronpalautukset' },
   { id: 'lomarahat', teksti: 'Ansaitsemattomat lomarahat' },
   { id: 'vakuutuskorvaukset', teksti: 'Vakuutuskorvaukset (kesken)' },
-  { id: 'arvoesineet', teksti: 'Arvoesineet (korut, taide, antiikki)' },
+  { id: 'vuokravakuus', teksti: 'Palautettava vuokravakuus' },
+  { id: 'myyntisaatavat', teksti: 'Myyntisaatavat' },
+  { id: 'osuuskunnat', teksti: 'Osuuskunnat (S-osuus, OP-osuus)' },
+  { id: 'peravaunu', teksti: 'Perävaunu ja matkailuauto' },
+  { id: 'tyokone', teksti: 'Työkone (traktori, kaivinkone)' },
+  { id: 'korut', teksti: 'Korut ja kellot' },
+  { id: 'jalometallit', teksti: 'Jalometallit (kulta, hopea)' },
+  { id: 'taide', teksti: 'Taide-esineet ja taulut' },
+  { id: 'antiikki', teksti: 'Antiikki ja keräilyesineet' },
+  { id: 'soittimet', teksti: 'Soittimet' },
+  { id: 'asekokoelma', teksti: 'Asekokoelma' },
+  { id: 'viinikokoelma', teksti: 'Viini- tai viskikokoelma' },
+  { id: 'arvoesineet', teksti: 'Muut arvoesineet' },
 ]
 const velatKategoriatMeta = [
   { id: 'asuntolaina', teksti: 'Asuntolaina' },
@@ -1840,9 +1962,12 @@ const velatKategoriatMeta = [
   { id: 'autolaina', teksti: 'Autolaina / rahoitussopimus' },
   { id: 'opintolaina', teksti: 'Opintolaina' },
   { id: 'osamaksut', teksti: 'Osamaksusopimukset' },
+  { id: 'muupankkilaina', teksti: 'Muu pankkilaina' },
   { id: 'takaukset', teksti: 'Takaukset' },
   { id: 'maksamattomat', teksti: 'Maksamattomat laskut' },
   { id: 'verorästit', teksti: 'Verorästit' },
+  { id: 'vuokrarästit', teksti: 'Vuokrarästit' },
+  { id: 'yksityisvelat', teksti: 'Velat yksityishenkilöille' },
 ]
 
 function PerukirjaModal({ kuolinpesa, vahvistetutKirjaukset, onSulje }) {
