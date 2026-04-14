@@ -149,6 +149,72 @@ const css = `
   }
 
   .divider { height: 1px; background: ${C.border}; margin: 24px 0; }
+
+  .btn-activate {
+    display: inline-flex; align-items: center; justify-content: center; gap: 12px;
+    width: 100%;
+    font-family: var(--font-body), sans-serif;
+    font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase;
+    color: #0A0806; background: ${C.accent};
+    border: none;
+    padding: 20px 32px; cursor: pointer;
+    transition: background 0.2s, box-shadow 0.2s, transform 0.15s;
+  }
+  .btn-activate:hover {
+    background: #D4B560;
+    box-shadow: 0 8px 40px rgba(201,168,76,0.4);
+    transform: translateY(-1px);
+  }
+  .btn-activate:active { transform: translateY(0); }
+  .btn-activate:disabled {
+    opacity: 0.4; cursor: not-allowed; transform: none; box-shadow: none;
+  }
+
+  .checklist-item {
+    display: flex; align-items: center; gap: 14px;
+    padding: 14px 0;
+    border-bottom: 1px solid rgba(240,235,227,0.06);
+    font-size: 13px; color: ${C.text};
+  }
+  .checklist-item:last-child { border-bottom: none; }
+
+  .viesti-preview {
+    background: rgba(201,168,76,0.04);
+    border: 1px solid rgba(201,168,76,0.18);
+    border-left: 3px solid ${C.accent};
+    padding: 20px 22px;
+    font-size: 14px; color: ${C.text};
+    line-height: 1.8; font-style: italic;
+    white-space: pre-wrap;
+  }
+
+  @keyframes scaleIn {
+    from { opacity: 0; transform: scale(0.85); }
+    to   { opacity: 1; transform: scale(1); }
+  }
+  .scale-in { animation: scaleIn 0.5s cubic-bezier(0.34,1.56,0.64,1) both; }
+
+  .invite-row {
+    display: flex; align-items: center; gap: 12px;
+    padding: 13px 16px;
+    border: 1px solid ${C.border};
+    margin-bottom: 8px;
+    background: rgba(240,235,227,0.02);
+    font-size: 13px; color: ${C.text};
+  }
+
+  .nav-activate {
+    width: 100%; text-align: left; background: none; border: none; cursor: pointer;
+    padding: 11px 16px;
+    font-family: var(--font-body), sans-serif;
+    font-size: 12px; letter-spacing: 0.08em;
+    color: ${C.accent};
+    border-left: 2px solid transparent;
+    transition: color 0.2s, border-color 0.2s, background 0.2s;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .nav-activate:hover { background: rgba(201,168,76,0.06); border-left-color: rgba(201,168,76,0.4); }
+  .nav-activate.active { border-left-color: ${C.accent}; background: rgba(201,168,76,0.08); }
 `
 
 const omaisuusKategoriat = [
@@ -221,6 +287,8 @@ export default function ValmisteleDashboard() {
   const [user, setUser] = useState(null)
   const [aktiivinenVaihe, setAktiivinenVaihe] = useState(1)
   const [ladataan, setLadataan] = useState(true)
+  const [aktivoitu, setAktivoitu] = useState(false)
+  const [kutsut, setKutsut] = useState([{ sahkoposti: '', rooli: 'osakas' }])
 
   // Omat tiedot
   const [omatTiedot, setOmatTiedot] = useState({
@@ -263,7 +331,7 @@ export default function ValmisteleDashboard() {
 
   // Viimeinen tahto
   const [tahto, setTahto] = useState({
-    hautaus: '', musiikki: '', jakotoiveet: '', viesti: '',
+    hautaus: '', musiikki: '', jakotoiveet: '', viesti: '', saateviesti: '',
   })
 
   useEffect(() => {
@@ -356,6 +424,17 @@ export default function ValmisteleDashboard() {
               {v.nimi}
             </button>
           ))}
+
+          {/* Aktivoi-painike */}
+          <div style={{ margin: '16px 0 0', borderTop: `1px solid ${C.border}`, paddingTop: '12px' }}>
+            <button
+              className={`nav-activate${aktiivinenVaihe === 6 ? ' active' : ''}`}
+              onClick={() => navPush(6, null)}
+            >
+              <span style={{ fontSize: '14px' }}>{aktivoitu ? '✓' : '⚡'}</span>
+              {aktivoitu ? 'Pesä aktivoitu' : 'Aktivoi kuolinpesätila'}
+            </button>
+          </div>
 
           {/* Edistyminen */}
           <div style={{ padding: '24px 20px', marginTop: 'auto' }}>
@@ -630,14 +709,15 @@ export default function ValmisteleDashboard() {
               </p>
 
               {[
+                { id: 'saateviesti', label: 'Saateviesti pesään', placeholder: 'Lyhyt viesti omaisillesi pesän käytöstä — tämä näytetään heille ensimmäisenä kun he kirjautuvat. Esim. "Löydätte täältä kaikki tiedot omaisuudestani ja sopimuksistani..."', rows: 4 },
                 { id: 'hautaus', label: 'Hautaustoiveet', placeholder: 'Esim. arkkuhautaus, tuhkaus, hautausmaa, uskonnollisuus...' },
                 { id: 'musiikki', label: 'Toivomasi musiikki tai muistotilaisuus', placeholder: 'Esim. Sibelius Finlandia, ei kirkollista seremoniaa...' },
                 { id: 'jakotoiveet', label: 'Toiveet omaisuuden jaosta', placeholder: 'Esim. mökki Pekalle, äidin korut Marialle — nämä eivät ole juridisesti sitovia ilman testamenttia' },
-                { id: 'viesti', label: 'Viesti omaisille', placeholder: 'Kirjoita mitä haluat omaisillesi sanoa...' },
+                { id: 'viesti', label: 'Henkilökohtainen viesti omaisille', placeholder: 'Kirjoita mitä haluat omaisillesi sanoa — tämä on yksityinen viestisi, ei liity pesän hoitoon.' },
               ].map((k, i) => (
                 <div key={k.id} style={{ marginBottom: '24px' }}>
                   <label className="form-label">{k.label}</label>
-                  <textarea className="form-input" rows={k.id === 'viesti' ? 6 : 3}
+                  <textarea className="form-input" rows={k.rows || (k.id === 'viesti' ? 6 : 3)}
                     placeholder={k.placeholder}
                     value={tahto[k.id]}
                     onChange={e => setTahto({ ...tahto, [k.id]: e.target.value })} />
@@ -664,6 +744,264 @@ export default function ValmisteleDashboard() {
               </button>
             </div>
           )}
+
+          {/* ── 6. AKTIVOI KUOLINPESÄTILA ── */}
+          {aktiivinenVaihe === 6 && (() => {
+            const omaisuusMaara = Object.values(omaisuusItems).reduce((s, arr) => s + arr.length, 0)
+            const sopimuksetTaytetty = Object.values(JSON.parse(sopimukset || '{}')).some(v => v && v.trim())
+            const dokumentitTaytetty = Object.values(dokumentit).some(v => v && v.trim())
+            const viestiKirjoitettu = !!(tahto.viesti && tahto.viesti.trim())
+            const valmisCount = [omatTiedotTallennettu, omaisuusMaara > 0, sopimuksetTaytetty, dokumentitTaytetty, viestiKirjoitettu].filter(Boolean).length
+
+            const tarkistuslista = [
+              { label: 'Omat tiedot', done: omatTiedotTallennettu, info: omatTiedotTallennettu ? omatTiedot.nimi || 'Tallennettu' : 'Ei täytetty' },
+              { label: 'Omaisuus', done: omaisuusMaara > 0, info: omaisuusMaara > 0 ? `${omaisuusMaara} kohdetta lisätty` : 'Ei kohdetta' },
+              { label: 'Sopimukset', done: sopimuksetTaytetty, info: sopimuksetTaytetty ? 'Täytetty' : 'Ei täytetty' },
+              { label: 'Dokumentit', done: dokumentitTaytetty, info: dokumentitTaytetty ? 'Täytetty' : 'Ei täytetty' },
+              { label: 'Viesti omaisille', done: viestiKirjoitettu, info: viestiKirjoitettu ? 'Kirjoitettu' : 'Ei kirjoitettu' },
+            ]
+
+            return (
+              <div className="fade-up">
+                <p style={{ fontSize: '10px', letterSpacing: '0.24em', textTransform: 'uppercase', color: C.accent, marginBottom: '12px' }}>
+                  Aktivointi
+                </p>
+                <h1 className="section-title">
+                  Aktivoi<br />
+                  <em style={{ fontStyle: 'italic', color: C.accent }}>kuolinpesätila.</em>
+                </h1>
+                <p className="section-sub" style={{ marginBottom: '40px' }}>
+                  Kun aktivoit, omaisesi voivat kirjautua sisään ja nähdä kaiken valmistellun — tiedot, omaisuuden, sopimukset ja viestisi. Aktivointi on kertaluonteinen tapahtuma.
+                </p>
+
+                {!aktivoitu ? (
+                  <>
+                    {/* Mitä tapahtuu */}
+                    <div style={{
+                      border: `1px solid ${C.border}`,
+                      background: C.surface,
+                      padding: '24px',
+                      marginBottom: '32px',
+                    }}>
+                      <div style={{ fontSize: '10px', letterSpacing: '0.2em', textTransform: 'uppercase', color: C.secondary, marginBottom: '18px' }}>
+                        Mitä tapahtuu
+                      </div>
+                      {[
+                        { ikoni: '🔓', teksti: 'Valmisteltu tieto tulee omaisten nähtäville heti aktivoinnin jälkeen' },
+                        { ikoni: '📧', teksti: 'Voit kutsua omaiset ja muut osakkaat sähköpostilla — he luovat omat tunnukset' },
+                        { ikoni: '🔒', teksti: 'Viestisi omaisille näytetään heille kirjautuessa ensimmäistä kertaa' },
+                        { ikoni: '📋', teksti: 'Pesänhoitaja luo yhteisen työtilan kaikille osakkaille' },
+                      ].map((k, i) => (
+                        <div key={i} style={{ display: 'flex', gap: '14px', marginBottom: i < 3 ? '14px' : 0 }}>
+                          <span style={{ fontSize: '18px', flexShrink: 0, lineHeight: 1.4 }}>{k.ikoni}</span>
+                          <span style={{ fontSize: '13px', color: C.secondary, lineHeight: 1.7 }}>{k.teksti}</span>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Yhteenveto */}
+                    <div style={{ marginBottom: '32px' }}>
+                      <div style={{ fontSize: '10px', letterSpacing: '0.2em', textTransform: 'uppercase', color: C.secondary, marginBottom: '4px' }}>
+                        Mitä olet valmistellut
+                      </div>
+                      <div style={{ fontSize: '22px', fontFamily: 'var(--font-display), Georgia, serif', color: C.accent, marginBottom: '16px' }}>
+                        {valmisCount}<span style={{ fontSize: '14px', color: C.secondary, marginLeft: '6px' }}>/ 5 osiota</span>
+                      </div>
+
+                      <div style={{ border: `1px solid ${C.border}` }}>
+                        {tarkistuslista.map((k, i) => (
+                          <div key={i} className="checklist-item" style={{ padding: '14px 18px' }}>
+                            <div style={{
+                              width: '22px', height: '22px', flexShrink: 0,
+                              border: `1px solid ${k.done ? 'rgba(74,222,128,0.4)' : C.border}`,
+                              background: k.done ? 'rgba(74,222,128,0.1)' : 'transparent',
+                              display: 'flex', alignItems: 'center', justifyContent: 'center',
+                              fontSize: '12px',
+                            }}>
+                              {k.done ? <span style={{ color: '#4ADE80' }}>✓</span> : <span style={{ color: C.secondary, opacity: 0.3 }}>—</span>}
+                            </div>
+                            <div style={{ flex: 1 }}>
+                              <div style={{ fontSize: '13px', color: k.done ? C.text : C.secondary }}>{k.label}</div>
+                            </div>
+                            <div style={{ fontSize: '11px', color: k.done ? '#4ADE80' : C.secondary, opacity: k.done ? 1 : 0.6 }}>
+                              {k.info}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Viesti omaisille */}
+                    {viestiKirjoitettu && (
+                      <div style={{ marginBottom: '36px' }}>
+                        <div style={{ fontSize: '10px', letterSpacing: '0.2em', textTransform: 'uppercase', color: C.secondary, marginBottom: '12px' }}>
+                          Viestisi omaisille
+                        </div>
+                        <div className="viesti-preview">
+                          {tahto.viesti}
+                        </div>
+                      </div>
+                    )}
+
+                    {!viestiKirjoitettu && (
+                      <div style={{
+                        border: `1px solid ${C.border}`,
+                        padding: '16px 18px',
+                        marginBottom: '32px',
+                        display: 'flex', alignItems: 'center', gap: '14px',
+                      }}>
+                        <span style={{ fontSize: '16px', opacity: 0.5 }}>✉️</span>
+                        <div>
+                          <div style={{ fontSize: '12px', color: C.secondary, marginBottom: '4px' }}>Viesti omaisille puuttuu</div>
+                          <button
+                            style={{ background: 'none', border: 'none', color: C.accent, fontSize: '11px', letterSpacing: '0.1em', cursor: 'pointer', padding: 0, textDecoration: 'underline', textUnderlineOffset: '3px' }}
+                            onClick={() => navPush(5, null)}
+                          >
+                            Kirjoita viesti →
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Aktivointipainike */}
+                    <button
+                      className="btn-activate"
+                      onClick={() => setAktivoitu(true)}
+                    >
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                        <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+                      </svg>
+                      Aktivoi kuolinpesätila
+                    </button>
+                    <p style={{ fontSize: '11px', color: C.secondary, textAlign: 'center', marginTop: '12px', lineHeight: 1.6 }}>
+                      Aktivoinnin jälkeen voit kutsua omaisia ja osakkaita
+                    </p>
+                  </>
+                ) : (
+                  /* ── POST-AKTIVOINTI ── */
+                  <div>
+                    {/* Vahvistus */}
+                    <div className="scale-in" style={{
+                      textAlign: 'center',
+                      padding: '40px 0',
+                      marginBottom: '40px',
+                      borderBottom: `1px solid ${C.border}`,
+                    }}>
+                      <div style={{
+                        width: '64px', height: '64px', margin: '0 auto 20px',
+                        border: `1px solid rgba(74,222,128,0.4)`,
+                        background: 'rgba(74,222,128,0.08)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        fontSize: '28px',
+                      }}>
+                        ✓
+                      </div>
+                      <div style={{ fontFamily: 'var(--font-display), Georgia, serif', fontSize: '22px', color: '#4ADE80', marginBottom: '8px', fontWeight: 300 }}>
+                        Pesä aktivoitu
+                      </div>
+                      <div style={{ fontSize: '13px', color: C.secondary, lineHeight: 1.7 }}>
+                        Omaisesi voivat nyt kirjautua sisään ja<br />nähdä kaiken valmistellun.
+                      </div>
+                    </div>
+
+                    {/* Kutsu osakkaat */}
+                    <div style={{ marginBottom: '32px' }}>
+                      <div style={{ fontSize: '10px', letterSpacing: '0.2em', textTransform: 'uppercase', color: C.secondary, marginBottom: '6px' }}>
+                        Kutsu osakkaat
+                      </div>
+                      <p style={{ fontSize: '13px', color: C.secondary, lineHeight: 1.7, marginBottom: '20px' }}>
+                        He saavat sähköpostilinkin ja luovat omat tunnuksensa. Lisää kaikki kuolinpesän osakkaat.
+                      </p>
+
+                      {kutsut.map((k, i) => (
+                        <div key={i} style={{ display: 'flex', gap: '10px', marginBottom: '10px', alignItems: 'flex-start' }}>
+                          <div style={{ flex: 1 }}>
+                            <label className="form-label">Sähköpostiosoite</label>
+                            <input
+                              className="form-input"
+                              type="email"
+                              placeholder="etunimi.sukunimi@esimerkki.fi"
+                              value={k.sahkoposti}
+                              onChange={e => {
+                                const uudet = [...kutsut]
+                                uudet[i] = { ...uudet[i], sahkoposti: e.target.value }
+                                setKutsut(uudet)
+                              }}
+                            />
+                          </div>
+                          <div style={{ width: '130px' }}>
+                            <label className="form-label">Rooli</label>
+                            <select
+                              className="form-input"
+                              value={k.rooli}
+                              onChange={e => {
+                                const uudet = [...kutsut]
+                                uudet[i] = { ...uudet[i], rooli: e.target.value }
+                                setKutsut(uudet)
+                              }}
+                              style={{ cursor: 'pointer' }}
+                            >
+                              <option value="osakas">Osakas</option>
+                              <option value="katselija">Katselija</option>
+                              <option value="pesanhoitaja">Pesänhoitaja</option>
+                            </select>
+                          </div>
+                          {kutsut.length > 1 && (
+                            <button
+                              className="delete-btn"
+                              style={{ marginTop: '22px' }}
+                              onClick={() => setKutsut(kutsut.filter((_, j) => j !== i))}
+                            >×</button>
+                          )}
+                        </div>
+                      ))}
+
+                      <button
+                        className="btn-ghost"
+                        style={{ marginTop: '4px', marginBottom: '24px' }}
+                        onClick={() => setKutsut([...kutsut, { sahkoposti: '', rooli: 'osakas' }])}
+                      >
+                        + Lisää kutsunsaaja
+                      </button>
+
+                      <button
+                        className="btn-gold"
+                        style={{ width: '100%', justifyContent: 'center', padding: '14px' }}
+                        onClick={() => alert('Kutsut lähetetty! (demo)')}
+                      >
+                        Lähetä kutsut
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                          <path d="M5 12h14M12 5l7 7-7 7"/>
+                        </svg>
+                      </button>
+                    </div>
+
+                    <div className="divider" />
+
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <div>
+                        <div style={{ fontSize: '12px', color: C.secondary, marginBottom: '4px' }}>Voit myös jakaa linkin suoraan</div>
+                        <div style={{
+                          fontSize: '12px', color: C.accent, fontFamily: 'monospace',
+                          background: 'rgba(201,168,76,0.06)', padding: '8px 12px',
+                          border: `1px solid rgba(201,168,76,0.18)`,
+                        }}>
+                          pesanhoitaja.fi/liity/demo-xyz
+                        </div>
+                      </div>
+                      <button
+                        className="btn-ghost"
+                        style={{ flexShrink: 0, marginLeft: '16px' }}
+                        onClick={() => navigator.clipboard?.writeText('pesanhoitaja.fi/liity/demo-xyz')}
+                      >
+                        Kopioi linkki
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )
+          })()}
 
         </div>
       </div>

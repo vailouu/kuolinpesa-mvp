@@ -214,12 +214,16 @@ export default function Valitse() {
           </span>
         </div>
 
-        <div className="choice-card a3" style={{ backgroundColor: C.bg, animationDelay: '0.6s' }}>
+        <div className="choice-card a3" style={{ backgroundColor: C.bg, animationDelay: '0.6s' }}
+          onClick={() => router.push('/aktivoi')}>
           <div className="card-num">03</div>
           <h2 className="card-title">Aktivoi kuolinpesätila</h2>
           <p className="card-desc">Vainaja on valmistellut tiedot etukäteen — avaa ne nyt käyttöösi.</p>
-          <span className="card-action" style={{ color: C.secondary, cursor: 'default' }}>
-            Tulossa pian
+          <span className="card-action">
+            Aloita tästä
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+              <path d="M5 12h14M12 5l7 7-7 7"/>
+            </svg>
           </span>
         </div>
 
