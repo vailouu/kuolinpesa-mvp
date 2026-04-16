@@ -1061,7 +1061,7 @@ const poistaVahvistettu = async (id, index) => {
     <div className="flex gap-6">
       <div className="flex-1 min-w-0">
         {aktiivinenAlivaihe === 1 && <VaratJaVelat rastitattu={varatRastitattu} onToggle={toggleVaraRasti} kirjaukset={varatKirjaukset} onKirjaus={tallennaKirjaus} vahvistetut={vahvistetutKirjaukset} onVahvista={tallennaVahvistettu} onPoista={poistaVahvistettu} avattuKohta={avattuKohta} setAvattuKohta={setAvattuKohta} kommenttiMaara={kommenttiMaara} onAvaPopup={setKommenttiPopup} kuolinpesaId={kuolinpesa?.id} kayttajaEmail={kuolinpesa?.kayttaja_email} onKommenttiLisatty={(k) => setKaikkiKommentit(prev => [k, ...prev])} />}
-        {aktiivinenAlivaihe === 2 && <SelvitysOsio onValmis={() => { setAktiivinenAlivaihe(3); localStorage.setItem('aktiivinenAlivaihe', 3) }} onEdistyminen={setSelvitysHoidettu} avattuSopimus={avattuSopimus} setAvattuSopimus={setAvattuSopimus} sopimusTilat={sopimusTilat} tallennaSopimusTila={tallennaSopimusTila} kuolinpesaId={kuolinpesa?.id} />}
+        {aktiivinenAlivaihe === 2 && <SelvitysOsio onValmis={() => { setAktiivinenAlivaihe(3); localStorage.setItem('aktiivinenAlivaihe', 3) }} onEdistyminen={setSelvitysHoidettu} avattuSopimus={avattuSopimus} setAvattuSopimus={setAvattuSopimus} sopimusTilat={sopimusTilat} tallennaSopimusTila={tallennaSopimusTila} kuolinpesaId={kuolinpesa?.id} kayttajaEmail={kuolinpesa?.kayttaja_email} />}
         {aktiivinenAlivaihe === 3 && <Yhteenveto varatRastitattu={varatRastitattu} vahvistetutKirjaukset={vahvistetutKirjaukset} sopimusTilat={sopimusTilat} tallennaSopimusTila={tallennaSopimusTila} onValmis={() => { setAktiivinenVaihe(3); localStorage.setItem('aktiivinenVaihe', 3) }} />}
       </div>
     </div>
@@ -1379,6 +1379,7 @@ function VaratJaVelat({ rastitattu, onToggle, kirjaukset, onKirjaus, vahvistetut
   const [muutKohteet, setMuutKohteet] = useState({})
   const [lisaysAuki, setLisaysAuki] = useState(null) // katId tai null
   const [lisaysTeksti, setLisaysTeksti] = useState('')
+  const [lisaysId, setLisaysId] = useState(null)
 
   const lsKey = kuolinpesaId ? `muut_varat_${kuolinpesaId}` : null
 
@@ -1391,12 +1392,13 @@ function VaratJaVelat({ rastitattu, onToggle, kirjaukset, onKirjaus, vahvistetut
 
   const lisaaKohde = (katId, etuliite) => {
     if (!lisaysTeksti.trim()) return
-    const uusiId = `${etuliite}custom_${Date.now()}`
+    const uusiId = lisaysId || `${etuliite}custom_${Date.now()}`
     const uudet = { ...muutKohteet, [katId]: [...(muutKohteet[katId] || []), { id: uusiId, teksti: lisaysTeksti.trim() }] }
     setMuutKohteet(uudet)
     if (lsKey) localStorage.setItem(lsKey, JSON.stringify(uudet))
     setLisaysTeksti('')
     setLisaysAuki(null)
+    setLisaysId(null)
   }
 
   const poistaKohde = (katId, kohdeId) => {
@@ -1503,12 +1505,6 @@ function VaratJaVelat({ rastitattu, onToggle, kirjaukset, onKirjaus, vahvistetut
               </div>
             </div>
           </div>
-          {kommenttiMaara && onAvaPopup && (
-            <button onClick={() => onAvaPopup({ tyyppi: 'omaisuus', id: katId, nimi: otsikko.replace(/^.{2}/, '').trim(), kategoriaNimi: 'Omaisuuden selvitys' })}
-              style={{ fontSize: '11px', color: kommenttiMaara('omaisuus', katId) > 0 ? '#C9A84C' : '#4E4840', background: 'none', border: '1px solid', borderColor: kommenttiMaara('omaisuus', katId) > 0 ? 'rgba(201,168,76,0.3)' : 'rgba(240,235,227,0.08)', padding: '4px 10px', cursor: 'pointer', fontFamily: 'var(--font-body)' }}>
-              💬 {kommenttiMaara('omaisuus', katId) || '+'}
-            </button>
-          )}
         </div>
 
         <div style={{ display: 'flex', gap: '24px' }}>
@@ -1524,11 +1520,11 @@ function VaratJaVelat({ rastitattu, onToggle, kirjaukset, onKirjaus, vahvistetut
                     style={{ backgroundColor: '#110E0B', border: `1px solid ${onValittu ? '#C9A84C' : 'rgba(240,235,227,0.06)'}`, opacity: onEi ? 0.5 : 1 }}>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '13px 16px', gap: '12px' }}>
                       <span style={{ fontSize: '13px', color: '#D0C8BC', flex: 1, cursor: 'pointer' }}
-                        onClick={() => setAvattuKohta(onValittu ? null : id)}>
+                        onClick={() => { setLisaysAuki(null); setAvattuKohta(onValittu ? null : id) }}>
                         {kohta.teksti}
                       </span>
                       <div style={{ display: 'flex', gap: '6px', flexShrink: 0 }}>
-                        <button onClick={() => { onToggle(id, 'kylla'); setAvattuKohta(id) }}
+                        <button onClick={() => { setLisaysAuki(null); onToggle(id, 'kylla'); setAvattuKohta(id) }}
                           style={{ fontSize: '11px', padding: '5px 14px', border: 'none', cursor: 'pointer', fontFamily: 'var(--font-body)', letterSpacing: '0.06em', backgroundColor: onKylla ? '#C9A84C' : '#1C1916', color: onKylla ? '#110E0B' : '#6A6258', transition: 'background 0.15s' }}>
                           Kyllä
                         </button>
@@ -1551,11 +1547,11 @@ function VaratJaVelat({ rastitattu, onToggle, kirjaukset, onKirjaus, vahvistetut
                   <div key={kohta.id} style={{ backgroundColor: '#110E0B', border: `1px solid ${onValittu ? '#C9A84C' : 'rgba(201,168,76,0.1)'}`, opacity: onEi ? 0.5 : 1 }}>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '13px 16px', gap: '12px' }}>
                       <span style={{ fontSize: '13px', color: '#D0C8BC', flex: 1, cursor: 'pointer' }}
-                        onClick={() => setAvattuKohta(onValittu ? null : kohta.id)}>
+                        onClick={() => { setLisaysAuki(null); setAvattuKohta(onValittu ? null : kohta.id) }}>
                         {kohta.teksti}
                       </span>
                       <div style={{ display: 'flex', gap: '6px', flexShrink: 0, alignItems: 'center' }}>
-                        <button onClick={() => { onToggle(kohta.id, 'kylla'); setAvattuKohta(kohta.id) }}
+                        <button onClick={() => { setLisaysAuki(null); onToggle(kohta.id, 'kylla'); setAvattuKohta(kohta.id) }}
                           style={{ fontSize: '11px', padding: '5px 14px', border: 'none', cursor: 'pointer', fontFamily: 'var(--font-body)', letterSpacing: '0.06em', backgroundColor: onKylla ? '#C9A84C' : '#1C1916', color: onKylla ? '#110E0B' : '#6A6258', transition: 'background 0.15s' }}>
                           Kyllä
                         </button>
@@ -1575,7 +1571,7 @@ function VaratJaVelat({ rastitattu, onToggle, kirjaukset, onKirjaus, vahvistetut
               {/* Lisää muu -rivi */}
               <div style={{ marginTop: '8px', borderTop: '1px solid rgba(201,168,76,0.18)' }}>
                 <div
-                  onClick={() => { setLisaysAuki(lisaysAuki === katId ? null : katId); setLisaysTeksti(''); setAvattuKohta(null) }}
+                  onClick={() => { const newId = `${etuliite}custom_${Date.now()}`; setLisaysAuki(lisaysAuki === katId ? null : katId); setLisaysId(lisaysAuki === katId ? null : newId); setLisaysTeksti(''); setAvattuKohta(null) }}
                   style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '13px 16px', cursor: 'pointer', backgroundColor: lisaysAuki === katId ? '#161210' : '#110E0B', border: `1px solid ${lisaysAuki === katId ? 'rgba(201,168,76,0.4)' : 'rgba(240,235,227,0.06)'}`, borderTop: 'none', transition: 'background 0.15s' }}
                   onMouseEnter={e => { if (lisaysAuki !== katId) e.currentTarget.style.backgroundColor = '#161210' }}
                   onMouseLeave={e => { if (lisaysAuki !== katId) e.currentTarget.style.backgroundColor = '#110E0B' }}
@@ -1589,26 +1585,39 @@ function VaratJaVelat({ rastitattu, onToggle, kirjaukset, onKirjaus, vahvistetut
 
           <div style={{ width: '300px', flexShrink: 0, position: 'sticky', top: '24px', alignSelf: 'flex-start' }}>
             {lisaysAuki === katId ? (
-              <div style={{ backgroundColor: '#1C1916', border: '1px solid #C9A84C', padding: '20px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ fontSize: '9px', letterSpacing: '0.2em', textTransform: 'uppercase', color: '#C9A84C', fontFamily: 'var(--font-body)' }}>Lisää omaisuuserä</span>
-                  <button onClick={() => { setLisaysAuki(null); setLisaysTeksti('') }} style={{ color: '#4E4840', background: 'none', border: 'none', cursor: 'pointer', fontSize: '14px' }}>✕</button>
+              <div className="rounded-lg p-5 flex flex-col gap-4" style={{ backgroundColor: '#1C1916', border: '1px solid #C9A84C', position: 'sticky', top: '24px' }}>
+                <div className="flex items-start justify-between">
+                  <h3 className="text-white font-bold text-base">Lisää omaisuuserä</h3>
+                  <button onClick={() => { setLisaysAuki(null); setLisaysTeksti('') }} style={{ color: '#4E4840' }} className="text-sm hover:opacity-75">✕</button>
                 </div>
-                <input
-                  autoFocus
-                  value={lisaysTeksti}
-                  onChange={e => setLisaysTeksti(e.target.value)}
-                  onKeyDown={e => { if (e.key === 'Enter') lisaaKohde(katId, etuliite); if (e.key === 'Escape') { setLisaysAuki(null); setLisaysTeksti('') } }}
-                  placeholder="Nimi"
-                  style={{ backgroundColor: '#110E0B', border: '1px solid rgba(240,235,227,0.1)', color: '#D0C8BC', fontSize: '13px', padding: '12px 14px', fontFamily: 'var(--font-body), sans-serif', outline: 'none', width: '100%', boxSizing: 'border-box' }}
-                />
-                <button onClick={() => lisaaKohde(katId, etuliite)}
-                  style={{ width: '100%', fontSize: '11px', padding: '12px', border: 'none', cursor: 'pointer', fontFamily: 'var(--font-body)', letterSpacing: '0.12em', textTransform: 'uppercase', backgroundColor: '#C9A84C', color: '#110E0B', transition: 'background 0.15s' }}
-                  onMouseEnter={e => e.currentTarget.style.backgroundColor = '#D4B55C'}
-                  onMouseLeave={e => e.currentTarget.style.backgroundColor = '#C9A84C'}
-                >
-                  Lisää
-                </button>
+                <p style={{ color: '#8A8278' }} className="text-sm">Lisää omaisuuserä, jota ei löydy listalta — esimerkiksi kesämökki, vene tai muu varallisuus. Voit sen jälkeen merkitä sen löydetyksi tai kirjata tiedot normaalisti.</p>
+                <div className="border-t pt-4" style={{ borderColor: 'rgba(240,235,227,0.08)' }}>
+                  <p className="text-white font-bold text-sm mb-3">Nimi</p>
+                  <div className="flex gap-2">
+                    <input
+                      autoFocus
+                      value={lisaysTeksti}
+                      onChange={e => setLisaysTeksti(e.target.value)}
+                      onKeyDown={e => { if (e.key === 'Enter') lisaaKohde(katId, etuliite); if (e.key === 'Escape') { setLisaysAuki(null); setLisaysTeksti(''); setLisaysId(null) } }}
+                      placeholder="Esim. Kesämökki, Vene..."
+                      className="flex-1 px-3 py-1 rounded text-xs text-white placeholder-gray-500 outline-none"
+                      style={{ backgroundColor: '#110E0B', border: '1px solid rgba(240,235,227,0.08)' }}
+                    />
+                    <button onClick={() => lisaaKohde(katId, etuliite)} className="text-xs px-3 py-1 rounded font-bold" style={{ backgroundColor: '#C9A84C', color: '#110E0B' }}>
+                      Lisää
+                    </button>
+                  </div>
+                </div>
+                <div className="border-t pt-4" style={{ borderColor: 'rgba(240,235,227,0.08)' }}>
+                  <div style={{ color: 'white' }} className="text-xs uppercase tracking-widest mb-3">💬 Kommentit</div>
+                  <KommenttiKentta
+                    kuolinpesaId={kuolinpesaId}
+                    kayttajaEmail={kayttajaEmail}
+                    kontekstiTyyppi="omaisuus"
+                    kontekstiId={lisaysId}
+                    kompakti={true}
+                  />
+                </div>
               </div>
             ) : avattuKohta ? (
               <VaratJaVelatPaneeli
@@ -1619,6 +1628,8 @@ function VaratJaVelat({ rastitattu, onToggle, kirjaukset, onKirjaus, vahvistetut
                 onVahvista={onVahvista}
                 onSulje={() => setAvattuKohta(null)}
                 onPoista={onPoista}
+                kuolinpesaId={kuolinpesaId}
+                kayttajaEmail={kayttajaEmail}
               />
             ) : null}
           </div>
@@ -1651,12 +1662,13 @@ function VaratJaVelat({ rastitattu, onToggle, kirjaukset, onKirjaus, vahvistetut
   )
 }
 
-function SelvitysOsio({ onValmis, onEdistyminen, avattuSopimus, setAvattuSopimus, sopimusTilat, tallennaSopimusTila, kuolinpesaId }) {
+function SelvitysOsio({ onValmis, onEdistyminen, avattuSopimus, setAvattuSopimus, sopimusTilat, tallennaSopimusTila, kuolinpesaId, kayttajaEmail }) {
   const [valittuKategoria, setValittuKategoria] = useState(null)
   const [muistiinpanot, setMuistiinpanot] = useState({})
   const [muutSopimukset, setMuutSopimukset] = useState({})
   const [sopLisaysAuki, setSopLisaysAuki] = useState(null)
   const [sopLisaysTeksti, setSopLisaysTeksti] = useState('')
+  const [sopLisaysId, setSopLisaysId] = useState(null)
 
   const sopLsKey = kuolinpesaId ? `muut_sopimukset_${kuolinpesaId}` : null
 
@@ -1669,15 +1681,17 @@ function SelvitysOsio({ onValmis, onEdistyminen, avattuSopimus, setAvattuSopimus
 
   const lisaaSopimus = (katId) => {
     if (!sopLisaysTeksti.trim()) return
-    const uudet = { ...muutSopimukset, [katId]: [...(muutSopimukset[katId] || []), sopLisaysTeksti.trim()] }
+    const uusiId = sopLisaysId || `sopimus_custom_${Date.now()}`
+    const uudet = { ...muutSopimukset, [katId]: [...(muutSopimukset[katId] || []), { nimi: sopLisaysTeksti.trim(), id: uusiId }] }
     setMuutSopimukset(uudet)
     if (sopLsKey) localStorage.setItem(sopLsKey, JSON.stringify(uudet))
     setSopLisaysTeksti('')
     setSopLisaysAuki(null)
+    setSopLisaysId(null)
   }
 
-  const poistaSopimus = (katId, nimi) => {
-    const uudet = { ...muutSopimukset, [katId]: (muutSopimukset[katId] || []).filter(n => n !== nimi) }
+  const poistaSopimus = (katId, id) => {
+    const uudet = { ...muutSopimukset, [katId]: (muutSopimukset[katId] || []).filter(s => s.id !== id) }
     setMuutSopimukset(uudet)
     if (sopLsKey) localStorage.setItem(sopLsKey, JSON.stringify(uudet))
   }
@@ -1693,7 +1707,6 @@ function SelvitysOsio({ onValmis, onEdistyminen, avattuSopimus, setAvattuSopimus
             <div>
               <h3 className="text-white font-bold text-base">{avattuSopimus.nimi}</h3>
               {sopimusTilat[avattuSopimus.nimi] === 'kesken' && <span className="text-xs" style={{color: '#8A8278'}}>⏳ Kesken</span>}
-              {sopimusTilat[avattuSopimus.nimi] === 'hoidettu' && <span className="text-xs" style={{color: '#C9A84C'}}>✓ Hoidettu</span>}
             </div>
             <button onClick={() => setAvattuSopimus(null)} style={{color: '#4E4840'}} className="text-sm hover:opacity-75">✕</button>
           </div>
@@ -1720,10 +1733,6 @@ function SelvitysOsio({ onValmis, onEdistyminen, avattuSopimus, setAvattuSopimus
             />
           </div>
           <div className="flex flex-col gap-2">
-            <button onClick={() => { tallennaSopimusTila(avattuSopimus.nimi, 'ei'); setAvattuSopimus(null) }}
-              className="w-full py-2 rounded text-sm font-bold" style={{backgroundColor: 'transparent', color: '#4E4840', border: '1px solid rgba(240,235,227,0.08)'}}>
-              Ei kuulu tähän pesään
-            </button>
             <button onClick={() => { tallennaSopimusTila(avattuSopimus.nimi, 'kesken'); setAvattuSopimus(null) }}
               className="w-full py-2 rounded text-sm font-bold" style={{backgroundColor: 'rgba(240,235,227,0.08)', color: '#8A8278'}}>
               ⏳ Merkitse kesken
@@ -1732,6 +1741,16 @@ function SelvitysOsio({ onValmis, onEdistyminen, avattuSopimus, setAvattuSopimus
               className="w-full py-2 rounded text-sm font-bold" style={{backgroundColor: '#C9A84C', color: '#110E0B'}}>
               ✓ Merkitse hoidetuksi
             </button>
+          </div>
+          <div className="border-t pt-4" style={{borderColor: 'rgba(240,235,227,0.08)'}}>
+            <div style={{color: 'white'}} className="text-xs uppercase tracking-widest mb-3">💬 Kommentit</div>
+            <KommenttiKentta
+              kuolinpesaId={kuolinpesaId}
+              kayttajaEmail={kayttajaEmail}
+              kontekstiTyyppi="sopimus"
+              kontekstiId={avattuSopimus.id || avattuSopimus.nimi}
+              kompakti={true}
+            />
           </div>
         </div>
   ) : null
@@ -1850,15 +1869,15 @@ function SelvitysOsio({ onValmis, onEdistyminen, avattuSopimus, setAvattuSopimus
               const onValittu = avattuSopimus?.nimi === sopimus.nimi
               return (
                 <div key={sopimus.nimi}
-                  style={{ backgroundColor: '#110E0B', border: `1px solid ${onValittu ? '#C9A84C' : 'rgba(240,235,227,0.06)'}`, opacity: onOhitettu ? 0.5 : 1 }}>
+                  style={{ backgroundColor: onKesken ? 'rgba(201,168,76,0.04)' : '#110E0B', border: `1px solid ${onValittu ? '#C9A84C' : 'rgba(240,235,227,0.06)'}`, borderLeft: onKesken && !onValittu ? '3px solid rgba(201,168,76,0.45)' : undefined, opacity: onOhitettu ? 0.5 : 1 }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '13px 16px', gap: '12px' }}>
                     <span style={{ fontSize: '13px', color: onOhitettu ? '#6A6258' : '#D0C8BC', flex: 1, cursor: 'pointer' }}
-                      onClick={() => setAvattuSopimus(onValittu ? null : { ...sopimus, kategoriaId: kategoria.id })}>
+                      onClick={() => { setSopLisaysAuki(null); setAvattuSopimus(onValittu ? null : { ...sopimus, kategoriaId: kategoria.id }) }}>
                       {sopimus.nimi}
                       {onKesken && <span style={{ marginLeft: '8px', fontSize: '11px', color: '#8A8278' }}>⏳</span>}
                     </span>
                     <div style={{ display: 'flex', gap: '6px', flexShrink: 0 }}>
-                      <button onClick={() => { tallennaSopimusTila(sopimus.nimi, 'hoidettu'); setAvattuSopimus(null) }}
+                      <button onClick={() => { setSopLisaysAuki(null); tallennaSopimusTila(sopimus.nimi, 'hoidettu'); setAvattuSopimus({ ...sopimus, kategoriaId: kategoria.id }) }}
                         style={{ fontSize: '11px', padding: '5px 14px', border: 'none', cursor: 'pointer', fontFamily: 'var(--font-body)', letterSpacing: '0.06em', backgroundColor: onHoidettu ? '#C9A84C' : '#1C1916', color: onHoidettu ? '#110E0B' : '#6A6258', transition: 'background 0.15s' }}>
                         Kyllä
                       </button>
@@ -1873,22 +1892,24 @@ function SelvitysOsio({ onValmis, onEdistyminen, avattuSopimus, setAvattuSopimus
             })}
 
             {/* Custom sopimukset */}
-            {(muutSopimukset[kategoria.id] || []).map(nimi => {
+            {(muutSopimukset[kategoria.id] || []).map(sopimus => {
+              const nimi = typeof sopimus === 'string' ? sopimus : sopimus.nimi
+              const id = typeof sopimus === 'string' ? sopimus : sopimus.id
               const tila = sopimusTilat[nimi]
               const onHoidettu = tila === 'hoidettu'
               const onOhitettu = tila === 'ei'
               const onKesken = tila === 'kesken'
-              const onValittu = avattuSopimus?.nimi === nimi
+              const onValittu = avattuSopimus?.id === id
               return (
-                <div key={nimi} style={{ backgroundColor: '#110E0B', border: `1px solid ${onValittu ? '#C9A84C' : 'rgba(201,168,76,0.1)'}`, opacity: onOhitettu ? 0.5 : 1 }}>
+                <div key={id} style={{ backgroundColor: onKesken ? 'rgba(201,168,76,0.04)' : '#110E0B', border: `1px solid ${onValittu ? '#C9A84C' : 'rgba(201,168,76,0.1)'}`, borderLeft: onKesken && !onValittu ? '3px solid rgba(201,168,76,0.45)' : undefined, opacity: onOhitettu ? 0.5 : 1 }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '13px 16px', gap: '12px' }}>
                     <span style={{ fontSize: '13px', color: onOhitettu ? '#6A6258' : '#D0C8BC', flex: 1, cursor: 'pointer' }}
-                      onClick={() => setAvattuSopimus(onValittu ? null : { nimi, kategoriaId: kategoria.id, miksi: '', miten: [] })}>
+                      onClick={() => { setSopLisaysAuki(null); setAvattuSopimus(onValittu ? null : { nimi, id, kategoriaId: kategoria.id, miksi: '', miten: [] }) }}>
                       {nimi}
                       {onKesken && <span style={{ marginLeft: '8px', fontSize: '11px', color: '#8A8278' }}>⏳</span>}
                     </span>
                     <div style={{ display: 'flex', gap: '6px', flexShrink: 0, alignItems: 'center' }}>
-                      <button onClick={() => { tallennaSopimusTila(nimi, 'hoidettu'); setAvattuSopimus(null) }}
+                      <button onClick={() => { setSopLisaysAuki(null); tallennaSopimusTila(nimi, 'hoidettu'); setAvattuSopimus({ nimi, id, kategoriaId: kategoria.id, miksi: '', miten: [] }) }}
                         style={{ fontSize: '11px', padding: '5px 14px', border: 'none', cursor: 'pointer', fontFamily: 'var(--font-body)', letterSpacing: '0.06em', backgroundColor: onHoidettu ? '#C9A84C' : '#1C1916', color: onHoidettu ? '#110E0B' : '#6A6258', transition: 'background 0.15s' }}>
                         Kyllä
                       </button>
@@ -1896,7 +1917,7 @@ function SelvitysOsio({ onValmis, onEdistyminen, avattuSopimus, setAvattuSopimus
                         style={{ fontSize: '11px', padding: '5px 14px', border: 'none', cursor: 'pointer', fontFamily: 'var(--font-body)', letterSpacing: '0.06em', backgroundColor: onOhitettu ? '#4E4840' : '#1C1916', color: onOhitettu ? '#8A8278' : '#6A6258', transition: 'background 0.15s' }}>
                         Ei
                       </button>
-                      <button onClick={() => poistaSopimus(kategoria.id, nimi)}
+                      <button onClick={() => poistaSopimus(kategoria.id, id)}
                         style={{ fontSize: '12px', color: '#3A3530', background: 'none', border: 'none', cursor: 'pointer', padding: '0 4px', lineHeight: 1 }}
                         title="Poista">✕</button>
                     </div>
@@ -1908,7 +1929,7 @@ function SelvitysOsio({ onValmis, onEdistyminen, avattuSopimus, setAvattuSopimus
             {/* Lisää muu sopimus -rivi */}
             <div style={{ marginTop: '8px', borderTop: '1px solid rgba(201,168,76,0.18)' }}>
               <div
-                onClick={() => { setSopLisaysAuki(kategoria.id); setSopLisaysTeksti('') }}
+                onClick={() => { setSopLisaysAuki(kategoria.id); setSopLisaysTeksti(''); setSopLisaysId(`sopimus_custom_${Date.now()}`); setAvattuSopimus(null) }}
                 style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '13px 16px', cursor: 'pointer', backgroundColor: '#110E0B', border: '1px solid rgba(240,235,227,0.06)', borderTop: 'none', transition: 'background 0.15s' }}
                 onMouseEnter={e => e.currentTarget.style.backgroundColor = '#161210'}
                 onMouseLeave={e => e.currentTarget.style.backgroundColor = '#110E0B'}
@@ -1922,26 +1943,39 @@ function SelvitysOsio({ onValmis, onEdistyminen, avattuSopimus, setAvattuSopimus
 
         <div className="lg:w-80 flex-shrink-0 flex flex-col gap-4" style={{position: 'sticky', top: '24px', alignSelf: 'flex-start'}}>
           {sopLisaysAuki === kategoria.id ? (
-            <div style={{ backgroundColor: '#1C1916', border: '1px solid #C9A84C', padding: '20px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: '9px', letterSpacing: '0.2em', textTransform: 'uppercase', color: '#C9A84C', fontFamily: 'var(--font-body)' }}>Lisää sopimus</span>
-                <button onClick={() => { setSopLisaysAuki(null); setSopLisaysTeksti('') }} style={{ color: '#4E4840', background: 'none', border: 'none', cursor: 'pointer', fontSize: '14px' }}>✕</button>
+            <div className="rounded-lg p-5 flex flex-col gap-4" style={{ backgroundColor: '#1C1916', border: '1px solid #C9A84C', position: 'sticky', top: '24px' }}>
+              <div className="flex items-start justify-between">
+                <h3 className="text-white font-bold text-base">Lisää sopimus</h3>
+                <button onClick={() => { setSopLisaysAuki(null); setSopLisaysTeksti('') }} style={{ color: '#4E4840' }} className="text-sm hover:opacity-75">✕</button>
               </div>
-              <input
-                autoFocus
-                value={sopLisaysTeksti}
-                onChange={e => setSopLisaysTeksti(e.target.value)}
-                onKeyDown={e => { if (e.key === 'Enter') lisaaSopimus(kategoria.id); if (e.key === 'Escape') { setSopLisaysAuki(null); setSopLisaysTeksti('') } }}
-                placeholder="Nimi"
-                style={{ backgroundColor: '#110E0B', border: '1px solid rgba(240,235,227,0.1)', color: '#D0C8BC', fontSize: '13px', padding: '12px 14px', fontFamily: 'var(--font-body), sans-serif', outline: 'none', width: '100%', boxSizing: 'border-box' }}
-              />
-              <button onClick={() => lisaaSopimus(kategoria.id)}
-                style={{ width: '100%', fontSize: '11px', padding: '12px', border: 'none', cursor: 'pointer', fontFamily: 'var(--font-body)', letterSpacing: '0.12em', textTransform: 'uppercase', backgroundColor: '#C9A84C', color: '#110E0B', transition: 'background 0.15s' }}
-                onMouseEnter={e => e.currentTarget.style.backgroundColor = '#D4B55C'}
-                onMouseLeave={e => e.currentTarget.style.backgroundColor = '#C9A84C'}
-              >
-                Lisää
-              </button>
+              <p style={{ color: '#8A8278' }} className="text-sm">Lisää sopimus tai palvelu, jota ei löydy listalta. Se tallennetaan tähän kategoriaan ja voit merkitä sen hoidetuksi tai jättää pesään kuulumattomaksi.</p>
+              <div className="border-t pt-4" style={{ borderColor: 'rgba(240,235,227,0.08)' }}>
+                <p className="text-white font-bold text-sm mb-3">Nimi</p>
+                <div className="flex gap-2">
+                  <input
+                    autoFocus
+                    value={sopLisaysTeksti}
+                    onChange={e => setSopLisaysTeksti(e.target.value)}
+                    onKeyDown={e => { if (e.key === 'Enter') lisaaSopimus(kategoria.id); if (e.key === 'Escape') { setSopLisaysAuki(null); setSopLisaysTeksti(''); setSopLisaysId(null) } }}
+                    placeholder="Esim. Sähkösopimus, Netflix..."
+                    className="flex-1 px-3 py-1 rounded text-xs text-white placeholder-gray-500 outline-none"
+                    style={{ backgroundColor: '#110E0B', border: '1px solid rgba(240,235,227,0.08)' }}
+                  />
+                  <button onClick={() => lisaaSopimus(kategoria.id)} className="text-xs px-3 py-1 rounded font-bold" style={{ backgroundColor: '#C9A84C', color: '#110E0B' }}>
+                    Lisää
+                  </button>
+                </div>
+              </div>
+              <div className="border-t pt-4" style={{ borderColor: 'rgba(240,235,227,0.08)' }}>
+                <div style={{ color: 'white' }} className="text-xs uppercase tracking-widest mb-3">💬 Kommentit</div>
+                <KommenttiKentta
+                  kuolinpesaId={kuolinpesaId}
+                  kayttajaEmail={kayttajaEmail}
+                  kontekstiTyyppi="sopimus"
+                  kontekstiId={sopLisaysId}
+                  kompakti={true}
+                />
+              </div>
             </div>
           ) : sopimusDetailPanel}
         </div>
@@ -2991,7 +3025,7 @@ function HoitoJaToimeenpanoOsio({ kuolinpesa, vahvistetutKirjaukset, varatRastit
   )
 }
 
-function VaratJaVelatPaneeli({ kohta, kirjaukset, onKirjaus, vahvistetut, onVahvista, onSulje, onPoista }) {
+function VaratJaVelatPaneeli({ kohta, kirjaukset, onKirjaus, vahvistetut, onVahvista, onSulje, onPoista, kuolinpesaId, kayttajaEmail }) {
   const isVelat = kohta.startsWith('velat_')
   const puhtaastiId = isVelat ? kohta.replace('velat_', '') : kohta
   const lista = isVelat ? varatJaVelatMuistilista.velat : varatJaVelatMuistilista.varat
@@ -3029,7 +3063,13 @@ function VaratJaVelatPaneeli({ kohta, kirjaukset, onKirjaus, vahvistetut, onVahv
       </div>
       <div className="border-t pt-4" style={{borderColor: 'rgba(240,235,227,0.08)'}}>
         <div style={{color: 'white'}} className="text-xs uppercase tracking-widest mb-3">💬 Kommentit</div>
-        <p style={{color: '#4E4840'}} className="text-xs">Kommentointi tulossa pian.</p>
+        <KommenttiKentta
+          kuolinpesaId={kuolinpesaId}
+          kayttajaEmail={kayttajaEmail}
+          kontekstiTyyppi="omaisuus"
+          kontekstiId={kohta}
+          kompakti={true}
+        />
       </div>
     </div>
   )
