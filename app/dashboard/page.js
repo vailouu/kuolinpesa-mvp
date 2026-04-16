@@ -548,8 +548,11 @@ const poistaVahvistettu = async (id, index) => {
             <p style={{ fontSize: '14px', color: '#A09890', lineHeight: 1.9, margin: '0 0 16px' }}>
               Kuolinpesän hoito on monivaiheinen prosessi — tämä sovellus pitää sinut järjestyksessä.
             </p>
+            <p style={{ fontSize: '14px', color: '#A09890', lineHeight: 1.9, margin: '0 0 12px' }}>
+              Aloita <button onClick={() => { setAktiivisetNav('tehtavat'); window.history.pushState({ nav: 'tehtavat' }, '') }} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontSize: '14px', color: '#C9A84C', fontFamily: 'var(--font-body), sans-serif', textDecoration: 'underline', textUnderlineOffset: '3px', textDecorationColor: 'rgba(201,168,76,0.4)' }}>Tehtävät</button>-osiosta ja seuraa ohjeita.
+            </p>
             <p style={{ fontSize: '14px', color: '#A09890', lineHeight: 1.9, margin: '0 0 48px' }}>
-              Aloita <button onClick={() => { setAktiivisetNav('tehtavat'); window.history.pushState({ nav: 'tehtavat' }, '') }} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontSize: '14px', color: '#C9A84C', fontFamily: 'var(--font-body), sans-serif', textDecoration: 'underline', textUnderlineOffset: '3px', textDecorationColor: 'rgba(201,168,76,0.4)' }}>Tehtävät</button>-osiosta ja seuraa ohjeita. Sovellus opastaa sinut eteenpäin vaihe vaiheelta.
+              Jokaisessa osiossa löydät tarkempia ohjeita <span style={{ color: '#C9A84C' }}>?</span>-merkin takaa.
             </p>
 
             {/* Erottaja */}
@@ -914,12 +917,22 @@ const poistaVahvistettu = async (id, index) => {
           <div style={{ marginBottom: '36px' }}>
             <div style={{ fontSize: '9px', letterSpacing: '0.18em', textTransform: 'uppercase', color: '#4E4840', marginBottom: '20px' }}>Miten tehdään</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-              {ohje.miten.map((askel, i) => (
-                <div key={i} style={{ display: 'flex', gap: '20px', alignItems: 'flex-start' }}>
-                  <span style={{ fontSize: '10px', color: '#C9A84C', flexShrink: 0, letterSpacing: '0.1em', fontFamily: 'var(--font-body)', marginTop: '3px', minWidth: '18px' }}>{i + 1}.</span>
-                  <span style={{ fontSize: '14px', color: '#D0C8BC', lineHeight: 1.75 }}>{askel}</span>
-                </div>
-              ))}
+              {ohje.miten.map((askel, i) => {
+                const onHuomio = askel.startsWith('⚠')
+                const teksti = onHuomio ? askel.replace('⚠ ', '') : askel
+                if (onHuomio) return (
+                  <div key={i} style={{ display: 'flex', gap: '12px', alignItems: 'flex-start', padding: '12px 14px', backgroundColor: 'rgba(201,168,76,0.06)', border: '1px solid rgba(201,168,76,0.2)', marginTop: '6px' }}>
+                    <span style={{ fontSize: '14px', flexShrink: 0, marginTop: '1px' }}>⚠</span>
+                    <span style={{ fontSize: '13px', color: '#C9A84C', lineHeight: 1.7 }}>{teksti}</span>
+                  </div>
+                )
+                return (
+                  <div key={i} style={{ display: 'flex', gap: '20px', alignItems: 'flex-start' }}>
+                    <span style={{ fontSize: '10px', color: '#C9A84C', flexShrink: 0, letterSpacing: '0.1em', fontFamily: 'var(--font-body)', marginTop: '3px', minWidth: '18px' }}>{i + 1}.</span>
+                    <span style={{ fontSize: '14px', color: '#D0C8BC', lineHeight: 1.75 }}>{teksti}</span>
+                  </div>
+                )
+              })}
             </div>
           </div>
 
@@ -1048,7 +1061,7 @@ const poistaVahvistettu = async (id, index) => {
     <div className="flex gap-6">
       <div className="flex-1 min-w-0">
         {aktiivinenAlivaihe === 1 && <VaratJaVelat rastitattu={varatRastitattu} onToggle={toggleVaraRasti} kirjaukset={varatKirjaukset} onKirjaus={tallennaKirjaus} vahvistetut={vahvistetutKirjaukset} onVahvista={tallennaVahvistettu} onPoista={poistaVahvistettu} avattuKohta={avattuKohta} setAvattuKohta={setAvattuKohta} kommenttiMaara={kommenttiMaara} onAvaPopup={setKommenttiPopup} kuolinpesaId={kuolinpesa?.id} kayttajaEmail={kuolinpesa?.kayttaja_email} onKommenttiLisatty={(k) => setKaikkiKommentit(prev => [k, ...prev])} />}
-        {aktiivinenAlivaihe === 2 && <SelvitysOsio onValmis={() => { setAktiivinenAlivaihe(3); localStorage.setItem('aktiivinenAlivaihe', 3) }} onEdistyminen={setSelvitysHoidettu} avattuSopimus={avattuSopimus} setAvattuSopimus={setAvattuSopimus} sopimusTilat={sopimusTilat} tallennaSopimusTila={tallennaSopimusTila} />}
+        {aktiivinenAlivaihe === 2 && <SelvitysOsio onValmis={() => { setAktiivinenAlivaihe(3); localStorage.setItem('aktiivinenAlivaihe', 3) }} onEdistyminen={setSelvitysHoidettu} avattuSopimus={avattuSopimus} setAvattuSopimus={setAvattuSopimus} sopimusTilat={sopimusTilat} tallennaSopimusTila={tallennaSopimusTila} kuolinpesaId={kuolinpesa?.id} />}
         {aktiivinenAlivaihe === 3 && <Yhteenveto varatRastitattu={varatRastitattu} vahvistetutKirjaukset={vahvistetutKirjaukset} sopimusTilat={sopimusTilat} tallennaSopimusTila={tallennaSopimusTila} onValmis={() => { setAktiivinenVaihe(3); localStorage.setItem('aktiivinenVaihe', 3) }} />}
       </div>
     </div>
@@ -1363,6 +1376,34 @@ function Tapahtumaloki({ kuolinpesaId }) {
 
 function VaratJaVelat({ rastitattu, onToggle, kirjaukset, onKirjaus, vahvistetut, onVahvista, onPoista, avattuKohta, setAvattuKohta, kommenttiMaara, onAvaPopup, kuolinpesaId, kayttajaEmail, onKommenttiLisatty }) {
   const [valittuKategoria, setValittuKategoria] = useState(null)
+  const [muutKohteet, setMuutKohteet] = useState({})
+  const [lisaysAuki, setLisaysAuki] = useState(null) // katId tai null
+  const [lisaysTeksti, setLisaysTeksti] = useState('')
+
+  const lsKey = kuolinpesaId ? `muut_varat_${kuolinpesaId}` : null
+
+  useEffect(() => {
+    if (lsKey) {
+      const tallennettu = localStorage.getItem(lsKey)
+      if (tallennettu) setMuutKohteet(JSON.parse(tallennettu))
+    }
+  }, [lsKey])
+
+  const lisaaKohde = (katId, etuliite) => {
+    if (!lisaysTeksti.trim()) return
+    const uusiId = `${etuliite}custom_${Date.now()}`
+    const uudet = { ...muutKohteet, [katId]: [...(muutKohteet[katId] || []), { id: uusiId, teksti: lisaysTeksti.trim() }] }
+    setMuutKohteet(uudet)
+    if (lsKey) localStorage.setItem(lsKey, JSON.stringify(uudet))
+    setLisaysTeksti('')
+    setLisaysAuki(null)
+  }
+
+  const poistaKohde = (katId, kohdeId) => {
+    const uudet = { ...muutKohteet, [katId]: (muutKohteet[katId] || []).filter(k => k.id !== kohdeId) }
+    setMuutKohteet(uudet)
+    if (lsKey) localStorage.setItem(lsKey, JSON.stringify(uudet))
+  }
 
   const varatKategoriat = [
     { id: 'pankkivarat', otsikko: '🏦 Pankkivarat', kohteet: ['pankkitilit', 'tallelokero', 'ulkomaantilit'] },
@@ -1500,11 +1541,76 @@ function VaratJaVelat({ rastitattu, onToggle, kirjaukset, onKirjaus, vahvistetut
                   </div>
                 )
               })}
+
+              {/* Custom kohteet */}
+              {(muutKohteet[katId] || []).map(kohta => {
+                const onValittu = avattuKohta === kohta.id
+                const onKylla = rastitattu[kohta.id] === 'kylla'
+                const onEi = rastitattu[kohta.id] === 'ei'
+                return (
+                  <div key={kohta.id} style={{ backgroundColor: '#110E0B', border: `1px solid ${onValittu ? '#C9A84C' : 'rgba(201,168,76,0.1)'}`, opacity: onEi ? 0.5 : 1 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '13px 16px', gap: '12px' }}>
+                      <span style={{ fontSize: '13px', color: '#D0C8BC', flex: 1, cursor: 'pointer' }}
+                        onClick={() => setAvattuKohta(onValittu ? null : kohta.id)}>
+                        {kohta.teksti}
+                      </span>
+                      <div style={{ display: 'flex', gap: '6px', flexShrink: 0, alignItems: 'center' }}>
+                        <button onClick={() => { onToggle(kohta.id, 'kylla'); setAvattuKohta(kohta.id) }}
+                          style={{ fontSize: '11px', padding: '5px 14px', border: 'none', cursor: 'pointer', fontFamily: 'var(--font-body)', letterSpacing: '0.06em', backgroundColor: onKylla ? '#C9A84C' : '#1C1916', color: onKylla ? '#110E0B' : '#6A6258', transition: 'background 0.15s' }}>
+                          Kyllä
+                        </button>
+                        <button onClick={() => { onToggle(kohta.id, 'ei'); setAvattuKohta(null) }}
+                          style={{ fontSize: '11px', padding: '5px 14px', border: 'none', cursor: 'pointer', fontFamily: 'var(--font-body)', letterSpacing: '0.06em', backgroundColor: onEi ? '#4E4840' : '#1C1916', color: onEi ? '#8A8278' : '#6A6258', transition: 'background 0.15s' }}>
+                          Ei
+                        </button>
+                        <button onClick={() => poistaKohde(katId, kohta.id)}
+                          style={{ fontSize: '12px', color: '#3A3530', background: 'none', border: 'none', cursor: 'pointer', padding: '0 4px', lineHeight: 1 }}
+                          title="Poista">✕</button>
+                      </div>
+                    </div>
+                  </div>
+                )
+              })}
+
+              {/* Lisää muu -rivi */}
+              <div style={{ marginTop: '8px', borderTop: '1px solid rgba(201,168,76,0.18)' }}>
+                <div
+                  onClick={() => { setLisaysAuki(lisaysAuki === katId ? null : katId); setLisaysTeksti(''); setAvattuKohta(null) }}
+                  style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '13px 16px', cursor: 'pointer', backgroundColor: lisaysAuki === katId ? '#161210' : '#110E0B', border: `1px solid ${lisaysAuki === katId ? 'rgba(201,168,76,0.4)' : 'rgba(240,235,227,0.06)'}`, borderTop: 'none', transition: 'background 0.15s' }}
+                  onMouseEnter={e => { if (lisaysAuki !== katId) e.currentTarget.style.backgroundColor = '#161210' }}
+                  onMouseLeave={e => { if (lisaysAuki !== katId) e.currentTarget.style.backgroundColor = '#110E0B' }}
+                >
+                  <span style={{ fontSize: '15px', color: '#9A9288', lineHeight: 1, flexShrink: 0 }}>+</span>
+                  <span style={{ fontSize: '13px', color: '#9A9288', fontFamily: 'var(--font-body), sans-serif' }}>Lisää muu omaisuuserä</span>
+                </div>
+              </div>
             </div>
           </div>
 
           <div style={{ width: '300px', flexShrink: 0, position: 'sticky', top: '24px', alignSelf: 'flex-start' }}>
-            {avattuKohta && (
+            {lisaysAuki === katId ? (
+              <div style={{ backgroundColor: '#1C1916', border: '1px solid #C9A84C', padding: '20px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontSize: '9px', letterSpacing: '0.2em', textTransform: 'uppercase', color: '#C9A84C', fontFamily: 'var(--font-body)' }}>Lisää omaisuuserä</span>
+                  <button onClick={() => { setLisaysAuki(null); setLisaysTeksti('') }} style={{ color: '#4E4840', background: 'none', border: 'none', cursor: 'pointer', fontSize: '14px' }}>✕</button>
+                </div>
+                <input
+                  autoFocus
+                  value={lisaysTeksti}
+                  onChange={e => setLisaysTeksti(e.target.value)}
+                  onKeyDown={e => { if (e.key === 'Enter') lisaaKohde(katId, etuliite); if (e.key === 'Escape') { setLisaysAuki(null); setLisaysTeksti('') } }}
+                  placeholder="Nimi"
+                  style={{ backgroundColor: '#110E0B', border: '1px solid rgba(240,235,227,0.1)', color: '#D0C8BC', fontSize: '13px', padding: '12px 14px', fontFamily: 'var(--font-body), sans-serif', outline: 'none', width: '100%', boxSizing: 'border-box' }}
+                />
+                <button onClick={() => lisaaKohde(katId, etuliite)}
+                  style={{ width: '100%', fontSize: '11px', padding: '12px', border: 'none', cursor: 'pointer', fontFamily: 'var(--font-body)', letterSpacing: '0.12em', textTransform: 'uppercase', backgroundColor: '#C9A84C', color: '#110E0B', transition: 'background 0.15s' }}
+                  onMouseEnter={e => e.currentTarget.style.backgroundColor = '#D4B55C'}
+                  onMouseLeave={e => e.currentTarget.style.backgroundColor = '#C9A84C'}
+                >
+                  Lisää
+                </button>
+              </div>
+            ) : avattuKohta ? (
               <VaratJaVelatPaneeli
                 kohta={avattuKohta}
                 kirjaukset={kirjaukset}
@@ -1514,7 +1620,7 @@ function VaratJaVelat({ rastitattu, onToggle, kirjaukset, onKirjaus, vahvistetut
                 onSulje={() => setAvattuKohta(null)}
                 onPoista={onPoista}
               />
-            )}
+            ) : null}
           </div>
         </div>
       </div>
@@ -1545,9 +1651,36 @@ function VaratJaVelat({ rastitattu, onToggle, kirjaukset, onKirjaus, vahvistetut
   )
 }
 
-function SelvitysOsio({ onValmis, onEdistyminen, avattuSopimus, setAvattuSopimus, sopimusTilat, tallennaSopimusTila }) {
+function SelvitysOsio({ onValmis, onEdistyminen, avattuSopimus, setAvattuSopimus, sopimusTilat, tallennaSopimusTila, kuolinpesaId }) {
   const [valittuKategoria, setValittuKategoria] = useState(null)
   const [muistiinpanot, setMuistiinpanot] = useState({})
+  const [muutSopimukset, setMuutSopimukset] = useState({})
+  const [sopLisaysAuki, setSopLisaysAuki] = useState(null)
+  const [sopLisaysTeksti, setSopLisaysTeksti] = useState('')
+
+  const sopLsKey = kuolinpesaId ? `muut_sopimukset_${kuolinpesaId}` : null
+
+  useEffect(() => {
+    if (sopLsKey) {
+      const tallennettu = localStorage.getItem(sopLsKey)
+      if (tallennettu) setMuutSopimukset(JSON.parse(tallennettu))
+    }
+  }, [sopLsKey])
+
+  const lisaaSopimus = (katId) => {
+    if (!sopLisaysTeksti.trim()) return
+    const uudet = { ...muutSopimukset, [katId]: [...(muutSopimukset[katId] || []), sopLisaysTeksti.trim()] }
+    setMuutSopimukset(uudet)
+    if (sopLsKey) localStorage.setItem(sopLsKey, JSON.stringify(uudet))
+    setSopLisaysTeksti('')
+    setSopLisaysAuki(null)
+  }
+
+  const poistaSopimus = (katId, nimi) => {
+    const uudet = { ...muutSopimukset, [katId]: (muutSopimukset[katId] || []).filter(n => n !== nimi) }
+    setMuutSopimukset(uudet)
+    if (sopLsKey) localStorage.setItem(sopLsKey, JSON.stringify(uudet))
+  }
 
   useEffect(() => {
     const kasitelty = kategoriat.reduce((sum, k) => sum + k.sopimukset.filter(s => sopimusTilat[s.nimi] === 'hoidettu' || sopimusTilat[s.nimi] === 'ei').length, 0)
@@ -1738,11 +1871,79 @@ function SelvitysOsio({ onValmis, onEdistyminen, avattuSopimus, setAvattuSopimus
                 </div>
               )
             })}
+
+            {/* Custom sopimukset */}
+            {(muutSopimukset[kategoria.id] || []).map(nimi => {
+              const tila = sopimusTilat[nimi]
+              const onHoidettu = tila === 'hoidettu'
+              const onOhitettu = tila === 'ei'
+              const onKesken = tila === 'kesken'
+              const onValittu = avattuSopimus?.nimi === nimi
+              return (
+                <div key={nimi} style={{ backgroundColor: '#110E0B', border: `1px solid ${onValittu ? '#C9A84C' : 'rgba(201,168,76,0.1)'}`, opacity: onOhitettu ? 0.5 : 1 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '13px 16px', gap: '12px' }}>
+                    <span style={{ fontSize: '13px', color: onOhitettu ? '#6A6258' : '#D0C8BC', flex: 1, cursor: 'pointer' }}
+                      onClick={() => setAvattuSopimus(onValittu ? null : { nimi, kategoriaId: kategoria.id, miksi: '', miten: [] })}>
+                      {nimi}
+                      {onKesken && <span style={{ marginLeft: '8px', fontSize: '11px', color: '#8A8278' }}>⏳</span>}
+                    </span>
+                    <div style={{ display: 'flex', gap: '6px', flexShrink: 0, alignItems: 'center' }}>
+                      <button onClick={() => { tallennaSopimusTila(nimi, 'hoidettu'); setAvattuSopimus(null) }}
+                        style={{ fontSize: '11px', padding: '5px 14px', border: 'none', cursor: 'pointer', fontFamily: 'var(--font-body)', letterSpacing: '0.06em', backgroundColor: onHoidettu ? '#C9A84C' : '#1C1916', color: onHoidettu ? '#110E0B' : '#6A6258', transition: 'background 0.15s' }}>
+                        Kyllä
+                      </button>
+                      <button onClick={() => { tallennaSopimusTila(nimi, 'ei'); setAvattuSopimus(null) }}
+                        style={{ fontSize: '11px', padding: '5px 14px', border: 'none', cursor: 'pointer', fontFamily: 'var(--font-body)', letterSpacing: '0.06em', backgroundColor: onOhitettu ? '#4E4840' : '#1C1916', color: onOhitettu ? '#8A8278' : '#6A6258', transition: 'background 0.15s' }}>
+                        Ei
+                      </button>
+                      <button onClick={() => poistaSopimus(kategoria.id, nimi)}
+                        style={{ fontSize: '12px', color: '#3A3530', background: 'none', border: 'none', cursor: 'pointer', padding: '0 4px', lineHeight: 1 }}
+                        title="Poista">✕</button>
+                    </div>
+                  </div>
+                </div>
+              )
+            })}
+
+            {/* Lisää muu sopimus -rivi */}
+            <div style={{ marginTop: '8px', borderTop: '1px solid rgba(201,168,76,0.18)' }}>
+              <div
+                onClick={() => { setSopLisaysAuki(kategoria.id); setSopLisaysTeksti('') }}
+                style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '13px 16px', cursor: 'pointer', backgroundColor: '#110E0B', border: '1px solid rgba(240,235,227,0.06)', borderTop: 'none', transition: 'background 0.15s' }}
+                onMouseEnter={e => e.currentTarget.style.backgroundColor = '#161210'}
+                onMouseLeave={e => e.currentTarget.style.backgroundColor = '#110E0B'}
+              >
+                <span style={{ fontSize: '15px', color: '#9A9288', lineHeight: 1, flexShrink: 0 }}>+</span>
+                <span style={{ fontSize: '13px', color: '#9A9288', fontFamily: 'var(--font-body), sans-serif' }}>Lisää muu sopimus</span>
+              </div>
+            </div>
           </div>
         </div>
 
         <div className="lg:w-80 flex-shrink-0 flex flex-col gap-4" style={{position: 'sticky', top: '24px', alignSelf: 'flex-start'}}>
-          {sopimusDetailPanel}
+          {sopLisaysAuki === kategoria.id ? (
+            <div style={{ backgroundColor: '#1C1916', border: '1px solid #C9A84C', padding: '20px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontSize: '9px', letterSpacing: '0.2em', textTransform: 'uppercase', color: '#C9A84C', fontFamily: 'var(--font-body)' }}>Lisää sopimus</span>
+                <button onClick={() => { setSopLisaysAuki(null); setSopLisaysTeksti('') }} style={{ color: '#4E4840', background: 'none', border: 'none', cursor: 'pointer', fontSize: '14px' }}>✕</button>
+              </div>
+              <input
+                autoFocus
+                value={sopLisaysTeksti}
+                onChange={e => setSopLisaysTeksti(e.target.value)}
+                onKeyDown={e => { if (e.key === 'Enter') lisaaSopimus(kategoria.id); if (e.key === 'Escape') { setSopLisaysAuki(null); setSopLisaysTeksti('') } }}
+                placeholder="Nimi"
+                style={{ backgroundColor: '#110E0B', border: '1px solid rgba(240,235,227,0.1)', color: '#D0C8BC', fontSize: '13px', padding: '12px 14px', fontFamily: 'var(--font-body), sans-serif', outline: 'none', width: '100%', boxSizing: 'border-box' }}
+              />
+              <button onClick={() => lisaaSopimus(kategoria.id)}
+                style={{ width: '100%', fontSize: '11px', padding: '12px', border: 'none', cursor: 'pointer', fontFamily: 'var(--font-body)', letterSpacing: '0.12em', textTransform: 'uppercase', backgroundColor: '#C9A84C', color: '#110E0B', transition: 'background 0.15s' }}
+                onMouseEnter={e => e.currentTarget.style.backgroundColor = '#D4B55C'}
+                onMouseLeave={e => e.currentTarget.style.backgroundColor = '#C9A84C'}
+              >
+                Lisää
+              </button>
+            </div>
+          ) : sopimusDetailPanel}
         </div>
       </div>
     </div>
@@ -1860,7 +2061,7 @@ function TehtavaKortti({ tehtava, onMerkitse, avattuTehtava, setAvattuTehtava })
   )
 }
 const ohjeet = {
-  'Tilaa virkatodistus': { kiireellinen: true, miksi: 'Toimituksessa kestää 4-10 viikkoa — tarvitaan pankeissa, vakuutuksissa ja perunkirjoituksessa. Tee tämä ensimmäisenä.', miten: ['Jos vainaja kuului ev.lut. kirkkoon → mene osoitteeseen tilaavirkatodistus.fi','Jos vainaja ei kuulunut kirkkoon → mene osoitteeseen dvv.fi','Tilaa useampi kopio kerralla — tarvitset niitä monessa paikassa','Hinta noin 35-100 €'] },
+  'Tilaa virkatodistus': { kiireellinen: true, miksi: 'Toimituksessa kestää 4-10 viikkoa — tarvitaan pankeissa, vakuutuksissa ja perunkirjoituksessa. Tee tämä ensimmäisenä.', miten: ['Jos vainaja kuului ev.lut. kirkkoon → mene osoitteeseen tilaavirkatodistus.fi','Jos vainaja ei kuulunut kirkkoon → mene osoitteeseen dvv.fi','Tilaa useampi kopio kerralla — tarvitset niitä monessa paikassa','Hinta noin 35-100 €','⚠ Muista samalla: tilaa virkatodistukset myös kaikilta osakkailta — toimitusaika on sama 4–10 viikkoa.'] },
   'Selvitä onko testamentti': { kiireellinen: false, miksi: 'Testamentti vaikuttaa siihen kuka perii mitä. Se pitää löytää ja antaa tiedoksi kaikille perillisille 6 kuukauden kuluessa — muuten se menettää voimansa.', miten: ['Tarkista vainajan paperit, tallelokero ja kirjoituspöytä','Kysy asianajajalta tai pankista onko testamentti tallessa','Jos testamentti löytyy — säilytä se turvassa ja vie se perunkirjoitukseen','Testamentti pitää antaa tiedoksi kaikille perillisille kirjallisesti'] },
   'Ilmoita pankeille': { kiireellinen: false, miksi: 'Pankki jäädyttää tilit automaattisesti mutta oma ilmoitus nopeuttaa asioita. Samalla sovitaan kuka hoitaa kuolinpesän pankkiasioita.', miten: ['Soita vainajan pankin asiakaspalveluun','Ilmoita vainajan nimi ja henkilötunnus','Kerro kuka toimii kuolinpesän hoitajana','Pankki antaa ohjeet kirjallisen ilmoituksen tekemiseen','Huom: Vainajan tililtä voi silti maksaa arjen laskuja ennen perunkirjoitusta'] },
   'Ilmoita Kelalle': { kiireellinen: false, miksi: 'Jos vainaja sai Kela-etuuksia, ilmoita pian — muuten ylimääräiset maksut peritään takaisin.', miten: ['Soita Kelan palvelunumeroon 020 692 201 (ma-pe 9-16)','Kysy onko sinulla oikeus leskeneläkkeeseen tai lapseneläkkeeseen','Jos sinulla on alle 17-vuotiaita lapsia, kysy lapsilisän yksinhuoltajakorotuksesta'] },
@@ -2242,59 +2443,110 @@ function PerunkirjoitusOsio({ kuolinpesa, vahvistetutKirjaukset, kayttajaEmail, 
   const [avattuTehtava, setAvattuTehtava] = useState(null)
   const [perunkirjoitusTehty, setPerunkirjoitusTehty] = useState({})
   const [modalAuki, setModalAuki] = useState(false)
-  const togglePerunkirjoitusTehty = (id) => setPerunkirjoitusTehty(prev => ({...prev, [id]: !prev[id]}))
-  const avattuOhje = perunkirjoitusTehtavat.find(t => t.id === avattuTehtava)
+
+  const toggleTehty = (id, e) => { e.stopPropagation(); setPerunkirjoitusTehty(prev => ({ ...prev, [id]: !prev[id] })) }
+  const valmisCount = perunkirjoitusTehtavat.filter(t => perunkirjoitusTehty[t.id]).length
+
+  const ryhmat = [
+    { otsikko: 'Valmistelu', kuvaus: 'Hoidettava ennen tilaisuutta', tehtavat: perunkirjoitusTehtavat.slice(0, 5) },
+    { otsikko: 'Tilaisuus', kuvaus: 'Pidettävä 90 päivän kuluessa kuolemasta', tehtavat: perunkirjoitusTehtavat.slice(5, 6) },
+    { otsikko: 'Asiakirjat', kuvaus: 'Tilaisuuden jälkeen', tehtavat: perunkirjoitusTehtavat.slice(6, 9) },
+  ]
+
+  let juoksevaNumero = 0
 
   return (
-    <div>
-      <div className="flex gap-6">
-        <div className="flex flex-col gap-3 flex-1">
-          {perunkirjoitusTehtavat.map(tehtava => (
-            <div key={tehtava.id} className="rounded cursor-pointer transition-all"
-              style={{backgroundColor: avattuTehtava === tehtava.id ? '#1C1916' : '#110E0B', border: `1px solid ${avattuTehtava === tehtava.id ? '#C9A84C' : 'rgba(240,235,227,0.08)'}`}}
-              onClick={() => setAvattuTehtava(avattuTehtava === tehtava.id ? null : tehtava.id)}>
-              <div className="flex items-center gap-4 p-4">
-                <div onClick={(e) => { e.stopPropagation(); togglePerunkirjoitusTehty(tehtava.id) }}
-                  className="w-6 h-6 rounded flex items-center justify-center flex-shrink-0"
-                  style={{backgroundColor: perunkirjoitusTehty[tehtava.id] ? '#C9A84C' : 'transparent', border: `2px solid ${perunkirjoitusTehty[tehtava.id] ? '#C9A84C' : '#4E4840'}`}}>
-                  {perunkirjoitusTehty[tehtava.id] && <span style={{color: '#110E0B'}} className="text-xs font-bold">✓</span>}
-                </div>
-                <div className="flex-1">
-                  <span className="text-sm font-medium" style={{color: 'white'}}>{tehtava.nimi}</span>
-                </div>
-                <span style={{color: '#C9A84C'}} className="text-xs">{avattuTehtava === tehtava.id ? '▲' : '▼'}</span>
-              </div>
-            </div>
-          ))}
-        </div>
+    <div style={{ maxWidth: '680px' }}>
 
-        <div className="w-80 flex-shrink-0" style={{ position: 'sticky', top: '24px', alignSelf: 'flex-start' }}>
-          {avattuTehtava && avattuOhje && (
-            <div className="rounded-lg p-5 flex flex-col gap-5" style={{backgroundColor: '#1C1916', border: '1px solid #C9A84C'}}>
-              <div className="flex items-start justify-between">
-                <h3 className="text-white font-bold text-base">{avattuOhje.nimi}</h3>
-                <button onClick={() => setAvattuTehtava(null)} style={{color: '#4E4840'}} className="text-sm hover:opacity-75">✕</button>
-              </div>
-              <p style={{color: '#8A8278'}} className="text-sm">{avattuOhje.miksi}</p>
-              <div>
-                <div style={{color: '#C9A84C'}} className="text-xs uppercase tracking-widest mb-3">Miten tehdään</div>
-                <ul className="flex flex-col gap-2">
-                  {avattuOhje.miten.map((askel, i) => (
-                    <li key={i} className="flex gap-3 text-sm text-white">
-                      <span style={{color: '#C9A84C'}} className="flex-shrink-0">{i + 1}.</span>{askel}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-          )}
+      {/* Edistyminen */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '36px' }}>
+        <div style={{ flex: 1, height: '2px', backgroundColor: 'rgba(240,235,227,0.06)' }}>
+          <div style={{ height: '2px', backgroundColor: '#C9A84C', width: `${Math.round(valmisCount / perunkirjoitusTehtavat.length * 100)}%`, transition: 'width 0.4s ease' }} />
         </div>
+        <span style={{ fontSize: '11px', color: '#C9A84C', fontFamily: 'var(--font-body), sans-serif', letterSpacing: '0.08em', flexShrink: 0 }}>
+          {valmisCount} / {perunkirjoitusTehtavat.length} valmis
+        </span>
       </div>
 
-      <button className="w-full py-4 rounded font-bold text-lg mt-8" style={{backgroundColor: '#C9A84C', color: '#110E0B'}}
-        onClick={() => setModalAuki(true)}>
-        Generoi valmis perukirjapohja →
-      </button>
+      {/* Ryhmät */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
+        {ryhmat.map((ryhma) => (
+          <div key={ryhma.otsikko}>
+
+            {/* Ryhmäotsikko */}
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: '12px', marginBottom: '12px' }}>
+              <span style={{ fontSize: '9px', letterSpacing: '0.22em', textTransform: 'uppercase', color: '#C9A84C', fontFamily: 'var(--font-body), sans-serif' }}>{ryhma.otsikko}</span>
+              <span style={{ fontSize: '11px', color: '#4E4840' }}>—</span>
+              <span style={{ fontSize: '11px', color: '#4E4840', fontFamily: 'var(--font-body), sans-serif' }}>{ryhma.kuvaus}</span>
+            </div>
+
+            {/* Tehtävät */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+              {ryhma.tehtavat.map((tehtava) => {
+                juoksevaNumero++
+                const numero = juoksevaNumero
+                const auki = avattuTehtava === tehtava.id
+                const tehty = perunkirjoitusTehty[tehtava.id]
+                return (
+                  <div key={tehtava.id} style={{ border: `1px solid ${auki ? 'rgba(201,168,76,0.4)' : 'rgba(240,235,227,0.06)'}`, backgroundColor: auki ? '#161210' : '#110E0B', transition: 'border-color 0.15s, background 0.15s' }}>
+
+                    {/* Rivin otsikko */}
+                    <div
+                      onClick={() => setAvattuTehtava(auki ? null : tehtava.id)}
+                      style={{ display: 'flex', alignItems: 'center', gap: '14px', padding: '14px 18px', cursor: 'pointer' }}
+                    >
+                      {/* Numero */}
+                      <span style={{ fontSize: '11px', color: tehty ? '#C9A84C' : '#3A3530', fontFamily: 'var(--font-body), sans-serif', width: '16px', flexShrink: 0, textAlign: 'right' }}>{numero}</span>
+
+                      {/* Checkbox */}
+                      <div
+                        onClick={(e) => toggleTehty(tehtava.id, e)}
+                        style={{ width: '18px', height: '18px', flexShrink: 0, border: `2px solid ${tehty ? '#C9A84C' : '#3A3530'}`, backgroundColor: tehty ? '#C9A84C' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.15s', cursor: 'pointer' }}
+                      >
+                        {tehty && <span style={{ fontSize: '10px', color: '#110E0B', fontWeight: 700, lineHeight: 1 }}>✓</span>}
+                      </div>
+
+                      {/* Nimi */}
+                      <span style={{ flex: 1, fontSize: '13px', color: tehty ? '#5A5248' : '#D0C8BC', textDecoration: tehty ? 'line-through' : 'none', fontFamily: 'var(--font-body), sans-serif' }}>{tehtava.nimi}</span>
+
+                      {/* Nuoli */}
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#4E4840" strokeWidth="1.5" style={{ flexShrink: 0, transform: auki ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}>
+                        <path d="M6 9l6 6 6-6"/>
+                      </svg>
+                    </div>
+
+                    {/* Accordion-sisältö */}
+                    {auki && (
+                      <div style={{ padding: '0 18px 20px 48px', borderTop: '1px solid rgba(240,235,227,0.06)' }}>
+                        <p style={{ fontSize: '13px', color: '#7A7268', lineHeight: 1.7, margin: '16px 0 20px' }}>{tehtava.miksi}</p>
+                        <div style={{ fontSize: '9px', letterSpacing: '0.2em', textTransform: 'uppercase', color: '#C9A84C', marginBottom: '10px', fontFamily: 'var(--font-body), sans-serif' }}>Miten tehdään</div>
+                        <ol style={{ display: 'flex', flexDirection: 'column', gap: '8px', paddingLeft: 0, listStyle: 'none', margin: '0 0 20px' }}>
+                          {tehtava.miten.map((askel, i) => (
+                            <li key={i} style={{ display: 'flex', gap: '10px', fontSize: '13px', color: '#D0C8BC', lineHeight: 1.6 }}>
+                              <span style={{ color: '#C9A84C', flexShrink: 0 }}>{i + 1}.</span>{askel}
+                            </li>
+                          ))}
+                        </ol>
+                        {tehtava.id === 'pk7' && (
+                          <button
+                            onClick={() => setModalAuki(true)}
+                            style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', fontFamily: 'var(--font-body), sans-serif', fontSize: '11px', letterSpacing: '0.14em', textTransform: 'uppercase', color: '#110E0B', backgroundColor: '#C9A84C', border: 'none', padding: '12px 20px', cursor: 'pointer', transition: 'background 0.2s' }}
+                            onMouseEnter={e => e.currentTarget.style.backgroundColor = '#D4B55C'}
+                            onMouseLeave={e => e.currentTarget.style.backgroundColor = '#C9A84C'}
+                          >
+                            Generoi perukirjapohja
+                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                          </button>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        ))}
+      </div>
 
       {modalAuki && (
         <PerukirjaModal
