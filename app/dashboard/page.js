@@ -316,7 +316,7 @@ const poistaVahvistettu = async (id, index) => {
 
   const kommenttiMaara = (tyyppi, id) => kaikkiKommentit.filter(k => k.konteksti_tyyppi === tyyppi && k.konteksti_id === id).length
 
-  const [aktiivisetNav, setAktiivisetNav] = React.useState('pesani')
+  const [aktiivisetNav, setAktiivisetNav] = React.useState('aloita')
   const [valittuVaihe, setValittuVaihe] = React.useState(null)
 
   const navPush = React.useCallback((osioId, extra = {}) => {
@@ -327,7 +327,7 @@ const poistaVahvistettu = async (id, index) => {
   }, [])
 
   React.useEffect(() => {
-    window.history.replaceState({ nav: 'pesani' }, '')
+    window.history.replaceState({ nav: 'aloita' }, '')
     const handlePop = (e) => {
       const s = e.state
       if (!s) return
@@ -340,6 +340,10 @@ const poistaVahvistettu = async (id, index) => {
   }, [])
 
   const navItems = [
+    {
+      id: 'aloita', label: 'Aloita tästä',
+      icon: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>,
+    },
     {
       id: 'tehtavat', label: 'Tehtävät',
       icon: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="3" y="5" width="18" height="14" rx="1"/><path d="M3 9h18M7 13h2M7 16h5"/><circle cx="17" cy="14.5" r="2.5"/></svg>,
@@ -526,6 +530,72 @@ const poistaVahvistettu = async (id, index) => {
 
       {/* ── MAIN CONTENT ── */}
       <main style={{ marginLeft: '220px', flex: 1, minHeight: '100vh', padding: '40px 48px', paddingRight: '128px' }}>
+
+        {/* ── ALOITA TÄSTÄ ── */}
+        {aktiivisetNav === 'aloita' && (
+          <div style={{ maxWidth: '560px' }}>
+
+            {/* Otsikko */}
+            <div style={{ fontSize: '10px', letterSpacing: '0.28em', textTransform: 'uppercase', color: '#C9A84C', display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
+              <div style={{ width: '20px', height: '1px', background: '#C9A84C' }} />
+              Tervetuloa
+            </div>
+            <h1 style={{ fontFamily: 'var(--font-display), Georgia, serif', fontSize: '36px', fontWeight: 300, letterSpacing: '-0.02em', color: '#F0EBE3', lineHeight: 1.1, margin: '0 0 32px' }}>
+              Tervetuloa<br /><em style={{ fontStyle: 'italic', color: '#C9A84C' }}>Pesänhoitajaan.</em>
+            </h1>
+
+            {/* Intro */}
+            <p style={{ fontSize: '14px', color: '#A09890', lineHeight: 1.9, margin: '0 0 16px' }}>
+              Kuolinpesän hoito on monivaiheinen prosessi — tämä sovellus pitää sinut järjestyksessä.
+            </p>
+            <p style={{ fontSize: '14px', color: '#A09890', lineHeight: 1.9, margin: '0 0 48px' }}>
+              Aloita <button onClick={() => { setAktiivisetNav('tehtavat'); window.history.pushState({ nav: 'tehtavat' }, '') }} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontSize: '14px', color: '#C9A84C', fontFamily: 'var(--font-body), sans-serif', textDecoration: 'underline', textUnderlineOffset: '3px', textDecorationColor: 'rgba(201,168,76,0.4)' }}>Tehtävät</button>-osiosta ja seuraa ohjeita. Sovellus opastaa sinut eteenpäin vaihe vaiheelta.
+            </p>
+
+            {/* Erottaja */}
+            <div style={{ height: '1px', background: 'linear-gradient(to right, rgba(201,168,76,0.3), transparent)', marginBottom: '40px' }} />
+
+            {/* Muut osiot */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '32px', marginBottom: '48px' }}>
+              {[
+                { label: 'Osakkaat', teksti: 'Lisää kuolinpesän osakkaat, jotta hekin voivat seurata pesän tilannetta ja osallistua hoitoon.' },
+                { label: 'Viestit', teksti: 'Jätä viestejä muille osakkaille — yleisiä tai yksittäisiin kirjauksiin sidottuja. Kaikki näkevät saman tiedon.' },
+                { label: 'Tapahtumaloki', teksti: 'Kaikki pesässä tehdyt toimenpiteet tallentuvat automaattisesti lokiin. Täydentyvä ominaisuus.', tulossa: true },
+              ].map(osio => (
+                <div key={osio.label}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
+                    <span style={{ fontSize: '9px', letterSpacing: '0.2em', textTransform: 'uppercase', color: '#C9A84C', fontFamily: 'var(--font-body), sans-serif' }}>{osio.label}</span>
+                    {osio.tulossa && <span style={{ fontSize: '8px', letterSpacing: '0.14em', textTransform: 'uppercase', color: '#4E4840', border: '1px solid rgba(240,235,227,0.08)', padding: '2px 6px' }}>Tulossa</span>}
+                  </div>
+                  <p style={{ fontSize: '13px', color: '#6A6258', lineHeight: 1.8, margin: 0 }}>{osio.teksti}</p>
+                </div>
+              ))}
+            </div>
+
+            {/* Erottaja */}
+            <div style={{ height: '1px', background: 'linear-gradient(to right, rgba(201,168,76,0.3), transparent)', marginBottom: '40px' }} />
+
+            {/* CTA */}
+            <button
+              onClick={() => { setAktiivisetNav('tehtavat'); window.history.pushState({ nav: 'tehtavat' }, '') }}
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: '10px',
+                fontFamily: 'var(--font-body), sans-serif',
+                fontSize: '11px', letterSpacing: '0.18em', textTransform: 'uppercase',
+                color: '#C9A84C', background: 'transparent',
+                border: '1px solid rgba(201,168,76,0.35)',
+                padding: '16px 28px', cursor: 'pointer',
+                transition: 'background 0.2s, box-shadow 0.2s, border-color 0.2s',
+              }}
+              onMouseEnter={e => { e.currentTarget.style.background = 'rgba(201,168,76,0.08)'; e.currentTarget.style.borderColor = 'rgba(201,168,76,0.7)'; e.currentTarget.style.boxShadow = '0 0 24px rgba(201,168,76,0.2)' }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = 'rgba(201,168,76,0.35)'; e.currentTarget.style.boxShadow = 'none' }}
+            >
+              Siirry tehtäviin
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </button>
+
+          </div>
+        )}
 
         {/* ── PESÄNI YHTEENVETO ── */}
         {aktiivisetNav === 'pesani' && (
@@ -1071,113 +1141,30 @@ const poistaVahvistettu = async (id, index) => {
       </main>
 
       {/* ── WELCOME OVERLAY ── */}
-      {naytaWelcome && (
+      {naytaWelcome && !welcomeNimi && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 200, backgroundColor: '#0A0806' }} />
+      )}
+      {naytaWelcome && welcomeNimi && (
         <>
           <style>{`
-            @keyframes onboardingFadeIn {
-              from { opacity: 0; transform: translateY(12px); }
+            @keyframes welcomeFadeIn {
+              from { opacity: 0; transform: translateY(16px); }
               to   { opacity: 1; transform: translateY(0); }
             }
-            .onboarding-card {
-              animation: onboardingFadeIn 0.7s cubic-bezier(0.22,1,0.36,1) 0.15s both;
+            @keyframes welcomeFadeOut {
+              from { opacity: 1; transform: translateY(0); }
+              to   { opacity: 0; transform: translateY(-10px); }
+            }
+            .welcome-card {
+              animation: ${welcomeFading ? 'welcomeFadeOut 0.6s cubic-bezier(0.22,1,0.36,1) forwards' : 'welcomeFadeIn 0.9s cubic-bezier(0.22,1,0.36,1) both'};
             }
           `}</style>
-          <div style={{
-            position: 'fixed', inset: 0, zIndex: 200,
-            backgroundColor: 'rgba(10,8,6,0.92)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            backdropFilter: 'blur(6px)',
-          }}>
-            {/* Glow */}
-            <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none' }}>
-              <div style={{ width: '600px', height: '400px', background: 'radial-gradient(ellipse at center, rgba(201,168,76,0.07) 0%, transparent 70%)', filter: 'blur(40px)' }} />
-            </div>
-
-            <div className="onboarding-card" style={{
-              position: 'relative',
-              width: '100%', maxWidth: '480px',
-              backgroundColor: '#0D0B09',
-              border: '1px solid rgba(201,168,76,0.25)',
-              padding: '48px',
-              boxShadow: '0 32px 80px rgba(0,0,0,0.6)',
-            }}>
-              {/* Label */}
-              <div style={{ fontSize: '9px', letterSpacing: '0.28em', textTransform: 'uppercase', color: '#C9A84C', opacity: 0.7, marginBottom: '16px' }}>
-                Kuolinpesä luotu
-              </div>
-
-              {/* Nimi */}
-              <h1 style={{
-                fontFamily: 'var(--font-display), Georgia, serif',
-                fontSize: '28px', fontWeight: 300, color: '#F0EBE3',
-                letterSpacing: '-0.02em', lineHeight: 1.2, marginBottom: '8px',
-              }}>
-                Ennen kuin aloitat
-              </h1>
-              <p style={{ fontSize: '13px', color: '#5A5248', lineHeight: 1.7, marginBottom: '32px' }}>
-                Useimmat aloittavat kuolinpesän hoidon kun nämä kaksi asiaa on hoidettu. Rastita valmiit — voit aloittaa myös ennen tätä.
-              </p>
-
-              {/* Divider */}
-              <div style={{ height: '1px', backgroundColor: 'rgba(240,235,227,0.06)', marginBottom: '24px' }} />
-
-              {/* Checkboxes */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '36px' }}>
-                {[
-                  { kentta: 'hautajaiset', teksti: 'Hautajaiset on järjestetty', kuvaus: 'Hautaustoimisto tai seurakunta on yleensä auttanut tässä.' },
-                  { kentta: 'kuolintodistus', teksti: 'Kuolintodistus on hankittu', kuvaus: 'Sairaala tai lääkäri on laatinut sen. Muista hankkia useampi kopio.' },
-                ].map(({ kentta, teksti, kuvaus }) => (
-                  <div
-                    key={kentta}
-                    onClick={() => paivitaEsiTarkistus(kentta)}
-                    style={{
-                      display: 'flex', alignItems: 'flex-start', gap: '16px', padding: '14px 18px',
-                      backgroundColor: esiTarkistukset[kentta] ? 'rgba(201,168,76,0.04)' : '#110E0B',
-                      border: `1px solid ${esiTarkistukset[kentta] ? 'rgba(201,168,76,0.2)' : 'rgba(240,235,227,0.08)'}`,
-                      cursor: 'pointer', transition: 'all 0.15s',
-                    }}
-                    onMouseEnter={e => { if (!esiTarkistukset[kentta]) e.currentTarget.style.borderColor = 'rgba(240,235,227,0.18)' }}
-                    onMouseLeave={e => { if (!esiTarkistukset[kentta]) e.currentTarget.style.borderColor = 'rgba(240,235,227,0.08)' }}
-                  >
-                    <div style={{
-                      width: '18px', height: '18px', flexShrink: 0, marginTop: '1px',
-                      border: `2px solid ${esiTarkistukset[kentta] ? '#C9A84C' : '#3A3530'}`,
-                      backgroundColor: esiTarkistukset[kentta] ? '#C9A84C' : 'transparent',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      transition: 'all 0.15s',
-                    }}>
-                      {esiTarkistukset[kentta] && <span style={{ fontSize: '10px', color: '#110E0B', fontWeight: 700 }}>✓</span>}
-                    </div>
-                    <div>
-                      <p style={{ fontSize: '13px', color: esiTarkistukset[kentta] ? '#5A5248' : '#D0C8BC', marginBottom: '3px', textDecoration: esiTarkistukset[kentta] ? 'line-through' : 'none' }}>{teksti}</p>
-                      <p style={{ fontSize: '11px', color: '#5A5248', lineHeight: 1.5 }}>{kuvaus}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              {/* CTA */}
-              <button
-                onClick={() => { localStorage.removeItem('uusi_kayttaja'); setNaytaWelcome(false) }}
-                style={{
-                  width: '100%',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px',
-                  fontSize: '11px', letterSpacing: '0.16em', textTransform: 'uppercase',
-                  color: '#110E0B', backgroundColor: '#C9A84C',
-                  border: 'none', padding: '16px', cursor: 'pointer',
-                  transition: 'background 0.2s',
-                  fontFamily: 'var(--font-body), sans-serif',
-                }}
-                onMouseEnter={e => e.currentTarget.style.backgroundColor = '#D4B55C'}
-                onMouseLeave={e => e.currentTarget.style.backgroundColor = '#C9A84C'}
-              >
-                Aloita
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                  <path d="M5 12h14M12 5l7 7-7 7"/>
-                </svg>
-              </button>
-            </div>
-          </div>
+          <WelcomeOverlay
+            nimi={welcomeNimi}
+            fading={welcomeFading}
+            onDone={() => { localStorage.removeItem('uusi_kayttaja'); setNaytaWelcome(false) }}
+            onStartFade={() => setWelcomeFading(true)}
+          />
         </>
       )}
 
@@ -2833,6 +2820,53 @@ function KutsuJasen({ kuolinpesaId }) {
           ))}
         </div>
       )}
+    </div>
+  )
+}
+
+function WelcomeOverlay({ nimi, fading, onDone, onStartFade }) {
+  React.useEffect(() => {
+    const t1 = setTimeout(() => onStartFade(), 4000)
+    const t2 = setTimeout(() => onDone(), 5800)
+    return () => { clearTimeout(t1); clearTimeout(t2) }
+  }, [])
+
+  return (
+    <div style={{
+      position: 'fixed', inset: 0, zIndex: 200,
+      backgroundColor: '#0A0806',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      opacity: fading ? 0 : 1,
+      transition: fading ? 'opacity 1.8s cubic-bezier(0.22,1,0.36,1)' : 'none',
+      pointerEvents: fading ? 'none' : 'auto',
+    }}>
+      {/* Kultainen soikea hehku */}
+      <div style={{
+        position: 'absolute',
+        width: '700px', height: '380px',
+        background: 'radial-gradient(ellipse at center, rgba(201,168,76,0.18) 0%, rgba(201,168,76,0.06) 40%, transparent 70%)',
+        filter: 'blur(32px)',
+        pointerEvents: 'none',
+      }} />
+
+      {/* Teksti */}
+      <div style={{
+        position: 'relative', textAlign: 'center',
+        animation: 'welcomeFadeIn 1.2s cubic-bezier(0.22,1,0.36,1) 0.2s both',
+      }}>
+        <div style={{ fontSize: '9px', letterSpacing: '0.28em', textTransform: 'uppercase', color: '#C9A84C', opacity: 0.7, marginBottom: '20px', fontFamily: 'var(--font-body), sans-serif' }}>
+          Kuolinpesä luotu
+        </div>
+        <h1 style={{
+          fontFamily: 'var(--font-display), Georgia, serif',
+          fontSize: '40px', fontWeight: 300, color: '#F0EBE3',
+          letterSpacing: '-0.02em', lineHeight: 1.2, margin: 0,
+        }}>
+          {nimi
+            ? <><em style={{ fontStyle: 'italic', color: '#C9A84C' }}>{nimi}</em><br />kuolinpesä on luotu.</>
+            : 'Kuolinpesä on luotu.'}
+        </h1>
+      </div>
     </div>
   )
 }
