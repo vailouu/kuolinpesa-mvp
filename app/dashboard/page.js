@@ -169,6 +169,7 @@ export default function Dashboard() {
   const [sopimusTilat, setSopimusTilat] = useState({})
   const [dropdownAuki, setDropdownAuki] = useState(false)
   const [kaikkiKommentit, setKaikkiKommentit] = useState([])
+  const [perunkirjoitusTehty, setPerunkirjoitusTehty] = useState({})
   const [kommenttiPopup, setKommenttiPopup] = useState(null)
   const selvitysKaikki = kategoriat.reduce((sum, k) => sum + k.sopimukset.length, 0)
   const vaiheet = [
@@ -186,7 +187,7 @@ export default function Dashboard() {
   ]
 
   const oletusTehtavat = [
-    { nimi: 'Tilaa virkatodistus', vaihe: 1 },
+    { nimi: 'Tilaa sukuselvitys', vaihe: 1 },
     { nimi: 'Selvitä onko testamentti', vaihe: 1 },
     { nimi: 'Ilmoita pankeille', vaihe: 1 },
     { nimi: 'Ilmoita Kelalle', vaihe: 1 },
@@ -228,8 +229,14 @@ useEffect(() => {
         setLadataan(false)
         const { data: tehtavatData } = await supabase.from('tehtavat').select('*').eq('kuolinpesa_id', pesaData.id).order('created_at', { ascending: true })
         if (tehtavatData && tehtavatData.length > 0) {
+          // Migraatio: vaihda vanha nimi uuteen
+          const vanhaTehtava = tehtavatData.find(t => t.nimi === 'Tilaa virkatodistus')
+          if (vanhaTehtava) {
+            await supabase.from('tehtavat').update({ nimi: 'Tilaa sukuselvitys' }).eq('id', vanhaTehtava.id)
+            tehtavatData.forEach(t => { if (t.nimi === 'Tilaa virkatodistus') t.nimi = 'Tilaa sukuselvitys' })
+          }
           setTehtavaLista(tehtavatData)
-          const sorted = tehtavatData.filter(t => t.vaihe === 1).filter((t, i, arr) => arr.findIndex(x => x.nimi === t.nimi) === i).sort((a, b) => ['Tilaa virkatodistus','Selvitä onko testamentti','Ilmoita pankeille','Ilmoita Kelalle','Ilmoita työnantajalle ja taloyhtiölle','Ohjaa posti uuteen osoitteeseen','Hae henkivakuutuskorvaus'].indexOf(a.nimi) - ['Tilaa virkatodistus','Selvitä onko testamentti','Ilmoita pankeille','Ilmoita Kelalle','Ilmoita työnantajalle ja taloyhtiölle','Ohjaa posti uuteen osoitteeseen','Hae henkivakuutuskorvaus'].indexOf(b.nimi))
+          const sorted = tehtavatData.filter(t => t.vaihe === 1).filter((t, i, arr) => arr.findIndex(x => x.nimi === t.nimi) === i).sort((a, b) => ['Tilaa sukuselvitys','Tilaa virkatodistus','Selvitä onko testamentti','Ilmoita pankeille','Ilmoita Kelalle','Ilmoita työnantajalle ja taloyhtiölle','Ohjaa posti uuteen osoitteeseen','Hae henkivakuutuskorvaus'].indexOf(a.nimi) - ['Tilaa sukuselvitys','Tilaa virkatodistus','Selvitä onko testamentti','Ilmoita pankeille','Ilmoita Kelalle','Ilmoita työnantajalle ja taloyhtiölle','Ohjaa posti uuteen osoitteeseen','Hae henkivakuutuskorvaus'].indexOf(b.nimi))
           const aloitus = sorted.findIndex(t => !t.tehty)
           setWizardIndeksi(aloitus >= 0 ? aloitus : 0)
           setWizardAlustettu(true)
@@ -306,7 +313,7 @@ const poistaVahvistettu = async (id, index) => {
     if (kuolinpesa) await supabase.from('kuolinpesat').update({ varat_velat_teksti: teksti }).eq('id', kuolinpesa.id)
   }
 
-  const jarjestys = ['Tilaa virkatodistus', 'Selvitä onko testamentti', 'Ilmoita pankeille', 'Ilmoita Kelalle', 'Ilmoita työnantajalle ja taloyhtiölle', 'Ohjaa posti uuteen osoitteeseen', 'Hae henkivakuutuskorvaus']
+  const jarjestys = ['Tilaa sukuselvitys', 'Tilaa virkatodistus', 'Selvitä onko testamentti', 'Ilmoita pankeille', 'Ilmoita Kelalle', 'Ilmoita työnantajalle ja taloyhtiölle', 'Ohjaa posti uuteen osoitteeseen', 'Hae henkivakuutuskorvaus']
   const nykyisetTehtavat = tehtavaLista
     .filter(t => t.vaihe === aktiivinenVaihe)
     .filter((t, i, arr) => arr.findIndex(x => x.nimi === t.nimi) === i)
@@ -796,11 +803,21 @@ const poistaVahvistettu = async (id, index) => {
               <div className="flex items-center justify-between mb-4">
                 <span className="text-white font-bold">Edistyminen</span>
                 <span style={{color: '#C9A84C'}} className="text-sm font-bold">
-                  {aktiivinenVaihe === 2 ? `${selvitysHoidettu}/${selvitysKaikki} hoidettu` : `${valmiit}/${kaikki} tehtävää`}
+                  {aktiivinenVaihe === 2
+                    ? `${selvitysHoidettu}/${selvitysKaikki} hoidettu`
+                    : aktiivinenVaihe === 3
+                    ? `${Object.values(perunkirjoitusTehty).filter(Boolean).length}/${perunkirjoitusTehtavat.length} valmis`
+                    : `${valmiit}/${kaikki} tehtävää`}
                 </span>
               </div>
               <div className="w-full rounded-full h-2" style={{backgroundColor: '#110E0B'}}>
-                <div className="h-2 rounded-full transition-all" style={{backgroundColor: '#C9A84C', width: aktiivinenVaihe === 2 ? `${(selvitysHoidettu/selvitysKaikki)*100}%` : kaikki > 0 ? `${(valmiit/kaikki)*100}%` : '0%'}} />
+                <div className="h-2 rounded-full transition-all" style={{backgroundColor: '#C9A84C', width:
+                  aktiivinenVaihe === 2
+                    ? `${(selvitysHoidettu/selvitysKaikki)*100}%`
+                    : aktiivinenVaihe === 3
+                    ? `${(Object.values(perunkirjoitusTehty).filter(Boolean).length / perunkirjoitusTehtavat.length)*100}%`
+                    : kaikki > 0 ? `${(valmiit/kaikki)*100}%` : '0%'
+                }} />
               </div>
             </div>
 
@@ -1074,6 +1091,8 @@ const poistaVahvistettu = async (id, index) => {
     vahvistetutKirjaukset={vahvistetutKirjaukset}
     kayttajaEmail={kuolinpesa?.kayttaja_email}
     kayttajaNimi={kuolinpesa?.kayttaja_nimi}
+    perunkirjoitusTehty={perunkirjoitusTehty}
+    setPerunkirjoitusTehty={setPerunkirjoitusTehty}
   />
 )}
 
@@ -2095,7 +2114,8 @@ function TehtavaKortti({ tehtava, onMerkitse, avattuTehtava, setAvattuTehtava })
   )
 }
 const ohjeet = {
-  'Tilaa virkatodistus': { kiireellinen: true, miksi: 'Toimituksessa kestää 4-10 viikkoa — tarvitaan pankeissa, vakuutuksissa ja perunkirjoituksessa. Tee tämä ensimmäisenä.', miten: ['Jos vainaja kuului ev.lut. kirkkoon → mene osoitteeseen tilaavirkatodistus.fi','Jos vainaja ei kuulunut kirkkoon → mene osoitteeseen dvv.fi','Tilaa useampi kopio kerralla — tarvitset niitä monessa paikassa','Hinta noin 35-100 €','⚠ Muista samalla: tilaa virkatodistukset myös kaikilta osakkailta — toimitusaika on sama 4–10 viikkoa.'] },
+  'Tilaa sukuselvitys': { kiireellinen: true, miksi: 'Sukuselvitys koostuu virkatodistuksista, joita tilataan jokaisesta seurakunnasta tai DVV:stä jossa henkilö on ollut kirjoilla. Se tarvitaan perunkirjoituksessa, pankeissa ja vakuutusasioissa. Toimituksessa kestää 4–10 viikkoa — tee tämä ensimmäisenä. Perunkirjoitus on pidettävä 3 kuukauden kuluessa kuolinpäivästä.', miten: ['Jos vainaja kuului ev.lut. kirkkoon → mene osoitteeseen tilaavirkatodistus.fi','Jos vainaja ei kuulunut kirkkoon → mene osoitteeseen dvv.fi','Tilaa useampi kopio kerralla — tarvitset niitä monessa paikassa','Hinta noin 35–100 €','⚠ Muista samalla: tilaa virkatodistukset myös kaikilta osakkailta — toimitusaika on sama 4–10 viikkoa.'] },
+  'Tilaa virkatodistus': { kiireellinen: true, miksi: 'Sukuselvitys koostuu virkatodistuksista, joita tilataan jokaisesta seurakunnasta tai DVV:stä jossa henkilö on ollut kirjoilla. Se tarvitaan perunkirjoituksessa, pankeissa ja vakuutusasioissa. Toimituksessa kestää 4–10 viikkoa — tee tämä ensimmäisenä. Perunkirjoitus on pidettävä 3 kuukauden kuluessa kuolinpäivästä.', miten: ['Jos vainaja kuului ev.lut. kirkkoon → mene osoitteeseen tilaavirkatodistus.fi','Jos vainaja ei kuulunut kirkkoon → mene osoitteeseen dvv.fi','Tilaa useampi kopio kerralla — tarvitset niitä monessa paikassa','Hinta noin 35–100 €','⚠ Muista samalla: tilaa virkatodistukset myös kaikilta osakkailta — toimitusaika on sama 4–10 viikkoa.'] },
   'Selvitä onko testamentti': { kiireellinen: false, miksi: 'Testamentti vaikuttaa siihen kuka perii mitä. Se pitää löytää ja antaa tiedoksi kaikille perillisille 6 kuukauden kuluessa — muuten se menettää voimansa.', miten: ['Tarkista vainajan paperit, tallelokero ja kirjoituspöytä','Kysy asianajajalta tai pankista onko testamentti tallessa','Jos testamentti löytyy — säilytä se turvassa ja vie se perunkirjoitukseen','Testamentti pitää antaa tiedoksi kaikille perillisille kirjallisesti'] },
   'Ilmoita pankeille': { kiireellinen: false, miksi: 'Pankki jäädyttää tilit automaattisesti mutta oma ilmoitus nopeuttaa asioita. Samalla sovitaan kuka hoitaa kuolinpesän pankkiasioita.', miten: ['Soita vainajan pankin asiakaspalveluun','Ilmoita vainajan nimi ja henkilötunnus','Kerro kuka toimii kuolinpesän hoitajana','Pankki antaa ohjeet kirjallisen ilmoituksen tekemiseen','Huom: Vainajan tililtä voi silti maksaa arjen laskuja ennen perunkirjoitusta'] },
   'Ilmoita Kelalle': { kiireellinen: false, miksi: 'Jos vainaja sai Kela-etuuksia, ilmoita pian — muuten ylimääräiset maksut peritään takaisin.', miten: ['Soita Kelan palvelunumeroon 020 692 201 (ma-pe 9-16)','Kysy onko sinulla oikeus leskeneläkkeeseen tai lapseneläkkeeseen','Jos sinulla on alle 17-vuotiaita lapsia, kysy lapsilisän yksinhuoltajakorotuksesta'] },
@@ -2179,7 +2199,7 @@ const perunkirjoitusTehtavat = [
   { id: 'pk1', nimi: 'Määritä pesänilmoittaja', miksi: 'Pesänilmoittaja on se henkilö joka ottaa vetovastuun perunkirjoituksesta. Yleensä leski tai vanhin perillinen.', miten: ['Sopikaa osakkaiden kesken kuka ottaa vetovastuun','Pesänilmoittaja allekirjoittaa perukirjan ja vastaa sen oikeellisuudesta','Ilmoittakaa valinnasta muille osakkaille'] },
   { id: 'pk2', nimi: 'Hanki uskottu mies', miksi: 'Perunkirjoituksessa täytyy olla kaksi uskottua miestä — he eivät voi olla perillisiä tai puoliso.', miten: ['Pyydä kaksi ulkopuolista henkilöä toimimaan uskottuina miehinä','He voivat olla esim. naapureita tai tuttavia','He allekirjoittavat perukirjan ja todistevat sen oikeellisuuden'] },
   { id: 'pk3', nimi: 'Kutsu kaikki osakkaat', miksi: 'Kaikille osakkaille on annettava tieto perunkirjoituksen ajankohdasta.', miten: ['Ilmoita kaikille perillisille kirjallisesti','Kirjaa ylös kenelle on ilmoitettu ja milloin','Osakkaiden ei ole pakko osallistua — ilmoitus riittää'] },
-  { id: 'pk4', nimi: 'Kerää virkatodistukset osakkaista', miksi: 'Perukirjaan tarvitaan virkatodistukset kaikista osakkaista sukuselvityksen varmistamiseksi.', miten: ['Tilaa virkatodistus jokaisesta osakkaasta','Ev.lut. kirkon jäsenet: tilaavirkatodistus.fi','Muut: dvv.fi'] },
+  { id: 'pk4', nimi: 'Kerää virkatodistukset osakkaista', miksi: 'Perukirjaan tarvitaan virkatodistukset kaikista osakkaista sukuselvityksen varmistamiseksi.', miten: ['Tilaa sukuselvitys jokaisesta osakkaasta','Ev.lut. kirkon jäsenet: tilaavirkatodistus.fi','Muut: dvv.fi'] },
   { id: 'pk5', nimi: 'Tarkista aviokirja tai avioehtosopimus', miksi: 'Jos vainaja oli naimisissa, aviokirja tai avioehtosopimus vaikuttaa siihen mitä kuuluu kuolinpesään.', miten: ['Tarkista vainajan paperit','Aviokirja tai avioehtosopimus liitetään perukirjaan','Jos ei löydy — se tarkoittaa että avio-oikeus on voimassa'] },
   { id: 'pk6', nimi: 'Pidä perunkirjoitustilaisuus', miksi: 'Perunkirjoitus on pidettävä 3 kuukauden kuluessa kuolemasta. Määräaikaa voi hakea jatkoa Verohallinnolta.', miten: ['Sovi aika ja paikka kaikkien osakkaiden ja uskottujen miesten kanssa','Käykää läpi kaikki varat ja velat','Uskotut miehet allekirjoittavat perukirjan'] },
   { id: 'pk7', nimi: 'Laadi perukirja', miksi: 'Perukirja on virallinen asiakirja joka listaa kaikki vainajan varat ja velat kuolinhetkellä.', miten: ['Käytä alla olevaa "Generoi perukirjapohja" -nappia pohjana','Täytä puuttuvat tiedot kuten henkilötunnukset','Uskotut miehet ja pesänilmoittaja allekirjoittavat'] },
@@ -2473,13 +2493,11 @@ function PerukirjaModal({ kuolinpesa, vahvistetutKirjaukset, onSulje }) {
     </div>
   )
 }
-function PerunkirjoitusOsio({ kuolinpesa, vahvistetutKirjaukset, kayttajaEmail, kayttajaNimi }) {
+function PerunkirjoitusOsio({ kuolinpesa, vahvistetutKirjaukset, kayttajaEmail, kayttajaNimi, perunkirjoitusTehty, setPerunkirjoitusTehty }) {
   const [avattuTehtava, setAvattuTehtava] = useState(null)
-  const [perunkirjoitusTehty, setPerunkirjoitusTehty] = useState({})
   const [modalAuki, setModalAuki] = useState(false)
 
   const toggleTehty = (id, e) => { e.stopPropagation(); setPerunkirjoitusTehty(prev => ({ ...prev, [id]: !prev[id] })) }
-  const valmisCount = perunkirjoitusTehtavat.filter(t => perunkirjoitusTehty[t.id]).length
 
   const ryhmat = [
     { otsikko: 'Valmistelu', kuvaus: 'Hoidettava ennen tilaisuutta', tehtavat: perunkirjoitusTehtavat.slice(0, 5) },
@@ -2487,23 +2505,15 @@ function PerunkirjoitusOsio({ kuolinpesa, vahvistetutKirjaukset, kayttajaEmail, 
     { otsikko: 'Asiakirjat', kuvaus: 'Tilaisuuden jälkeen', tehtavat: perunkirjoitusTehtavat.slice(6, 9) },
   ]
 
+  const avattuTehtavaObj = avattuTehtava ? perunkirjoitusTehtavat.find(t => t.id === avattuTehtava) : null
+
   let juoksevaNumero = 0
 
   return (
-    <div style={{ maxWidth: '680px' }}>
+    <div style={{ display: 'flex', gap: '24px', alignItems: 'flex-start' }}>
 
-      {/* Edistyminen */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '36px' }}>
-        <div style={{ flex: 1, height: '2px', backgroundColor: 'rgba(240,235,227,0.06)' }}>
-          <div style={{ height: '2px', backgroundColor: '#C9A84C', width: `${Math.round(valmisCount / perunkirjoitusTehtavat.length * 100)}%`, transition: 'width 0.4s ease' }} />
-        </div>
-        <span style={{ fontSize: '11px', color: '#C9A84C', fontFamily: 'var(--font-body), sans-serif', letterSpacing: '0.08em', flexShrink: 0 }}>
-          {valmisCount} / {perunkirjoitusTehtavat.length} valmis
-        </span>
-      </div>
-
-      {/* Ryhmät */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
+      {/* Tehtävälista */}
+      <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: '32px' }}>
         {ryhmat.map((ryhma) => (
           <div key={ryhma.otsikko}>
 
@@ -2519,67 +2529,87 @@ function PerunkirjoitusOsio({ kuolinpesa, vahvistetutKirjaukset, kayttajaEmail, 
               {ryhma.tehtavat.map((tehtava) => {
                 juoksevaNumero++
                 const numero = juoksevaNumero
-                const auki = avattuTehtava === tehtava.id
+                const valittu = avattuTehtava === tehtava.id
                 const tehty = perunkirjoitusTehty[tehtava.id]
                 return (
-                  <div key={tehtava.id} style={{ border: `1px solid ${auki ? 'rgba(201,168,76,0.4)' : 'rgba(240,235,227,0.06)'}`, backgroundColor: auki ? '#161210' : '#110E0B', transition: 'border-color 0.15s, background 0.15s' }}>
-
-                    {/* Rivin otsikko */}
+                  <div
+                    key={tehtava.id}
+                    onClick={() => setAvattuTehtava(valittu ? null : tehtava.id)}
+                    style={{ display: 'flex', alignItems: 'center', gap: '14px', padding: '14px 18px', cursor: 'pointer', border: `1px solid ${valittu ? 'rgba(201,168,76,0.4)' : 'rgba(240,235,227,0.06)'}`, backgroundColor: valittu ? '#161210' : '#110E0B', transition: 'border-color 0.15s, background 0.15s' }}
+                    onMouseEnter={e => { if (!valittu) e.currentTarget.style.backgroundColor = '#141210' }}
+                    onMouseLeave={e => { if (!valittu) e.currentTarget.style.backgroundColor = '#110E0B' }}
+                  >
+                    <span style={{ fontSize: '11px', color: tehty ? '#C9A84C' : '#3A3530', fontFamily: 'var(--font-body), sans-serif', width: '16px', flexShrink: 0, textAlign: 'right' }}>{numero}</span>
                     <div
-                      onClick={() => setAvattuTehtava(auki ? null : tehtava.id)}
-                      style={{ display: 'flex', alignItems: 'center', gap: '14px', padding: '14px 18px', cursor: 'pointer' }}
+                      onClick={(e) => toggleTehty(tehtava.id, e)}
+                      style={{ width: '18px', height: '18px', flexShrink: 0, border: `2px solid ${tehty ? '#C9A84C' : '#3A3530'}`, backgroundColor: tehty ? '#C9A84C' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.15s', cursor: 'pointer' }}
                     >
-                      {/* Numero */}
-                      <span style={{ fontSize: '11px', color: tehty ? '#C9A84C' : '#3A3530', fontFamily: 'var(--font-body), sans-serif', width: '16px', flexShrink: 0, textAlign: 'right' }}>{numero}</span>
-
-                      {/* Checkbox */}
-                      <div
-                        onClick={(e) => toggleTehty(tehtava.id, e)}
-                        style={{ width: '18px', height: '18px', flexShrink: 0, border: `2px solid ${tehty ? '#C9A84C' : '#3A3530'}`, backgroundColor: tehty ? '#C9A84C' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.15s', cursor: 'pointer' }}
-                      >
-                        {tehty && <span style={{ fontSize: '10px', color: '#110E0B', fontWeight: 700, lineHeight: 1 }}>✓</span>}
-                      </div>
-
-                      {/* Nimi */}
-                      <span style={{ flex: 1, fontSize: '13px', color: tehty ? '#5A5248' : '#D0C8BC', textDecoration: tehty ? 'line-through' : 'none', fontFamily: 'var(--font-body), sans-serif' }}>{tehtava.nimi}</span>
-
-                      {/* Nuoli */}
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#4E4840" strokeWidth="1.5" style={{ flexShrink: 0, transform: auki ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}>
-                        <path d="M6 9l6 6 6-6"/>
-                      </svg>
+                      {tehty && <span style={{ fontSize: '10px', color: '#110E0B', fontWeight: 700, lineHeight: 1 }}>✓</span>}
                     </div>
-
-                    {/* Accordion-sisältö */}
-                    {auki && (
-                      <div style={{ padding: '0 18px 20px 48px', borderTop: '1px solid rgba(240,235,227,0.06)' }}>
-                        <p style={{ fontSize: '13px', color: '#7A7268', lineHeight: 1.7, margin: '16px 0 20px' }}>{tehtava.miksi}</p>
-                        <div style={{ fontSize: '9px', letterSpacing: '0.2em', textTransform: 'uppercase', color: '#C9A84C', marginBottom: '10px', fontFamily: 'var(--font-body), sans-serif' }}>Miten tehdään</div>
-                        <ol style={{ display: 'flex', flexDirection: 'column', gap: '8px', paddingLeft: 0, listStyle: 'none', margin: '0 0 20px' }}>
-                          {tehtava.miten.map((askel, i) => (
-                            <li key={i} style={{ display: 'flex', gap: '10px', fontSize: '13px', color: '#D0C8BC', lineHeight: 1.6 }}>
-                              <span style={{ color: '#C9A84C', flexShrink: 0 }}>{i + 1}.</span>{askel}
-                            </li>
-                          ))}
-                        </ol>
-                        {tehtava.id === 'pk7' && (
-                          <button
-                            onClick={() => setModalAuki(true)}
-                            style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', fontFamily: 'var(--font-body), sans-serif', fontSize: '11px', letterSpacing: '0.14em', textTransform: 'uppercase', color: '#110E0B', backgroundColor: '#C9A84C', border: 'none', padding: '12px 20px', cursor: 'pointer', transition: 'background 0.2s' }}
-                            onMouseEnter={e => e.currentTarget.style.backgroundColor = '#D4B55C'}
-                            onMouseLeave={e => e.currentTarget.style.backgroundColor = '#C9A84C'}
-                          >
-                            Generoi perukirjapohja
-                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-                          </button>
-                        )}
-                      </div>
-                    )}
+                    <span style={{ flex: 1, fontSize: '13px', color: tehty ? '#5A5248' : '#D0C8BC', fontFamily: 'var(--font-body), sans-serif', textDecoration: tehty ? 'line-through' : 'none' }}>{tehtava.nimi}</span>
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke={valittu ? '#C9A84C' : '#3A3530'} strokeWidth="1.5" style={{ flexShrink: 0 }}>
+                      <path d="M5 12h14M12 5l7 7-7 7"/>
+                    </svg>
                   </div>
                 )
               })}
             </div>
           </div>
         ))}
+      </div>
+
+      {/* Sivupaneeli */}
+      <div style={{ width: '300px', flexShrink: 0, position: 'sticky', top: '24px', alignSelf: 'flex-start' }}>
+        {avattuTehtavaObj && (
+          <div className="rounded-lg p-5 flex flex-col gap-4" style={{ backgroundColor: '#1C1916', border: '1px solid #C9A84C' }}>
+            <div className="flex items-start justify-between">
+              <h3 className="text-white font-bold text-base">{avattuTehtavaObj.nimi}</h3>
+              <button onClick={() => setAvattuTehtava(null)} style={{ color: '#4E4840' }} className="text-sm hover:opacity-75">✕</button>
+            </div>
+            <p style={{ color: '#8A8278' }} className="text-sm">{avattuTehtavaObj.miksi}</p>
+            <div className="border-t pt-4" style={{ borderColor: 'rgba(240,235,227,0.08)' }}>
+              <p className="text-white font-bold text-sm mb-3">Miten tehdään</p>
+              <ol style={{ display: 'flex', flexDirection: 'column', gap: '8px', listStyle: 'none', padding: 0, margin: 0 }}>
+                {avattuTehtavaObj.miten.map((askel, i) => {
+                  const onHuomio = askel.startsWith('⚠')
+                  const teksti = onHuomio ? askel.replace('⚠ ', '') : askel
+                  if (onHuomio) return (
+                    <li key={i} style={{ display: 'flex', gap: '8px', padding: '10px 12px', backgroundColor: 'rgba(201,168,76,0.06)', border: '1px solid rgba(201,168,76,0.2)' }}>
+                      <span style={{ flexShrink: 0 }}>⚠</span>
+                      <span style={{ fontSize: '12px', color: '#C9A84C', lineHeight: 1.6 }}>{teksti}</span>
+                    </li>
+                  )
+                  return (
+                    <li key={i} style={{ display: 'flex', gap: '10px', fontSize: '13px', color: '#D0C8BC', lineHeight: 1.6 }}>
+                      <span style={{ color: '#C9A84C', flexShrink: 0 }}>{i + 1}.</span>{askel}
+                    </li>
+                  )
+                })}
+              </ol>
+            </div>
+            {avattuTehtavaObj.id === 'pk7' && (
+              <button
+                onClick={() => setModalAuki(true)}
+                style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '8px', fontFamily: 'var(--font-body), sans-serif', fontSize: '11px', letterSpacing: '0.14em', textTransform: 'uppercase', color: '#110E0B', backgroundColor: '#C9A84C', border: 'none', padding: '12px 16px', cursor: 'pointer', transition: 'background 0.2s', width: '100%' }}
+                onMouseEnter={e => e.currentTarget.style.backgroundColor = '#D4B55C'}
+                onMouseLeave={e => e.currentTarget.style.backgroundColor = '#C9A84C'}
+              >
+                Generoi perukirjapohja
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+              </button>
+            )}
+            <div className="border-t pt-4" style={{ borderColor: 'rgba(240,235,227,0.08)' }}>
+              <div style={{ color: 'white' }} className="text-xs uppercase tracking-widest mb-3">💬 Kommentit</div>
+              <KommenttiKentta
+                kuolinpesaId={kuolinpesa?.id}
+                kayttajaEmail={kayttajaEmail}
+                kontekstiTyyppi="perunkirjoitus"
+                kontekstiId={avattuTehtavaObj.id}
+                kompakti={true}
+              />
+            </div>
+          </div>
+        )}
       </div>
 
       {modalAuki && (
