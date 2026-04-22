@@ -1,6 +1,6 @@
 'use client'
 import React, { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { supabase } from '../supabase'
 import TopBar from '../components/TopBar'
 
@@ -148,8 +148,9 @@ const varatJaVelatMuistilista = {
 
 export default function Dashboard() {
   const router = useRouter()
-  const [aktiivinenVaihe, setAktiivinenVaihe] = useState(1)
-  const [aktiivinenAlivaihe, setAktiivinenAlivaihe] = useState(1)
+  const searchParams = useSearchParams()
+  const aktiivinenVaihe = parseInt(searchParams?.get('vaihe') || '1')
+  const aktiivinenAlivaihe = parseInt(searchParams?.get('alivaihe') || '1')
   const [kuolinpesa, setKuolinpesa] = useState(null)
   const [naytaWelcome, setNaytaWelcome] = useState(() => typeof window !== 'undefined' && localStorage.getItem('uusi_kayttaja') === 'true')
   const [welcomeFading, setWelcomeFading] = useState(false)
@@ -198,12 +199,7 @@ export default function Dashboard() {
     { nimi: 'Hae henkivakuutuskorvaus', vaihe: 1 },
   ]
 
-  useEffect(() => {
-    const tallennettuVaihe = localStorage.getItem('aktiivinenVaihe')
-    const tallennettuAlivaihe = localStorage.getItem('aktiivinenAlivaihe')
-    if (tallennettuVaihe) setAktiivinenVaihe(parseInt(tallennettuVaihe))
-    if (tallennettuAlivaihe) setAktiivinenAlivaihe(parseInt(tallennettuAlivaihe))
-  }, [])
+
 useEffect(() => {
   const suljeDropdown = (e) => {
     if (!e.target.closest('[data-dropdown]')) setDropdownAuki(false)
@@ -325,28 +321,25 @@ const poistaVahvistettu = async (id, index) => {
 
   const kommenttiMaara = (tyyppi, id) => kaikkiKommentit.filter(k => k.konteksti_tyyppi === tyyppi && k.konteksti_id === id).length
 
-  const [aktiivisetNav, setAktiivisetNav] = React.useState('aloita')
+  const aktiivisetNav = searchParams?.get('nav') || 'aloita'
   const [valittuVaihe, setValittuVaihe] = React.useState(null)
 
   const navPush = React.useCallback((osioId, extra = {}) => {
-    window.history.pushState({ nav: osioId, ...extra }, '')
-    setAktiivisetNav(osioId)
-    if (extra.vaihe != null) { setAktiivinenVaihe(extra.vaihe); localStorage.setItem('aktiivinenVaihe', extra.vaihe) }
+    const params = new URLSearchParams()
+    params.set('nav', osioId)
+    if (extra.vaihe != null) params.set('vaihe', extra.vaihe)
+    if (extra.alivaihe != null) params.set('alivaihe', extra.alivaihe)
+    router.push(`/dashboard?${params.toString()}`)
     if (extra.valittuVaihe !== undefined) setValittuVaihe(extra.valittuVaihe)
-  }, [])
+  }, [router])
 
-  React.useEffect(() => {
-    window.history.replaceState({ nav: 'aloita' }, '')
-    const handlePop = (e) => {
-      const s = e.state
-      if (!s) return
-      if (s.nav) setAktiivisetNav(s.nav)
-      if (s.vaihe != null) { setAktiivinenVaihe(s.vaihe); localStorage.setItem('aktiivinenVaihe', s.vaihe) }
-      if (s.valittuVaihe !== undefined) setValittuVaihe(s.valittuVaihe)
-    }
-    window.addEventListener('popstate', handlePop)
-    return () => window.removeEventListener('popstate', handlePop)
-  }, [])
+  const navigoiVaihe = React.useCallback((vaihe, alivaihe = 1) => {
+    router.push(`/dashboard?nav=tehtavat&vaihe=${vaihe}&alivaihe=${alivaihe}`)
+  }, [router])
+
+  const navigoiAlivaihe = React.useCallback((alivaihe) => {
+    router.push(`/dashboard?nav=${aktiivisetNav}&vaihe=${aktiivinenVaihe}&alivaihe=${alivaihe}`)
+  }, [router, aktiivisetNav, aktiivinenVaihe])
 
   const navItems = [
     {
@@ -558,7 +551,7 @@ const poistaVahvistettu = async (id, index) => {
               Kuolinpesän hoito on monivaiheinen prosessi — tämä sovellus pitää sinut järjestyksessä.
             </p>
             <p style={{ fontSize: '14px', color: '#A09890', lineHeight: 1.9, margin: '0 0 12px' }}>
-              Aloita <button onClick={() => { setAktiivisetNav('tehtavat'); window.history.pushState({ nav: 'tehtavat' }, '') }} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontSize: '14px', color: '#C9A84C', fontFamily: 'var(--font-body), sans-serif', textDecoration: 'underline', textUnderlineOffset: '3px', textDecorationColor: 'rgba(201,168,76,0.4)' }}>Tehtävät</button>-osiosta ja seuraa ohjeita.
+              Aloita <button onClick={() => { navPush('tehtavat') }} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontSize: '14px', color: '#C9A84C', fontFamily: 'var(--font-body), sans-serif', textDecoration: 'underline', textUnderlineOffset: '3px', textDecorationColor: 'rgba(201,168,76,0.4)' }}>Tehtävät</button>-osiosta ja seuraa ohjeita.
             </p>
             <p style={{ fontSize: '14px', color: '#A09890', lineHeight: 1.9, margin: '0 0 48px' }}>
               Jokaisessa osiossa löydät tarkempia ohjeita <span style={{ color: '#C9A84C' }}>?</span>-merkin takaa.
@@ -589,7 +582,7 @@ const poistaVahvistettu = async (id, index) => {
 
             {/* CTA */}
             <button
-              onClick={() => { setAktiivisetNav('tehtavat'); window.history.pushState({ nav: 'tehtavat' }, '') }}
+              onClick={() => { navPush('tehtavat') }}
               style={{
                 display: 'inline-flex', alignItems: 'center', gap: '10px',
                 fontFamily: 'var(--font-body), sans-serif',
@@ -829,7 +822,7 @@ const poistaVahvistettu = async (id, index) => {
 
             <div className="flex gap-2 mb-8 overflow-x-auto">
               {vaiheet.map(v => (
-                <button key={v.numero} onClick={() => { setAktiivinenVaihe(v.numero); localStorage.setItem('aktiivinenVaihe', v.numero) }} className="flex-1 py-3 px-4 rounded text-sm font-bold whitespace-nowrap"
+                <button key={v.numero} onClick={() => navigoiVaihe(v.numero)} className="flex-1 py-3 px-4 rounded text-sm font-bold whitespace-nowrap"
                   style={{backgroundColor: aktiivinenVaihe === v.numero ? '#C9A84C' : '#1C1916', color: aktiivinenVaihe === v.numero ? '#110E0B' : '#8A8278', border: '1px solid', borderColor: aktiivinenVaihe === v.numero ? '#C9A84C' : 'rgba(240,235,227,0.08)'}}>
                   {v.numero}. {v.nimi}
                 </button>
@@ -1021,7 +1014,7 @@ const poistaVahvistettu = async (id, index) => {
               <div style={{ fontSize: '9px', letterSpacing: '0.2em', textTransform: 'uppercase', color: '#C9A84C', marginBottom: '8px' }}>Kaikki ensitoimet hoidettu</div>
               <p style={{ fontSize: '13px', color: '#8A8278', marginBottom: '16px', lineHeight: 1.6 }}>Hyvää työtä. Seuraavaksi käydään läpi vainajan varat, velat ja sopimukset.</p>
               <button
-                onClick={() => { setAktiivinenVaihe(2); localStorage.setItem('aktiivinenVaihe', 2) }}
+                onClick={() => navigoiVaihe(2)}
                 style={{ fontSize: '11px', letterSpacing: '0.16em', textTransform: 'uppercase', color: '#110E0B', backgroundColor: '#C9A84C', border: 'none', padding: '13px 24px', cursor: 'pointer' }}
               >Siirry omaisuuden selvitykseen →</button>
             </div>
@@ -1079,7 +1072,7 @@ const poistaVahvistettu = async (id, index) => {
   <>
     <div className="flex gap-2 mb-6">
       {alivaiheet.map(a => (
-        <button key={a.numero} onClick={() => { setAktiivinenAlivaihe(a.numero); localStorage.setItem('aktiivinenAlivaihe', a.numero) }} className="flex-1 py-2 px-4 rounded text-sm font-bold"
+        <button key={a.numero} onClick={() => navigoiAlivaihe(a.numero)} className="flex-1 py-2 px-4 rounded text-sm font-bold"
           style={{backgroundColor: aktiivinenAlivaihe === a.numero ? '#C9A84C' : '#110E0B', color: aktiivinenAlivaihe === a.numero ? '#110E0B' : '#8A8278', border: '1px solid', borderColor: aktiivinenAlivaihe === a.numero ? '#C9A84C' : 'rgba(240,235,227,0.08)'}}>
           {a.numero}. {a.nimi}
         </button>
@@ -1088,8 +1081,8 @@ const poistaVahvistettu = async (id, index) => {
     <div className="flex gap-6">
       <div className="flex-1 min-w-0">
         {aktiivinenAlivaihe === 1 && <VaratJaVelat rastitattu={varatRastitattu} onToggle={toggleVaraRasti} kirjaukset={varatKirjaukset} onKirjaus={tallennaKirjaus} vahvistetut={vahvistetutKirjaukset} onVahvista={tallennaVahvistettu} onPoista={poistaVahvistettu} avattuKohta={avattuKohta} setAvattuKohta={setAvattuKohta} kommenttiMaara={kommenttiMaara} onAvaPopup={setKommenttiPopup} kuolinpesaId={kuolinpesa?.id} kayttajaEmail={kuolinpesa?.kayttaja_email} onKommenttiLisatty={(k) => setKaikkiKommentit(prev => [k, ...prev])} />}
-        {aktiivinenAlivaihe === 2 && <SelvitysOsio onValmis={() => { setAktiivinenAlivaihe(3); localStorage.setItem('aktiivinenAlivaihe', 3) }} onEdistyminen={setSelvitysHoidettu} avattuSopimus={avattuSopimus} setAvattuSopimus={setAvattuSopimus} sopimusTilat={sopimusTilat} tallennaSopimusTila={tallennaSopimusTila} kuolinpesaId={kuolinpesa?.id} kayttajaEmail={kuolinpesa?.kayttaja_email} />}
-        {aktiivinenAlivaihe === 3 && <Yhteenveto varatRastitattu={varatRastitattu} vahvistetutKirjaukset={vahvistetutKirjaukset} sopimusTilat={sopimusTilat} tallennaSopimusTila={tallennaSopimusTila} onValmis={() => { setAktiivinenVaihe(3); localStorage.setItem('aktiivinenVaihe', 3) }} />}
+        {aktiivinenAlivaihe === 2 && <SelvitysOsio onValmis={() => navigoiAlivaihe(3)} onEdistyminen={setSelvitysHoidettu} avattuSopimus={avattuSopimus} setAvattuSopimus={setAvattuSopimus} sopimusTilat={sopimusTilat} tallennaSopimusTila={tallennaSopimusTila} kuolinpesaId={kuolinpesa?.id} kayttajaEmail={kuolinpesa?.kayttaja_email} />}
+        {aktiivinenAlivaihe === 3 && <Yhteenveto varatRastitattu={varatRastitattu} vahvistetutKirjaukset={vahvistetutKirjaukset} sopimusTilat={sopimusTilat} tallennaSopimusTila={tallennaSopimusTila} onValmis={() => navigoiVaihe(3)} setAktiivinenAlivaihe={navigoiAlivaihe} setAvattuSopimus={setAvattuSopimus} />}
       </div>
     </div>
   </>
@@ -1115,6 +1108,8 @@ const poistaVahvistettu = async (id, index) => {
     setPerintoveroTehty={setPerintoveroTehty}
     toimeenpanoTehty={toimeenpanoTehty}
     setToimeenpanoTehty={setToimeenpanoTehty}
+    aktiivinenAlivaihe={aktiivinenAlivaihe}
+    setAktiivinenAlivaihe={navigoiAlivaihe}
   />
 )}
 {aktiivinenVaihe === 5 && (
@@ -1123,6 +1118,8 @@ const poistaVahvistettu = async (id, index) => {
     sopimusTilat={sopimusTilat}
     varatRastitattu={varatRastitattu}
     tehtavaLista={tehtavaLista}
+    setAvattuSopimus={setAvattuSopimus}
+    navigoiVaihe={navigoiVaihe}
   />
 )}
             </div>
@@ -1696,7 +1693,7 @@ function VaratJaVelat({ rastitattu, onToggle, kirjaukset, onKirjaus, vahvistetut
 }
 
 function SelvitysOsio({ onValmis, onEdistyminen, avattuSopimus, setAvattuSopimus, sopimusTilat, tallennaSopimusTila, kuolinpesaId, kayttajaEmail }) {
-  const [valittuKategoria, setValittuKategoria] = useState(null)
+  const [valittuKategoria, setValittuKategoria] = useState(avattuSopimus?.kategoriaId || null)
   const [muutSopimukset, setMuutSopimukset] = useState({})
   const [sopLisaysAuki, setSopLisaysAuki] = useState(null)
   const [sopLisaysTeksti, setSopLisaysTeksti] = useState('')
@@ -2003,7 +2000,7 @@ function SelvitysOsio({ onValmis, onEdistyminen, avattuSopimus, setAvattuSopimus
   )
 }
 
-function Yhteenveto({ varatRastitattu, vahvistetutKirjaukset, sopimusTilat, tallennaSopimusTila, onValmis }) {
+function Yhteenveto({ varatRastitattu, vahvistetutKirjaukset, sopimusTilat, tallennaSopimusTila, onValmis, setAktiivinenAlivaihe, setAvattuSopimus }) {
   const kaikkiSopimukset = kategoriat.flatMap(k => k.sopimukset.map(s => ({ ...s, kategoriaId: k.id, kategoriaNimi: k.nimi })))
   const hoidetutSopimukset = kaikkiSopimukset.filter(s => sopimusTilat[s.nimi] === 'hoidettu')
   const avoimet = kaikkiSopimukset.filter(s => sopimusTilat[s.nimi] === 'kesken')
@@ -2056,9 +2053,6 @@ function Yhteenveto({ varatRastitattu, vahvistetutKirjaukset, sopimusTilat, tall
       <div className="rounded-lg p-5" style={{backgroundColor: '#1C1916', border: '1px solid rgba(240,235,227,0.08)'}}>
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-white font-bold">Sopimukset</h3>
-          {hoidetutSopimukset.length > 0 && (
-            <span style={{color: '#C9A84C'}} className="text-xs">{hoidetutSopimukset.length} hoidettu</span>
-          )}
         </div>
         {avoimet.length === 0 ? (
           <p style={{color: '#4E4840'}} className="text-sm">Ei avoimia sopimuksia. Käy Sopimukset-osio läpi ensin.</p>
@@ -2066,18 +2060,20 @@ function Yhteenveto({ varatRastitattu, vahvistetutKirjaukset, sopimusTilat, tall
           <div className="flex flex-col gap-2">
             <p style={{color: '#8A8278'}} className="text-xs mb-2">Nämä sopimukset odottavat hoitamista ennen perunkirjoitusta:</p>
             {avoimet.map(s => (
-              <div key={s.nimi} className="rounded p-3 flex items-center justify-between gap-3"
-                style={{backgroundColor: '#110E0B', border: '1px solid rgba(240,235,227,0.08)'}}>
+              <div key={s.nimi} className="rounded p-3 flex items-center justify-between gap-3 cursor-pointer"
+                style={{backgroundColor: '#110E0B', border: '1px solid rgba(240,235,227,0.08)'}}
+                onClick={() => {
+                  setAvattuSopimus({ ...s })
+                  setAktiivinenAlivaihe(2)
+                }}>
                 <div>
                   <p className="text-white text-sm">{s.nimi}</p>
                   <p style={{color: '#4E4840'}} className="text-xs">{s.kategoriaNimi}</p>
                 </div>
-                <button
-                  onClick={() => tallennaSopimusTila(s.nimi, 'hoidettu')}
-                  className="text-xs px-3 py-1 rounded font-bold flex-shrink-0"
-                  style={{backgroundColor: '#C9A84C', color: '#110E0B'}}>
-                  ✓ Hoidettu
-                </button>
+                <span className="text-xs px-3 py-1 rounded flex-shrink-0"
+                  style={{backgroundColor: 'rgba(201,168,76,0.15)', color: '#C9A84C'}}>
+                  ⏳ Kesken →
+                </span>
               </div>
             ))}
           </div>
@@ -2621,7 +2617,7 @@ function PerunkirjoitusOsio({ kuolinpesa, vahvistetutKirjaukset, kayttajaEmail, 
   )
 }
 
-function PaatosOsio({ kuolinpesa, sopimusTilat, varatRastitattu, tehtavaLista }) {
+function PaatosOsio({ kuolinpesa, sopimusTilat, varatRastitattu, tehtavaLista, setAvattuSopimus, navigoiVaihe }) {
   const [ohitettu, setOhitettu] = useState({})
   const [suljettu, setSuljettu] = useState(false)
   const [sulkemisPvm, setSulkemisPvm] = useState(null)
@@ -2629,27 +2625,17 @@ function PaatosOsio({ kuolinpesa, sopimusTilat, varatRastitattu, tehtavaLista })
 
   const ohita = (avain) => setOhitettu(prev => ({ ...prev, [avain]: true }))
 
-  // Kerää kesken jääneet
-  const keskenTehtavat = (tehtavaLista || []).filter(t => !t.tehty)
-
-  const keskenVarat = (varatJaVelatMuistilista.varat || []).filter(v => {
-    const tila = (varatRastitattu || {})[v.id]
-    return tila === null || tila === undefined
-  })
-
+  // Eksplisiittisesti "Kesken"-merkityt sopimukset
   const keskenSopimukset = []
   kategoriat.forEach(kat => {
     kat.sopimukset.forEach(s => {
-      const tila = (sopimusTilat || {})[s.nimi]
-      if (!tila) keskenSopimukset.push({ nimi: s.nimi, kategoria: kat.nimi })
+      if ((sopimusTilat || {})[s.nimi] === 'kesken') {
+        keskenSopimukset.push({ avain: `sopimus_${s.nimi}`, teksti: s.nimi, kategoria: kat.nimi, sopimus: { ...s, kategoriaId: kat.id } })
+      }
     })
   })
 
-  const kaikki = [
-    ...keskenTehtavat.map(t => ({ avain: `tehtava_${t.id}`, teksti: t.nimi, kategoria: 'Tehtävät' })),
-    ...keskenVarat.map(v => ({ avain: `vara_${v.id}`, teksti: v.teksti, kategoria: 'Varat ja velat' })),
-    ...keskenSopimukset.map(s => ({ avain: `sopimus_${s.nimi}`, teksti: s.nimi, kategoria: s.kategoria })),
-  ].filter(item => !ohitettu[item.avain])
+  const kaikki = keskenSopimukset.filter(item => !ohitettu[item.avain])
 
   // Ryhmittele kategorian mukaan
   const ryhmat = {}
@@ -2657,6 +2643,25 @@ function PaatosOsio({ kuolinpesa, sopimusTilat, varatRastitattu, tehtavaLista })
     if (!ryhmat[item.kategoria]) ryhmat[item.kategoria] = []
     ryhmat[item.kategoria].push(item)
   })
+
+  // Käymättä läpi -laskuri: kaikki koskemattomat asiat
+  const kaymattaLapiMaara = (() => {
+    let n = 0
+    kategoriat.forEach(kat => {
+      kat.sopimukset.forEach(s => {
+        const tila = (sopimusTilat || {})[s.nimi]
+        if (!tila) n++
+      })
+    })
+    ;(varatJaVelatMuistilista.varat || []).forEach(v => {
+      if (!(varatRastitattu || {})[v.id]) n++
+    })
+    ;(varatJaVelatMuistilista.velat || []).forEach(v => {
+      if (!(varatRastitattu || {})['velat_' + v.id]) n++
+    })
+    n += (tehtavaLista || []).filter(t => !t.tehty).length
+    return n
+  })()
 
   const sulkePesa = () => {
     const pvm = new Date().toLocaleDateString('fi-FI', { day: 'numeric', month: 'long', year: 'numeric' })
@@ -2693,8 +2698,8 @@ function PaatosOsio({ kuolinpesa, sopimusTilat, varatRastitattu, tehtavaLista })
           <div style={{ fontSize: '9px', letterSpacing: '0.24em', textTransform: 'uppercase', color: '#C9A84C', opacity: 0.7, marginBottom: '8px' }}>Tarkasta vielä nämä</div>
           <p style={{ fontSize: '13px', color: '#5A5248', lineHeight: 1.7 }}>
             {kaikki.length > 0
-              ? `Näitä ${kaikki.length} asiaa ei ole käsitelty sovelluksessa. Hoida ne tai merkitse "Ei koske meitä" jos ne eivät ole relevantteja.`
-              : 'Kaikki on käsitelty — voit sulkea pesän.'}
+              ? 'Nämä sopimukset on aloitettu mutta jätetty kesken. Hoida ne tai merkitse "Ei koske meitä".'
+              : 'Ei kesken olevia asioita — voit sulkea pesän.'}
           </p>
         </div>
 
@@ -2707,14 +2712,24 @@ function PaatosOsio({ kuolinpesa, sopimusTilat, varatRastitattu, tehtavaLista })
               {items.map(item => (
                 <div key={item.avain} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px', padding: '13px 16px', backgroundColor: '#0D0B09', border: '1px solid rgba(240,235,227,0.06)' }}>
                   <span style={{ fontSize: '13px', color: '#8A8278' }}>{item.teksti}</span>
-                  <button
-                    onClick={() => ohita(item.avain)}
-                    style={{ flexShrink: 0, fontSize: '10px', letterSpacing: '0.08em', color: '#3A3630', backgroundColor: 'transparent', border: '1px solid #2A2620', padding: '5px 12px', cursor: 'pointer', whiteSpace: 'nowrap', transition: 'all 0.15s' }}
-                    onMouseEnter={e => { e.currentTarget.style.borderColor = '#4E4840'; e.currentTarget.style.color = '#7A7268' }}
-                    onMouseLeave={e => { e.currentTarget.style.borderColor = '#2A2620'; e.currentTarget.style.color = '#3A3630' }}
-                  >
-                    Ei koske meitä
-                  </button>
+                  <div style={{ display: 'flex', gap: '6px', flexShrink: 0 }}>
+                    <button
+                      onClick={() => { setAvattuSopimus(item.sopimus); navigoiVaihe(2, 2) }}
+                      style={{ fontSize: '10px', letterSpacing: '0.08em', color: '#C9A84C', backgroundColor: 'transparent', border: '1px solid rgba(201,168,76,0.3)', padding: '5px 12px', cursor: 'pointer', whiteSpace: 'nowrap', transition: 'all 0.15s' }}
+                      onMouseEnter={e => { e.currentTarget.style.borderColor = '#C9A84C'; e.currentTarget.style.backgroundColor = 'rgba(201,168,76,0.08)' }}
+                      onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(201,168,76,0.3)'; e.currentTarget.style.backgroundColor = 'transparent' }}
+                    >
+                      Hoida nyt →
+                    </button>
+                    <button
+                      onClick={() => ohita(item.avain)}
+                      style={{ fontSize: '10px', letterSpacing: '0.08em', color: '#3A3630', backgroundColor: 'transparent', border: '1px solid #2A2620', padding: '5px 12px', cursor: 'pointer', whiteSpace: 'nowrap', transition: 'all 0.15s' }}
+                      onMouseEnter={e => { e.currentTarget.style.borderColor = '#4E4840'; e.currentTarget.style.color = '#7A7268' }}
+                      onMouseLeave={e => { e.currentTarget.style.borderColor = '#2A2620'; e.currentTarget.style.color = '#3A3630' }}
+                    >
+                      Ei koske meitä
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
@@ -2724,7 +2739,16 @@ function PaatosOsio({ kuolinpesa, sopimusTilat, varatRastitattu, tehtavaLista })
         {kaikki.length === 0 && (
           <div style={{ padding: '20px', backgroundColor: 'rgba(74,222,128,0.04)', border: '1px solid rgba(74,222,128,0.15)', display: 'flex', alignItems: 'center', gap: '12px' }}>
             <span style={{ color: '#4ADE80', fontSize: '14px' }}>✓</span>
-            <span style={{ fontSize: '13px', color: '#4ADE80' }}>Kaikki asiat on käsitelty</span>
+            <span style={{ fontSize: '13px', color: '#4ADE80' }}>Ei kesken olevia sopimuksia</span>
+          </div>
+        )}
+
+        {kaymattaLapiMaara > 0 && (
+          <div style={{ marginTop: '20px', padding: '14px 16px', backgroundColor: '#0D0B09', border: '1px solid rgba(240,235,227,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px' }}>
+            <span style={{ fontSize: '13px', color: '#4E4840' }}>
+              <span style={{ color: '#3A3630', fontVariantNumeric: 'tabular-nums' }}>{kaymattaLapiMaara}</span> asiaa käymättä läpi sovelluksessa
+            </span>
+            <span style={{ fontSize: '10px', letterSpacing: '0.08em', color: '#2A2620' }}>tehtävät · varat · sopimukset</span>
           </div>
         )}
       </div>
@@ -2787,8 +2811,7 @@ const perintoveroTehtavat = [
   { id: 'pv5', nimi: 'Maksa perintövero', miksi: 'Verohallinto lähettää verotuspäätöksen ja maksuohjeet postitse. Vero on maksettava eräpäivään mennessä.', miten: ['Odota Verohallinnon verotuspäätöstä — tulee yleensä muutaman kuukauden sisällä', 'Vero voidaan jakaa kahteen erään jos se ylittää 500 €', 'Maksa viitteellä joka löytyy verotuspäätöksestä', 'Maksuviivästyksestä peritään viivästyskorkoa'] },
 ]
 
-function HoitoJaToimeenpanoOsio({ kuolinpesa, vahvistetutKirjaukset, varatRastitattu, perintoveroTehty, setPerintoveroTehty, toimeenpanoTehty, setToimeenpanoTehty }) {
-  const [aktiivinenAlivaihe, setAktiivinenAlivaihe] = useState(1)
+function HoitoJaToimeenpanoOsio({ kuolinpesa, vahvistetutKirjaukset, varatRastitattu, perintoveroTehty, setPerintoveroTehty, toimeenpanoTehty, setToimeenpanoTehty, aktiivinenAlivaihe, setAktiivinenAlivaihe }) {
   const [avattuTehtava, setAvattuTehtava] = useState(null)
   const [jakoTilat, setJakoTilat] = useState({})
   const [avattuKohde, setAvattuKohde] = useState(null)
