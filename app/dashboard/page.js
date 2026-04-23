@@ -3112,6 +3112,11 @@ function KutsuJasen({ kuolinpesaId }) {
     else { setViesti('Jäsen lisätty!'); setJasenet([...jasenet, { email, rooli: 'osakas' }]); setEmail('') }
   }
 
+  const poistaJasen = async (jasen) => {
+    const { error } = await supabase.from('jasenet').delete().eq('id', jasen.id)
+    if (!error) setJasenet(jasenet.filter(j => j.id !== jasen.id))
+  }
+
   return (
     <div>
       <div className="flex gap-3 mb-6">
@@ -3122,9 +3127,19 @@ function KutsuJasen({ kuolinpesaId }) {
       {jasenet.length > 0 && (
         <div className="flex flex-col gap-2">
           {jasenet.map((j, i) => (
-            <div key={i} className="flex items-center justify-between p-3 rounded" style={{backgroundColor: '#110E0B', border: '1px solid rgba(240,235,227,0.08)'}}>
+            <div key={j.id ?? i} className="flex items-center justify-between p-3 rounded" style={{backgroundColor: '#110E0B', border: '1px solid rgba(240,235,227,0.08)'}}>
               <span className="text-white text-sm">{j.email}</span>
-              <span className="text-xs px-2 py-1 rounded" style={{backgroundColor: '#1C1916', color: '#C9A84C'}}>{j.rooli}</span>
+              <div className="flex items-center gap-2">
+                <span className="text-xs px-2 py-1 rounded" style={{backgroundColor: '#1C1916', color: '#C9A84C'}}>{j.rooli}</span>
+                <button
+                  onClick={() => poistaJasen(j)}
+                  style={{ fontSize: '10px', letterSpacing: '0.06em', color: '#4E4840', backgroundColor: 'transparent', border: '1px solid #2A2620', padding: '4px 10px', cursor: 'pointer', transition: 'all 0.15s' }}
+                  onMouseEnter={e => { e.currentTarget.style.borderColor = '#7C3333'; e.currentTarget.style.color = '#FCA5A5' }}
+                  onMouseLeave={e => { e.currentTarget.style.borderColor = '#2A2620'; e.currentTarget.style.color = '#4E4840' }}
+                >
+                  Poista
+                </button>
+              </div>
             </div>
           ))}
         </div>
