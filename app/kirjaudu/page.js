@@ -1,6 +1,6 @@
 'use client'
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { supabase } from '../supabase'
 
 const C = {
@@ -78,6 +78,8 @@ const css = `
 
 export default function Kirjaudu() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const istuntoVanhentunut = searchParams.get('syy') === 'istunto'
   const [tiedot, setTiedot] = useState({ sahkoposti: '', salasana: '' })
   const [virhe, setVirhe] = useState('')
   const [lataa, setLataa] = useState(false)
@@ -98,7 +100,7 @@ export default function Kirjaudu() {
       if (tiliTyyppi === 'valmistelu') {
         router.push('/valmistele/dashboard')
       } else {
-        localStorage.setItem('uusi_kayttaja', 'true')
+        localStorage.setItem('tervetuloa_takaisin', 'true')
         router.push('/dashboard')
       }
     }
@@ -148,6 +150,17 @@ export default function Kirjaudu() {
         {/* Form */}
         <div className="a2" style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
 
+          {istuntoVanhentunut && (
+            <div style={{
+              padding: '14px 16px',
+              background: 'rgba(201,168,76,0.06)',
+              border: '1px solid rgba(201,168,76,0.2)',
+              fontSize: '13px', color: '#C9A84C', lineHeight: 1.6,
+            }}>
+              Istuntosi on vanhentunut. Kirjaudu uudelleen sisään.
+            </div>
+          )}
+
           <div>
             <label className="form-label">Sähköpostiosoite</label>
             <input className="form-input" type="email" placeholder="sinun@email.fi"
@@ -160,6 +173,19 @@ export default function Kirjaudu() {
             <input className="form-input" type="password" placeholder="Salasanasi"
               value={tiedot.salasana} onChange={e => paivita('salasana', e.target.value)}
               onKeyDown={handleKeyDown} />
+            <div style={{ textAlign: 'right', marginTop: '8px' }}>
+              <button onClick={() => router.push('/unohdin-salasanani')} style={{
+                background: 'none', border: 'none', cursor: 'pointer',
+                fontSize: '11px', letterSpacing: '0.08em',
+                color: C.secondary, fontFamily: 'var(--font-body)', transition: 'color 0.2s',
+                opacity: 0.7,
+              }}
+                onMouseEnter={e => e.target.style.color = C.accent}
+                onMouseLeave={e => e.target.style.color = C.secondary}
+              >
+                Unohdin salasanani
+              </button>
+            </div>
           </div>
 
           {virhe && (
@@ -185,6 +211,12 @@ export default function Kirjaudu() {
             }}>
               Aloita tästä
             </button>
+          </p>
+
+          <p style={{ textAlign: 'center', fontSize: '11px', color: C.secondary, opacity: 0.4, lineHeight: 1.7 }}>
+            <button onClick={() => router.push('/tietosuoja')} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '11px', color: 'inherit', fontFamily: 'var(--font-body)' }}>Tietosuoja</button>
+            {' · '}
+            <button onClick={() => router.push('/kayttoehdot')} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '11px', color: 'inherit', fontFamily: 'var(--font-body)' }}>Käyttöehdot</button>
           </p>
 
         </div>

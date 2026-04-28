@@ -152,9 +152,12 @@ export default function Dashboard() {
   const aktiivinenVaihe = parseInt(searchParams?.get('vaihe') || '1')
   const aktiivinenAlivaihe = parseInt(searchParams?.get('alivaihe') || '1')
   const [kuolinpesa, setKuolinpesa] = useState(null)
-  const [naytaWelcome, setNaytaWelcome] = useState(() => typeof window !== 'undefined' && localStorage.getItem('uusi_kayttaja') === 'true')
+  const [naytaWelcome, setNaytaWelcome] = useState(() => typeof window !== 'undefined' && (localStorage.getItem('uusi_kayttaja') === 'true' || localStorage.getItem('tervetuloa_takaisin') === 'true'))
+  const [uusiKayttaja] = useState(() => typeof window !== 'undefined' && localStorage.getItem('uusi_kayttaja') === 'true')
   const [welcomeFading, setWelcomeFading] = useState(false)
   const [welcomeNimi, setWelcomeNimi] = useState('')
+  const [kayttajaEtunimi, setKayttajaEtunimi] = useState(null)
+  const [kayttajaNimiTeksti, setKayttajaNimiTeksti] = useState('')
   const [tehtavaLista, setTehtavaLista] = useState([])
   const [esiTarkistukset, setEsiTarkistukset] = useState({ hautajaiset: false, kuolintodistus: false, laheiset: false })
   const [ladataan, setLadataan] = useState(true)
@@ -212,11 +215,16 @@ useEffect(() => {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { router.push('/kirjaudu'); setLadataan(false); return }
       if (user.user_metadata?.tili_tyyppi === 'valmistelu') { router.replace('/valmistele/dashboard'); return }
+      const nimi = [user.user_metadata?.etunimi, user.user_metadata?.sukunimi].filter(Boolean).join(' ')
+      if (nimi) setKayttajaNimiTeksti(nimi)
       const { data: pesaData } = await supabase.from('kuolinpesat').select('*').eq('kayttaja_email', user.email).not('vainajan_nimi', 'is', null).neq('vainajan_nimi', '').order('created_at', { ascending: false }).limit(1).single()
       if (pesaData) {
         setKuolinpesa(pesaData)
         if (localStorage.getItem('uusi_kayttaja') === 'true') {
           setWelcomeNimi(pesaData.vainajan_nimi || '')
+        }
+        if (localStorage.getItem('tervetuloa_takaisin') === 'true') {
+          setKayttajaEtunimi(user.user_metadata?.etunimi || '')
         }
         if (pesaData.esi_tarkistukset) setEsiTarkistukset(pesaData.esi_tarkistukset)
         if (pesaData.varat_velat_teksti) setVaratVelatTeksti(pesaData.varat_velat_teksti)
@@ -1093,7 +1101,7 @@ const poistaVahvistettu = async (id, index) => {
     kuolinpesa={kuolinpesa}
     vahvistetutKirjaukset={vahvistetutKirjaukset}
     kayttajaEmail={kuolinpesa?.kayttaja_email}
-    kayttajaNimi={kuolinpesa?.kayttaja_nimi}
+    kayttajaNimi={kayttajaNimiTeksti || kuolinpesa?.kayttaja_email}
     perunkirjoitusTehty={perunkirjoitusTehty}
     setPerunkirjoitusTehty={setPerunkirjoitusTehty}
   />
@@ -1184,10 +1192,10 @@ const poistaVahvistettu = async (id, index) => {
       </main>
 
       {/* ── WELCOME OVERLAY ── */}
-      {naytaWelcome && !welcomeNimi && (
+      {naytaWelcome && (uusiKayttaja ? !welcomeNimi : kayttajaEtunimi === null) && (
         <div style={{ position: 'fixed', inset: 0, zIndex: 200, backgroundColor: '#0A0806' }} />
       )}
-      {naytaWelcome && welcomeNimi && (
+      {naytaWelcome && (uusiKayttaja ? !!welcomeNimi : kayttajaEtunimi !== null) && (
         <>
           <style>{`
             @keyframes welcomeFadeIn {
@@ -1204,8 +1212,10 @@ const poistaVahvistettu = async (id, index) => {
           `}</style>
           <WelcomeOverlay
             nimi={welcomeNimi}
+            etunimi={kayttajaEtunimi}
+            uusiKayttaja={uusiKayttaja}
             fading={welcomeFading}
-            onDone={() => { localStorage.removeItem('uusi_kayttaja'); setNaytaWelcome(false) }}
+            onDone={() => { localStorage.removeItem('uusi_kayttaja'); localStorage.removeItem('tervetuloa_takaisin'); setNaytaWelcome(false) }}
             onStartFade={() => setWelcomeFading(true)}
           />
         </>
@@ -3148,7 +3158,7 @@ function KutsuJasen({ kuolinpesaId }) {
   )
 }
 
-function WelcomeOverlay({ nimi, fading, onDone, onStartFade }) {
+function WelcomeOverlay({ nimi, etunimi, uusiKayttaja, fading, onDone, onStartFade }) {
   React.useEffect(() => {
     const t1 = setTimeout(() => onStartFade(), 4000)
     const t2 = setTimeout(() => onDone(), 5800)
@@ -3178,17 +3188,23 @@ function WelcomeOverlay({ nimi, fading, onDone, onStartFade }) {
         position: 'relative', textAlign: 'center',
         animation: 'welcomeFadeIn 1.2s cubic-bezier(0.22,1,0.36,1) 0.2s both',
       }}>
-        <div style={{ fontSize: '9px', letterSpacing: '0.28em', textTransform: 'uppercase', color: '#C9A84C', opacity: 0.7, marginBottom: '20px', fontFamily: 'var(--font-body), sans-serif' }}>
-          Kuolinpesä luotu
-        </div>
+        {uusiKayttaja && (
+          <div style={{ fontSize: '9px', letterSpacing: '0.28em', textTransform: 'uppercase', color: '#C9A84C', opacity: 0.7, marginBottom: '20px', fontFamily: 'var(--font-body), sans-serif' }}>
+            Kuolinpesä luotu
+          </div>
+        )}
         <h1 style={{
           fontFamily: 'var(--font-display), Georgia, serif',
           fontSize: '40px', fontWeight: 300, color: '#F0EBE3',
           letterSpacing: '-0.02em', lineHeight: 1.2, margin: 0,
         }}>
-          {nimi
-            ? <><em style={{ fontStyle: 'italic', color: '#C9A84C' }}>{nimi}</em><br />kuolinpesä on luotu.</>
-            : 'Kuolinpesä on luotu.'}
+          {uusiKayttaja
+            ? (nimi
+                ? <><em style={{ fontStyle: 'italic', color: '#C9A84C' }}>{nimi}</em><br />kuolinpesä on luotu.</>
+                : 'Kuolinpesä on luotu.')
+            : etunimi
+                ? <>Tervetuloa takaisin,<br /><em style={{ fontStyle: 'italic', color: '#C9A84C' }}>{etunimi}.</em></>
+                : <><em style={{ fontStyle: 'italic', color: '#C9A84C' }}>Tervetuloa</em><br />takaisin.</>}
         </h1>
       </div>
     </div>

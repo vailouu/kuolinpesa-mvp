@@ -1,6 +1,7 @@
 import { Cormorant_Garamond, DM_Sans } from "next/font/google";
 import "./globals.css";
 import BackgroundGlow from "./components/BackgroundGlow";
+import SessionWatcher from "./components/SessionWatcher";
 
 const cormorant = Cormorant_Garamond({
   variable: "--font-display",
@@ -25,6 +26,7 @@ export default function RootLayout({ children }) {
     <html lang="en">
       <body className={`${cormorant.variable} ${dmSans.variable} antialiased`}>
         <BackgroundGlow />
+        <SessionWatcher />
         {children}
       </body>
     </html>

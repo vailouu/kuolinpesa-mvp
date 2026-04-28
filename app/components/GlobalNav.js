@@ -36,7 +36,12 @@ export default function GlobalNav() {
 
   if (!kayttaja) return null
 
-  const initial = (kayttaja.email || '')[0]?.toUpperCase() || '?'
+  const etunimi = kayttaja.user_metadata?.etunimi || ''
+  const sukunimi = kayttaja.user_metadata?.sukunimi || ''
+  const nimiTeksti = [etunimi, sukunimi].filter(Boolean).join(' ')
+  const initial = etunimi && sukunimi
+    ? (etunimi[0] + sukunimi[0]).toUpperCase()
+    : (kayttaja.email || '')[0]?.toUpperCase() || '?'
 
   const menuItems = [
     {
@@ -121,11 +126,19 @@ export default function GlobalNav() {
           animation: 'dropIn 0.18s cubic-bezier(0.22,1,0.36,1) both',
         }}>
 
-          {/* Email header */}
+          {/* Nimi + email header */}
           <div style={{
             padding: '14px 18px 12px',
             borderBottom: `1px solid ${C.border}`,
           }}>
+            {nimiTeksti && (
+              <div style={{
+                fontSize: '12px', color: C.text,
+                fontFamily: 'var(--font-body), sans-serif', marginBottom: '4px',
+              }}>
+                {nimiTeksti}
+              </div>
+            )}
             <div style={{
               fontSize: '9px', letterSpacing: '0.18em', textTransform: 'uppercase',
               color: C.secondary, fontFamily: 'var(--font-body), sans-serif',
