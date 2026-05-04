@@ -27,7 +27,7 @@ const css = `
     width: 100%; text-align: left; background: none; border: none; cursor: pointer;
     padding: 11px 16px;
     font-family: var(--font-body), sans-serif;
-    font-size: 12px; letter-spacing: 0.08em;
+    font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase;
     color: ${C.secondary};
     border-left: 2px solid transparent;
     transition: color 0.2s, border-color 0.2s, background 0.2s;
@@ -207,7 +207,7 @@ const css = `
     width: 100%; text-align: left; background: none; border: none; cursor: pointer;
     padding: 11px 16px;
     font-family: var(--font-body), sans-serif;
-    font-size: 12px; letter-spacing: 0.08em;
+    font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase;
     color: ${C.accent};
     border-left: 2px solid transparent;
     transition: color 0.2s, border-color 0.2s, background 0.2s;
@@ -274,27 +274,60 @@ const omaisuusKategoriat = [
   },
 ]
 
+function TooltipOhje({ teksti }) {
+  return (
+    <div style={{ position: 'relative', display: 'inline-flex', alignSelf: 'center' }}
+      onMouseEnter={e => e.currentTarget.querySelector('[data-tooltip]').style.opacity = '1'}
+      onMouseLeave={e => e.currentTarget.querySelector('[data-tooltip]').style.opacity = '0'}
+    >
+      <div style={{
+        width: '18px', height: '18px', borderRadius: '50%',
+        border: '1px solid rgba(201,168,76,0.4)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        cursor: 'default', flexShrink: 0,
+        color: '#C9A84C', fontSize: '11px', fontWeight: 600,
+        fontFamily: 'var(--font-body), sans-serif',
+      }}>?</div>
+      <div data-tooltip style={{
+        position: 'absolute', left: '26px', top: '0',
+        width: '360px',
+        backgroundColor: '#0D0B09',
+        border: '1px solid rgba(201,168,76,0.2)',
+        padding: '16px 20px',
+        pointerEvents: 'none',
+        opacity: 0,
+        transition: 'opacity 0.15s ease',
+        zIndex: 50,
+        boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
+      }}>
+        <p style={{ fontSize: '12px', color: '#A09890', lineHeight: 1.7, margin: 0 }}>{teksti}</p>
+      </div>
+    </div>
+  )
+}
+
 const vaiheet = [
-  { id: 1, nimi: 'Omat tiedot', ikoni: '👤' },
-  { id: 2, nimi: 'Omaisuus', ikoni: '💼' },
-  { id: 3, nimi: 'Sopimukset', ikoni: '📋' },
-  { id: 4, nimi: 'Dokumentit', ikoni: '📁' },
-  { id: 5, nimi: 'Viimeinen tahto', ikoni: '✉️' },
+  { id: 1, nimi: 'Omat tiedot', icon: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> },
+  { id: 2, nimi: 'Omaisuus', icon: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg> },
+  { id: 3, nimi: 'Sopimukset', icon: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg> },
+  { id: 4, nimi: 'Dokumentit', icon: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg> },
+  { id: 5, nimi: 'Viimeinen tahto', icon: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg> },
 ]
 
 export default function ValmisteleDashboard() {
   const router = useRouter()
   const [user, setUser] = useState(null)
-  const [aktiivinenVaihe, setAktiivinenVaihe] = useState(1)
+  const [aktiivinenVaihe, setAktiivinenVaihe] = useState(0)
   const [ladataan, setLadataan] = useState(true)
   const [aktivoitu, setAktivoitu] = useState(false)
   const [kutsut, setKutsut] = useState([{ sahkoposti: '', rooli: 'osakas' }])
 
   // Omat tiedot
   const [omatTiedot, setOmatTiedot] = useState({
-    nimi: '', syntymaaika: '', osoite: '', puhelin: '',
+    nimi: '', syntymaaika: '', osoite: '', puhelin: '', sahkoposti: '',
     laakari: '', lakimies: '', tilitoimisto: '', lisatieto: '',
   })
+  const [lahiomainen, setLahiomainen] = useState({ nimi: '', suhde: '', puhelin: '', sahkoposti: '' })
   const [omatTiedotTallennettu, setOmatTiedotTallennettu] = useState(false)
 
   // Omaisuus
@@ -307,11 +340,11 @@ export default function ValmisteleDashboard() {
   }, [])
 
   useEffect(() => {
-    window.history.replaceState({ vaihe: 1, kategoria: null }, '')
+    window.history.replaceState({ vaihe: 0, kategoria: null }, '')
     const handlePop = (e) => {
       const s = e.state
       if (!s) return
-      setAktiivinenVaihe(s.vaihe ?? 1)
+      setAktiivinenVaihe(s.vaihe ?? 0)
       setValittuKategoria(s.kategoria ?? null)
     }
     window.addEventListener('popstate', handlePop)
@@ -374,6 +407,12 @@ export default function ValmisteleDashboard() {
 
   const kat = valittuKategoria ? omaisuusKategoriat.find(k => k.id === valittuKategoria) : null
 
+  const sopimuksetTaytetty = Object.values(JSON.parse(sopimukset || '{}')).some(v => v && v.trim())
+  const dokumentitTaytetty = Object.values(dokumentit).some(v => v && v.trim())
+  const viestiKirjoitettu = !!(tahto.viesti && tahto.viesti.trim())
+  const omaisuusMaaraSidebar = Object.values(omaisuusItems).reduce((s, arr) => s + arr.length, 0)
+  const valmisCount = [omatTiedotTallennettu, omaisuusMaaraSidebar > 0, sopimuksetTaytetty, dokumentitTaytetty, viestiKirjoitettu].filter(Boolean).length
+
   return (
     <div style={{ backgroundColor: C.bg, color: C.text, minHeight: '100vh', fontFamily: 'var(--font-body), sans-serif' }}>
       <style>{css}</style>
@@ -400,19 +439,60 @@ export default function ValmisteleDashboard() {
             >
               Pesänhoitaja
             </button>
-            <div style={{ marginTop: '20px', fontSize: '10px', letterSpacing: '0.2em', textTransform: 'uppercase', color: C.accent, opacity: 0.7 }}>
-              Valmistelu
-            </div>
-            <div style={{
-              fontFamily: 'var(--font-display), Georgia, serif',
-              fontSize: '16px', fontWeight: 300, color: C.text,
-              marginTop: '6px', lineHeight: 1.3,
-            }}>
-              {user?.user_metadata?.full_name?.split(' ')[0] || 'Sinun'} tietosi
-            </div>
           </div>
 
+          {/* Progress-kaari */}
+          {(() => {
+            const pct = valmisCount / 5
+            const aktiivinen = aktiivinenVaihe === 0
+            const r = 28, cx = 32, cy = 32
+            const circumference = 2 * Math.PI * r
+            const dashOffset = circumference * (1 - pct)
+            return (
+              <div style={{
+                display: 'flex', alignItems: 'center', gap: '14px',
+                width: '100%', padding: '16px 18px',
+                borderBottom: `1px solid ${C.border}`,
+              }}>
+                <div style={{ flexShrink: 0 }}>
+                  <svg width="64" height="64" viewBox="0 0 64 64">
+                    <circle cx={cx} cy={cy} r={r} fill="none" stroke="rgba(240,235,227,0.06)" strokeWidth="3" />
+                    <circle
+                      cx={cx} cy={cy} r={r} fill="none"
+                      stroke={C.accent} strokeWidth="3" strokeLinecap="round"
+                      strokeDasharray={circumference} strokeDashoffset={dashOffset}
+                      transform={`rotate(-90 ${cx} ${cy})`}
+                      style={{ transition: 'stroke-dashoffset 0.6s ease' }}
+                    />
+                    <text x={cx} y={cy - 5} textAnchor="middle" dominantBaseline="central"
+                      fill={C.accent} fontSize="13" fontFamily="var(--font-body), sans-serif" fontWeight="500" letterSpacing="0.02em"
+                    >{Math.round(pct * 100)}%</text>
+                    <text x={cx} y={cy + 10} textAnchor="middle" dominantBaseline="central"
+                      fill={C.accent} fontSize="7.5" fontFamily="var(--font-body), sans-serif" letterSpacing="0.12em"
+                    >VALMIS</text>
+                  </svg>
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: '11px', fontFamily: 'var(--font-body), sans-serif', fontWeight: 500, letterSpacing: '0.12em', textTransform: 'uppercase', color: C.accent, lineHeight: 1.2, marginBottom: '5px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {user?.user_metadata?.etunimi || user?.user_metadata?.full_name?.split(' ')[0] || '—'}
+                  </div>
+                  <div style={{ fontSize: '10px', color: C.secondary, letterSpacing: '0.03em' }}>
+                    {valmisCount} / 5 osiota
+                  </div>
+                </div>
+              </div>
+            )
+          })()}
+
           <div style={{ paddingTop: '8px' }} />
+
+          <button
+            className={`nav-item${aktiivinenVaihe === 0 ? ' active' : ''}`}
+            onClick={() => navPush(0, null)}
+          >
+            <span style={{ flexShrink: 0 }}><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg></span>
+            Aloita tästä
+          </button>
 
           {vaiheet.map(v => (
             <button
@@ -420,7 +500,7 @@ export default function ValmisteleDashboard() {
               className={`nav-item${aktiivinenVaihe === v.id ? ' active' : ''}`}
               onClick={() => navPush(v.id, null)}
             >
-              <span style={{ fontSize: '14px', opacity: 0.8 }}>{v.ikoni}</span>
+              <span style={{ flexShrink: 0 }}>{v.icon}</span>
               {v.nimi}
             </button>
           ))}
@@ -431,31 +511,88 @@ export default function ValmisteleDashboard() {
               className={`nav-activate${aktiivinenVaihe === 6 ? ' active' : ''}`}
               onClick={() => navPush(6, null)}
             >
-              <span style={{ fontSize: '14px' }}>{aktivoitu ? '✓' : '⚡'}</span>
+              <span style={{ flexShrink: 0 }}>
+                {aktivoitu
+                  ? <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><polyline points="20 6 9 17 4 12"/></svg>
+                  : <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                }
+              </span>
               {aktivoitu ? 'Pesä aktivoitu' : 'Aktivoi kuolinpesätila'}
             </button>
           </div>
 
-          {/* Edistyminen */}
-          <div style={{ padding: '24px 20px', marginTop: 'auto' }}>
-            <div style={{ fontSize: '9px', letterSpacing: '0.18em', textTransform: 'uppercase', color: C.secondary, marginBottom: '8px' }}>
-              Täytetty
-            </div>
-            <div style={{ fontSize: '20px', fontFamily: 'var(--font-display), Georgia, serif', color: C.accent }}>
-              {Object.values(omaisuusItems).reduce((s, arr) => s + arr.length, 0) + (omatTiedotTallennettu ? 1 : 0)}
-              <span style={{ fontSize: '13px', color: C.secondary, marginLeft: '4px' }}>kohdetta</span>
-            </div>
-          </div>
         </div>
 
         {/* ── PÄÄSISÄLTÖ ── */}
         <div style={{ flex: 1, padding: '48px 56px', maxWidth: '900px' }}>
 
+          {/* ── 0. ALOITA TÄSTÄ ── */}
+          {aktiivinenVaihe === 0 && (
+            <div className="fade-up" style={{ maxWidth: '560px' }}>
+              <div style={{ fontSize: '10px', letterSpacing: '0.28em', textTransform: 'uppercase', color: C.accent, display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
+                <div style={{ width: '20px', height: '1px', background: C.accent }} />
+                Tervetuloa
+              </div>
+              <h1 style={{ fontFamily: 'var(--font-display), Georgia, serif', fontSize: '36px', fontWeight: 300, letterSpacing: '-0.02em', color: C.text, lineHeight: 1.1, margin: '0 0 32px' }}>
+                Valmistele asioita<br /><em style={{ fontStyle: 'italic', color: C.accent }}>läheisillesi.</em>
+              </h1>
+
+              <p style={{ fontSize: '14px', color: '#A09890', lineHeight: 1.9, margin: '0 0 16px' }}>
+                Tämä osio on tarkoitettu oman elämän tietojen järjestämiseen etukäteen — jotta omaisesi löytävät kaiken oleellisen nopeasti, kun sitä tarvitaan.
+              </p>
+              <p style={{ fontSize: '14px', color: '#A09890', lineHeight: 1.9, margin: '0 0 48px' }}>
+                Aloita{' '}
+                <button onClick={() => navPush(1, null)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontSize: '14px', color: C.accent, fontFamily: 'var(--font-body), sans-serif', textDecoration: 'underline', textUnderlineOffset: '3px', textDecorationColor: 'rgba(201,168,76,0.4)' }}>Omat tiedot</button>
+                {' '}-osiosta ja etene järjestyksessä.
+              </p>
+
+              <div style={{ height: '1px', background: 'linear-gradient(to right, rgba(201,168,76,0.3), transparent)', marginBottom: '40px' }} />
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '28px', marginBottom: '48px' }}>
+                {[
+                  { label: 'Omat tiedot', teksti: 'Henkilötietosi, yhteystietosi ja tärkeät yhteyshenkilöt kuten lääkäri ja lakimies.' },
+                  { label: 'Omaisuus', teksti: 'Kaikki omaisuutesi kategorioittain — kiinteistöt, ajoneuvot, säästöt, arvo-esineet.' },
+                  { label: 'Sopimukset', teksti: 'Palvelut ja sopimukset joihin sinulla on tili tai jatkuva maksu — jotta omaisesi tietävät mitä irtisanoa.' },
+                  { label: 'Dokumentit', teksti: 'Missä tärkeät paperit fyysisesti sijaitsevat — testamentti, avioehto, vakuutuskirjat.' },
+                  { label: 'Viimeinen tahto', teksti: 'Hautaustoiveet, musiikki, jakotoiveet ja saateviesti läheisille.' },
+                ].map(osio => (
+                  <div key={osio.label}>
+                    <div style={{ fontSize: '9px', letterSpacing: '0.2em', textTransform: 'uppercase', color: C.accent, marginBottom: '6px', fontFamily: 'var(--font-body), sans-serif' }}>{osio.label}</div>
+                    <p style={{ fontSize: '13px', color: '#6A6258', lineHeight: 1.8, margin: 0 }}>{osio.teksti}</p>
+                  </div>
+                ))}
+              </div>
+
+              <div style={{ height: '1px', background: 'linear-gradient(to right, rgba(201,168,76,0.3), transparent)', marginBottom: '40px' }} />
+
+              <button
+                onClick={() => navPush(1, null)}
+                style={{
+                  display: 'inline-flex', alignItems: 'center', gap: '10px',
+                  fontFamily: 'var(--font-body), sans-serif',
+                  fontSize: '11px', letterSpacing: '0.18em', textTransform: 'uppercase',
+                  color: C.accent, background: 'transparent',
+                  border: '1px solid rgba(201,168,76,0.35)',
+                  padding: '16px 28px', cursor: 'pointer',
+                  transition: 'background 0.2s, box-shadow 0.2s, border-color 0.2s',
+                }}
+                onMouseEnter={e => { e.currentTarget.style.background = 'rgba(201,168,76,0.08)'; e.currentTarget.style.borderColor = 'rgba(201,168,76,0.7)'; e.currentTarget.style.boxShadow = '0 0 24px rgba(201,168,76,0.2)' }}
+                onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = 'rgba(201,168,76,0.35)'; e.currentTarget.style.boxShadow = 'none' }}
+              >
+                Aloita omat tiedot
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+              </button>
+            </div>
+          )}
+
           {/* ── 1. OMAT TIEDOT ── */}
           {aktiivinenVaihe === 1 && (
             <div className="fade-up">
               <p style={{ fontSize: '10px', letterSpacing: '0.24em', textTransform: 'uppercase', color: C.accent, marginBottom: '12px' }}>01 — Omat tiedot</p>
-              <h1 className="section-title">Perustietosi</h1>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
+                <h1 className="section-title" style={{ margin: 0 }}>Perustietosi</h1>
+                <TooltipOhje teksti="Täytä omat perustietosi ja yhteystietosi. Nämä tiedot auttavat omaisiasi löytämään oikeat viranomaiset ja yhteystiedot nopeasti. Kirjaa myös lähiomaisesi tiedot — hänelle lähetetään tieto kun pesä aktivoituu." />
+              </div>
               <p className="section-sub" style={{ marginBottom: '36px' }}>
                 Nämä tiedot auttavat omaisiasi löytämään oikeat viranomaiset ja yhteystiedot nopeasti.
               </p>
@@ -466,6 +603,7 @@ export default function ValmisteleDashboard() {
                   { id: 'syntymaaika', label: 'Syntymäaika', placeholder: '1.1.1950', type: 'text' },
                   { id: 'osoite', label: 'Osoite', placeholder: 'Katuosoite, postinumero, kaupunki', type: 'text' },
                   { id: 'puhelin', label: 'Puhelinnumero', placeholder: '+358 40 123 4567', type: 'text' },
+                  { id: 'sahkoposti', label: 'Sähköpostiosoite', placeholder: 'sinun@email.fi', type: 'email' },
                 ].map(k => (
                   <div key={k.id}>
                     <label className="form-label">{k.label}</label>
@@ -502,6 +640,27 @@ export default function ValmisteleDashboard() {
                   onChange={e => setOmatTiedot({ ...omatTiedot, lisatieto: e.target.value })} />
               </div>
 
+              <div className="divider" />
+              <p style={{ fontSize: '10px', letterSpacing: '0.2em', textTransform: 'uppercase', color: C.secondary, marginBottom: '8px' }}>Lähiomainen</p>
+              <p style={{ fontSize: '13px', color: '#6A6258', lineHeight: 1.7, marginBottom: '20px' }}>
+                Henkilö, joka todennäköisesti hoitaa kuolinpesän asiat. Hänelle lähetetään tieto aktivointihetkellä.
+              </p>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+                {[
+                  { id: 'nimi', label: 'Nimi', placeholder: 'Etunimi Sukunimi', type: 'text' },
+                  { id: 'suhde', label: 'Suhde', placeholder: 'Esim. tytär, puoliso, poika', type: 'text' },
+                  { id: 'puhelin', label: 'Puhelinnumero', placeholder: '+358 40 123 4567', type: 'text' },
+                  { id: 'sahkoposti', label: 'Sähköposti', placeholder: 'omainen@email.fi', type: 'email' },
+                ].map(k => (
+                  <div key={k.id}>
+                    <label className="form-label">{k.label}</label>
+                    <input className="form-input" type={k.type} placeholder={k.placeholder}
+                      value={lahiomainen[k.id]}
+                      onChange={e => setLahiomainen({ ...lahiomainen, [k.id]: e.target.value })} />
+                  </div>
+                ))}
+              </div>
+
               <div style={{ marginTop: '28px', display: 'flex', alignItems: 'center', gap: '16px' }}>
                 <button className="btn-gold" onClick={tallennaTiedot}>
                   Tallenna tiedot
@@ -520,7 +679,10 @@ export default function ValmisteleDashboard() {
           {aktiivinenVaihe === 2 && !valittuKategoria && (
             <div className="fade-up">
               <p style={{ fontSize: '10px', letterSpacing: '0.24em', textTransform: 'uppercase', color: C.accent, marginBottom: '12px' }}>02 — Omaisuus</p>
-              <h1 className="section-title">Omaisuutesi</h1>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
+                <h1 className="section-title" style={{ margin: 0 }}>Omaisuutesi</h1>
+                <TooltipOhje teksti="Kirjaa kaikki omaisuutesi kategorioittain. Tarkkoja arvoja ei tarvita — suuntaa-antavat tiedot ja sijainti riittävät. Omaisesi löytävät omaisuuden ilman arvailutyötä." />
+              </div>
               <p className="section-sub" style={{ marginBottom: '36px' }}>
                 Kirjaa omaisuutesi kategorioittain. Omaisesi näkevät tarkat tiedot heti kun niitä tarvitaan.
               </p>
@@ -627,7 +789,10 @@ export default function ValmisteleDashboard() {
           {aktiivinenVaihe === 3 && (
             <div className="fade-up">
               <p style={{ fontSize: '10px', letterSpacing: '0.24em', textTransform: 'uppercase', color: C.accent, marginBottom: '12px' }}>03 — Sopimukset</p>
-              <h1 className="section-title">Sopimukset ja tilaukset</h1>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
+                <h1 className="section-title" style={{ margin: 0 }}>Sopimukset ja tilaukset</h1>
+                <TooltipOhje teksti="Lista palveluista ja sopimuksista joihin sinulla on tili tai jatkuva maksu. Omaisesi tietävät mitä pitää irtisanoa ja missä sinulla on tilejä — säästää heiltä merkittävästi aikaa ja vaivaa." />
+              </div>
               <p className="section-sub" style={{ marginBottom: '36px' }}>
                 Lista palveluista joihin sinulla on tili tai sopimus. Omaisesi tietävät mitä pitää irtisanoa.
               </p>
@@ -668,7 +833,10 @@ export default function ValmisteleDashboard() {
           {aktiivinenVaihe === 4 && (
             <div className="fade-up">
               <p style={{ fontSize: '10px', letterSpacing: '0.24em', textTransform: 'uppercase', color: C.accent, marginBottom: '12px' }}>04 — Dokumentit</p>
-              <h1 className="section-title">Tärkeät dokumentit</h1>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
+                <h1 className="section-title" style={{ margin: 0 }}>Tärkeät dokumentit</h1>
+                <TooltipOhje teksti="Missä tärkeät paperit fyysisesti sijaitsevat — testamentti, avioehto, vakuutuskirjat, passit. Skannauksia ei tarvita, pelkkä sijainti riittää. Omaisesi löytävät ne nopeasti tarvittaessa." />
+              </div>
               <p className="section-sub" style={{ marginBottom: '36px' }}>
                 Missä tärkeät paperit fyysisesti sijaitsevat. Ei tarvita skannauksia — pelkkä sijainti riittää.
               </p>
@@ -701,9 +869,12 @@ export default function ValmisteleDashboard() {
           {aktiivinenVaihe === 5 && (
             <div className="fade-up">
               <p style={{ fontSize: '10px', letterSpacing: '0.24em', textTransform: 'uppercase', color: C.accent, marginBottom: '12px' }}>05 — Viimeinen tahto</p>
-              <h1 className="section-title">Hautaustoiveet ja<br />
-                <em style={{ fontStyle: 'italic', color: C.accent }}>viimeinen tahto.</em>
-              </h1>
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', marginBottom: '16px' }}>
+                <h1 className="section-title" style={{ margin: 0 }}>Hautaustoiveet ja<br />
+                  <em style={{ fontStyle: 'italic', color: C.accent }}>viimeinen tahto.</em>
+                </h1>
+                <TooltipOhje teksti="Hautaustoiveesi, musiikkitoiveet, jakotoiveet ja saateviesti läheisille. Nämä ovat usein vaikeita selvittää jälkikäteen — kirjaamalla ne etukäteen helpotat läheistesi taakkaa merkittävästi." />
+              </div>
               <p className="section-sub" style={{ marginBottom: '36px' }}>
                 Nämä toiveet voivat vähentää omaisten välistä erimielisyyttä merkittävästi. Kirjoita vapaasti.
               </p>
