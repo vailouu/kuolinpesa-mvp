@@ -153,6 +153,11 @@ export default function Dashboard() {
   const aktiivinenAlivaihe = parseInt(searchParams?.get('alivaihe') || '1')
   const [kuolinpesa, setKuolinpesa] = useState(null)
   const [naytaWelcome, setNaytaWelcome] = useState(() => typeof window !== 'undefined' && (localStorage.getItem('uusi_kayttaja') === 'true' || localStorage.getItem('tervetuloa_takaisin') === 'true'))
+  const [ensitoimetOhjeNahty, setEnsitoimetOhjeNahty] = useState(() => typeof window !== 'undefined' && localStorage.getItem('ohje_vaihe_1_nahty') === 'true')
+  const [vaihe2OhjeNahty, setVaihe2OhjeNahty] = useState(() => typeof window !== 'undefined' && localStorage.getItem('ohje_vaihe_2_nahty') === 'true')
+  const [vaihe3OhjeNahty, setVaihe3OhjeNahty] = useState(() => typeof window !== 'undefined' && localStorage.getItem('ohje_vaihe_3_nahty') === 'true')
+  const [vaihe4OhjeNahty, setVaihe4OhjeNahty] = useState(() => typeof window !== 'undefined' && localStorage.getItem('ohje_vaihe_4_nahty') === 'true')
+  const [vaihe5OhjeNahty, setVaihe5OhjeNahty] = useState(() => typeof window !== 'undefined' && localStorage.getItem('ohje_vaihe_5_nahty') === 'true')
   const [uusiKayttaja] = useState(() => typeof window !== 'undefined' && localStorage.getItem('uusi_kayttaja') === 'true')
   const [welcomeFading, setWelcomeFading] = useState(false)
   const [welcomeNimi, setWelcomeNimi] = useState('')
@@ -324,8 +329,8 @@ const poistaVahvistettu = async (id, index) => {
     .filter(t => t.vaihe === aktiivinenVaihe)
     .filter((t, i, arr) => arr.findIndex(x => x.nimi === t.nimi) === i)
     .sort((a, b) => jarjestys.indexOf(a.nimi) - jarjestys.indexOf(b.nimi))
-  const valmiit = tehtavaLista.filter(t => t.vaihe === aktiivinenVaihe && t.tehty).length
-  const kaikki = tehtavaLista.filter(t => t.vaihe === aktiivinenVaihe).length
+  const valmiit = nykyisetTehtavat.filter(t => t.tehty).length
+  const kaikki = nykyisetTehtavat.length
 
   const kommenttiMaara = (tyyppi, id) => kaikkiKommentit.filter(k => k.konteksti_tyyppi === tyyppi && k.konteksti_id === id).length
 
@@ -405,7 +410,7 @@ const poistaVahvistettu = async (id, index) => {
           const pv = Math.max(0, 90 - Math.floor((Date.now() - new Date(kuolinpesa.kuolinpaiva)) / 86400000))
           const tehty = tehtavaLista.filter(t => t.tehty).length
           const kaikki = tehtavaLista.length
-          const pct = kaikki > 0 ? tehty / kaikki : 0
+          const pct = kaikki > 0 ? (tehty / kaikki) * (1 / 5) : 0
           const aktiivinen = aktiivisetNav === 'pesani'
           const r = 28, cx = 32, cy = 32
           const circumference = 2 * Math.PI * r
@@ -842,44 +847,36 @@ const poistaVahvistettu = async (id, index) => {
     <h2 style={{ fontFamily: 'var(--font-body), sans-serif', fontSize: '16px', fontWeight: 700, color: '#F0EBE3', margin: 0 }}>
       Vaihe {aktiivinenVaihe}: {vaiheet[aktiivinenVaihe-1].nimi}
     </h2>
-    {(aktiivinenVaihe === 1 || aktiivinenVaihe === 2 || aktiivinenVaihe === 3 || aktiivinenVaihe === 4) && (() => {
-      const tooltipTeksti = aktiivinenVaihe === 1
-        ? 'Ensitoimet ovat kiireellisimmät asiat hoidettavaksi heti kuoleman jälkeen. Etene tehtävä kerrallaan — jokainen tehtävä sisältää ohjeet mitä tehdä ja miksi. Rastita tehtävä kun se on hoidettu.'
-        : aktiivinenVaihe === 2
-        ? 'Tässä osiossa kartoitat kaiken vainajan omaisuuden ja velat sekä hoidat sopimukset. Etene järjestyksessä: aloita Varat ja velat -välilehdeltä, siirry Sopimuksiin, ja tarkista lopuksi Yhteenveto. Jokainen rivi pitää käydä läpi — myös ne joita vainajalla ei ollut.'
-        : aktiivinenVaihe === 3
-        ? 'Perunkirjoitustilaisuus on pidettävä 3 kk kuolemasta. Tilaisuudessa laadittu perukirja toimitetaan verottajalle 1 kk sen jälkeen. Merkitse tehtävät tehdyiksi sitä mukaa kun etenet — osio seuraa edistymistäsi automaattisesti. Klikkaa tehtävää avataksesi ohjeet oikeaan reunaan.'
-        : 'Tässä osiossa hoidat pesän sulkemisen käytännön toimet. Etene järjestyksessä: aloita perintöverosta, siirry omaisuuden jakoon kun jako on sovittu, ja päätä toimeenpanoon. Klikkaa tehtävää avataksesi ohjeet oikeaan reunaan.'
+    {(() => {
+      const ohjeNahty = aktiivinenVaihe === 1 ? ensitoimetOhjeNahty
+        : aktiivinenVaihe === 2 ? vaihe2OhjeNahty
+        : aktiivinenVaihe === 3 ? vaihe3OhjeNahty
+        : aktiivinenVaihe === 4 ? vaihe4OhjeNahty
+        : vaihe5OhjeNahty
+      const toggleOhje = () => {
+        if (aktiivinenVaihe === 1) { setEnsitoimetOhjeNahty(p => { const v = !p; v ? localStorage.setItem('ohje_vaihe_1_nahty','true') : localStorage.removeItem('ohje_vaihe_1_nahty'); return v }) }
+        else if (aktiivinenVaihe === 2) { setVaihe2OhjeNahty(p => { const v = !p; v ? localStorage.setItem('ohje_vaihe_2_nahty','true') : localStorage.removeItem('ohje_vaihe_2_nahty'); return v }) }
+        else if (aktiivinenVaihe === 3) { setVaihe3OhjeNahty(p => { const v = !p; v ? localStorage.setItem('ohje_vaihe_3_nahty','true') : localStorage.removeItem('ohje_vaihe_3_nahty'); return v }) }
+        else if (aktiivinenVaihe === 4) { setVaihe4OhjeNahty(p => { const v = !p; v ? localStorage.setItem('ohje_vaihe_4_nahty','true') : localStorage.removeItem('ohje_vaihe_4_nahty'); return v }) }
+        else { setVaihe5OhjeNahty(p => { const v = !p; v ? localStorage.setItem('ohje_vaihe_5_nahty','true') : localStorage.removeItem('ohje_vaihe_5_nahty'); return v }) }
+      }
       return (
-        <div style={{ position: 'relative', display: 'inline-flex' }}
-          onMouseEnter={e => e.currentTarget.querySelector('[data-tooltip]').style.opacity = '1'}
-          onMouseLeave={e => e.currentTarget.querySelector('[data-tooltip]').style.opacity = '0'}
-        >
-          <div style={{
+        <button
+          onClick={toggleOhje}
+          title={ohjeNahty ? 'Näytä ohjeet' : 'Piilota ohjeet'}
+          style={{
             width: '18px', height: '18px', borderRadius: '50%',
-            border: '1px solid rgba(201,168,76,0.4)',
+            border: `1px solid ${ohjeNahty ? 'rgba(201,168,76,0.4)' : 'rgba(201,168,76,0.8)'}`,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            cursor: 'default', flexShrink: 0,
+            cursor: 'pointer', flexShrink: 0,
             color: '#C9A84C', fontSize: '11px', fontWeight: 600,
             fontFamily: 'var(--font-body), sans-serif',
-          }}>?</div>
-          <div data-tooltip style={{
-            position: 'absolute', left: '26px', top: '0',
-            width: '400px',
-            backgroundColor: '#0D0B09',
-            border: '1px solid rgba(201,168,76,0.2)',
-            padding: '16px 20px',
-            pointerEvents: 'none',
-            opacity: 0,
-            transition: 'opacity 0.15s ease',
-            zIndex: 50,
-            boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
-          }}>
-            <p style={{ fontSize: '12px', color: '#A09890', lineHeight: 1.7, margin: 0 }}>
-              {tooltipTeksti}
-            </p>
-          </div>
-        </div>
+            background: ohjeNahty ? 'none' : 'rgba(201,168,76,0.08)', padding: 0,
+            transition: 'border-color 0.15s, background 0.15s',
+          }}
+          onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(201,168,76,0.8)'; e.currentTarget.style.background = 'rgba(201,168,76,0.08)' }}
+          onMouseLeave={e => { e.currentTarget.style.borderColor = ohjeNahty ? 'rgba(201,168,76,0.4)' : 'rgba(201,168,76,0.8)'; e.currentTarget.style.background = ohjeNahty ? 'none' : 'rgba(201,168,76,0.08)' }}
+        >?</button>
       )
     })()}
   </div>
@@ -891,6 +888,18 @@ const poistaVahvistettu = async (id, index) => {
     const valmiitMaara = nykyisetTehtavat.filter(t => t.tehty).length
     const kaikkiTehty = valmiitMaara === nykyisetTehtavat.length
     return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '0' }}>
+
+        {/* Ohjekortti — näkyy vain kerran */}
+        {!ensitoimetOhjeNahty && (
+          <div style={{ borderLeft: '3px solid rgba(201,168,76,0.6)', backgroundColor: 'rgba(201,168,76,0.04)', padding: '18px 24px', marginBottom: '32px' }}>
+              <div style={{ fontSize: '9px', letterSpacing: '0.2em', textTransform: 'uppercase', color: '#C9A84C', marginBottom: '8px' }}>Miten tämä toimii</div>
+              <p style={{ fontSize: '13px', color: '#A09890', lineHeight: 1.75, margin: 0, maxWidth: '560px' }}>
+                Ensitoimet ovat kiireellisimmät asiat heti kuoleman jälkeen. Etene tehtävä kerrallaan — jokainen sisältää ohjeet mitä tehdä ja miksi. Rastita tehtävä kun se on hoidettu, niin pääset seuraavaan.
+              </p>
+          </div>
+        )}
+
       <div style={{ display: 'flex', gap: '40px', alignItems: 'flex-start' }}>
 
         {/* Wizard pääsisältö */}
@@ -921,9 +930,8 @@ const poistaVahvistettu = async (id, index) => {
                 fontFamily: 'var(--font-display), Georgia, serif',
                 fontSize: 'clamp(22px, 2.5vw, 28px)',
                 fontWeight: 300, lineHeight: 1.2,
-                color: tehtava.tehty ? '#5A5248' : '#F0EBE3',
+                color: '#F0EBE3',
                 letterSpacing: '-0.02em',
-                textDecoration: tehtava.tehty ? 'line-through' : 'none',
               }}>{tehtava.nimi}</h2>
               {ohje.kiireellinen && (
                 <span style={{
@@ -1073,11 +1081,22 @@ const poistaVahvistettu = async (id, index) => {
         </div>
 
       </div>
+      </div>
     )
   })()}
 
 {aktiivinenVaihe === 2 && (
   <>
+    {!vaihe2OhjeNahty && (
+      <div style={{ borderLeft: '3px solid rgba(201,168,76,0.6)', backgroundColor: 'rgba(201,168,76,0.04)', padding: '18px 24px', marginBottom: '32px' }}>
+        <div>
+          <div style={{ fontSize: '9px', letterSpacing: '0.2em', textTransform: 'uppercase', color: '#C9A84C', marginBottom: '8px' }}>Miten tämä toimii</div>
+          <p style={{ fontSize: '13px', color: '#A09890', lineHeight: 1.75, margin: 0, maxWidth: '560px' }}>
+            Tässä osiossa kartoitat kaiken vainajan omaisuuden ja velat sekä hoidat sopimukset. Etene järjestyksessä: aloita Varat ja velat -välilehdeltä, siirry Sopimuksiin, ja tarkista lopuksi Yhteenveto. Jokainen rivi pitää käydä läpi — myös ne joita vainajalla ei ollut.
+          </p>
+        </div>
+      </div>
+    )}
     <div className="flex gap-2 mb-6">
       {alivaiheet.map(a => (
         <button key={a.numero} onClick={() => navigoiAlivaihe(a.numero)} className="flex-1 py-2 px-4 rounded text-sm font-bold"
@@ -1097,7 +1116,18 @@ const poistaVahvistettu = async (id, index) => {
 )}
 
               {aktiivinenVaihe === 3 && (
-  <PerunkirjoitusOsio
+  <>
+    {!vaihe3OhjeNahty && (
+      <div style={{ borderLeft: '3px solid rgba(201,168,76,0.6)', backgroundColor: 'rgba(201,168,76,0.04)', padding: '18px 24px', marginBottom: '32px' }}>
+        <div>
+          <div style={{ fontSize: '9px', letterSpacing: '0.2em', textTransform: 'uppercase', color: '#C9A84C', marginBottom: '8px' }}>Miten tämä toimii</div>
+          <p style={{ fontSize: '13px', color: '#A09890', lineHeight: 1.75, margin: 0, maxWidth: '560px' }}>
+            Perunkirjoitustilaisuus on pidettävä 3 kk kuolemasta. Tilaisuudessa laadittu perukirja toimitetaan verottajalle 1 kk sen jälkeen. Merkitse tehtävät tehdyiksi sitä mukaa kun etenet — osio seuraa edistymistäsi automaattisesti. Klikkaa tehtävää avataksesi ohjeet oikeaan reunaan.
+          </p>
+        </div>
+      </div>
+    )}
+    <PerunkirjoitusOsio
     kuolinpesa={kuolinpesa}
     vahvistetutKirjaukset={vahvistetutKirjaukset}
     kayttajaEmail={kuolinpesa?.kayttaja_email}
@@ -1105,9 +1135,21 @@ const poistaVahvistettu = async (id, index) => {
     perunkirjoitusTehty={perunkirjoitusTehty}
     setPerunkirjoitusTehty={setPerunkirjoitusTehty}
   />
+  </>
 )}
 
 {aktiivinenVaihe === 4 && (
+  <>
+    {!vaihe4OhjeNahty && (
+      <div style={{ borderLeft: '3px solid rgba(201,168,76,0.6)', backgroundColor: 'rgba(201,168,76,0.04)', padding: '18px 24px', marginBottom: '32px' }}>
+        <div>
+          <div style={{ fontSize: '9px', letterSpacing: '0.2em', textTransform: 'uppercase', color: '#C9A84C', marginBottom: '8px' }}>Miten tämä toimii</div>
+          <p style={{ fontSize: '13px', color: '#A09890', lineHeight: 1.75, margin: 0, maxWidth: '560px' }}>
+            Tässä osiossa hoidat pesän sulkemisen käytännön toimet. Etene järjestyksessä: aloita perintöverosta, siirry omaisuuden jakoon kun jako on sovittu, ja päätä toimeenpanoon. Klikkaa tehtävää avataksesi ohjeet oikeaan reunaan.
+          </p>
+        </div>
+      </div>
+    )}
   <HoitoJaToimeenpanoOsio
     kuolinpesa={kuolinpesa}
     vahvistetutKirjaukset={vahvistetutKirjaukset}
@@ -1119,8 +1161,20 @@ const poistaVahvistettu = async (id, index) => {
     aktiivinenAlivaihe={aktiivinenAlivaihe}
     setAktiivinenAlivaihe={navigoiAlivaihe}
   />
+  </>
 )}
 {aktiivinenVaihe === 5 && (
+  <>
+    {!vaihe5OhjeNahty && (
+      <div style={{ borderLeft: '3px solid rgba(201,168,76,0.6)', backgroundColor: 'rgba(201,168,76,0.04)', padding: '18px 24px', marginBottom: '32px' }}>
+        <div>
+          <div style={{ fontSize: '9px', letterSpacing: '0.2em', textTransform: 'uppercase', color: '#C9A84C', marginBottom: '8px' }}>Miten tämä toimii</div>
+          <p style={{ fontSize: '13px', color: '#A09890', lineHeight: 1.75, margin: 0, maxWidth: '560px' }}>
+            Viimeinen vaihe — tarkista että kaikki on hoidettu ja pesä voidaan sulkea. Käy läpi tarkistuslista, varmista että kaikki osakkaat ovat yksimielisiä, ja tee lopullinen päätös pesän sulkemisesta.
+          </p>
+        </div>
+      </div>
+    )}
   <PaatosOsio
     kuolinpesa={kuolinpesa}
     sopimusTilat={sopimusTilat}
@@ -1129,6 +1183,7 @@ const poistaVahvistettu = async (id, index) => {
     setAvattuSopimus={setAvattuSopimus}
     navigoiVaihe={navigoiVaihe}
   />
+  </>
 )}
             </div>
 
