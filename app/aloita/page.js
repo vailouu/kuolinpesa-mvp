@@ -259,6 +259,7 @@ export default function Aloita() {
           <div>
             <label className="form-label">Vainajan nimi *</label>
             <input className="form-input" type="text" placeholder="Etunimi Sukunimi"
+              autoComplete="off"
               value={tiedot.vainajanNimi} onChange={e => paivita('vainajanNimi', e.target.value)} />
           </div>
 
@@ -268,6 +269,7 @@ export default function Aloita() {
               <span style={{ opacity: 0.5, letterSpacing: '0.1em' }}>(valinnainen)</span>
             </label>
             <input className="form-input" type="date"
+              autoComplete="off"
               value={tiedot.kuolinpaiva} onChange={e => paivita('kuolinpaiva', e.target.value)} />
           </div>
 
@@ -277,11 +279,13 @@ export default function Aloita() {
             <div>
               <label className="form-label">Etunimi *</label>
               <input className="form-input" type="text" placeholder="Anna"
+                autoComplete="given-name"
                 value={tiedot.etunimi} onChange={e => paivita('etunimi', e.target.value)} />
             </div>
             <div>
               <label className="form-label">Sukunimi *</label>
               <input className="form-input" type="text" placeholder="Korhonen"
+                autoComplete="family-name"
                 value={tiedot.sukunimi} onChange={e => paivita('sukunimi', e.target.value)} />
             </div>
           </div>
@@ -289,12 +293,14 @@ export default function Aloita() {
           <div>
             <label className="form-label">Sähköpostiosoitteesi *</label>
             <input className="form-input" type="email" placeholder="sinun@email.fi"
+              autoComplete="email"
               value={tiedot.sahkoposti} onChange={e => paivita('sahkoposti', e.target.value)} />
           </div>
 
           <div>
             <label className="form-label">Salasana *</label>
             <input className="form-input" type="password" placeholder="Vähintään 8 merkkiä"
+              autoComplete="new-password"
               value={tiedot.salasana} onChange={e => paivita('salasana', e.target.value)} />
           </div>
 

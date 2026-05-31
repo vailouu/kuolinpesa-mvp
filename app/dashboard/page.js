@@ -407,7 +407,7 @@ const poistaVahvistettu = async (id, index) => {
 
         {/* ── PESÄNI progress-kaari ── */}
         {kuolinpesa && (() => {
-          const pv = Math.max(0, 90 - Math.floor((Date.now() - new Date(kuolinpesa.kuolinpaiva)) / 86400000))
+          const pv = Math.max(0, Math.floor(((() => { const d = new Date(kuolinpesa.kuolinpaiva); d.setMonth(d.getMonth() + 3); return d })() - Date.now()) / 86400000))
           const tehty = tehtavaLista.filter(t => t.tehty).length
           const kaikki = tehtavaLista.length
           const pct = kaikki > 0 ? (tehty / kaikki) * (1 / 5) : 0
@@ -469,7 +469,7 @@ const poistaVahvistettu = async (id, index) => {
                   {kuolinpesa.vainajan_nimi}
                 </div>
                 <div style={{ fontSize: '10px', color: pv < 14 ? '#C9A84C' : '#5A5248', letterSpacing: '0.03em' }}>
-                  {kuolinpesa.kuolinpaiva ? `${pv} pv jäljellä` : (
+                  {kuolinpesa.kuolinpaiva ? `${pv} pv perukirjaan` : (
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ display: 'inline', verticalAlign: 'middle' }}>
                       <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
                       <polyline points="9 22 9 12 15 12 15 22"/>
@@ -550,43 +550,142 @@ const poistaVahvistettu = async (id, index) => {
         {aktiivisetNav === 'aloita' && (
           <div style={{ maxWidth: '560px' }}>
 
-            {/* Otsikko */}
-            <div style={{ fontSize: '10px', letterSpacing: '0.28em', textTransform: 'uppercase', color: '#C9A84C', display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
-              <div style={{ width: '20px', height: '1px', background: '#C9A84C' }} />
-              Tervetuloa
-            </div>
             <h1 style={{ fontFamily: 'var(--font-display), Georgia, serif', fontSize: '36px', fontWeight: 300, letterSpacing: '-0.02em', color: '#F0EBE3', lineHeight: 1.1, margin: '0 0 32px' }}>
               Tervetuloa<br /><em style={{ fontStyle: 'italic', color: '#C9A84C' }}>Pesänhoitajaan.</em>
             </h1>
 
-            {/* Intro */}
-            <p style={{ fontSize: '14px', color: '#A09890', lineHeight: 1.9, margin: '0 0 16px' }}>
-              Kuolinpesän hoito on monivaiheinen prosessi — tämä sovellus pitää sinut järjestyksessä.
-            </p>
-            <p style={{ fontSize: '14px', color: '#A09890', lineHeight: 1.9, margin: '0 0 12px' }}>
-              Aloita <button onClick={() => { navPush('tehtavat') }} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontSize: '14px', color: '#C9A84C', fontFamily: 'var(--font-body), sans-serif', textDecoration: 'underline', textUnderlineOffset: '3px', textDecorationColor: 'rgba(201,168,76,0.4)' }}>Tehtävät</button>-osiosta ja seuraa ohjeita.
-            </p>
-            <p style={{ fontSize: '14px', color: '#A09890', lineHeight: 1.9, margin: '0 0 48px' }}>
-              Jokaisessa osiossa löydät tarkempia ohjeita <span style={{ color: '#C9A84C' }}>?</span>-merkin takaa.
+            {/* Empaattinen intro */}
+            <p style={{ fontSize: '15px', color: '#B0A898', lineHeight: 1.95, margin: '0 0 32px', fontWeight: 300 }}>
+              Olemme pahoillamme menetyksestäsi. Pesänhoitaja auttaa sinua hoitamaan kuolinpesän järjestyksessä — yksin tai yhdessä muiden osakkaiden kanssa. Etenemme askel askeleelta, ja autamme sinua joka vaiheessa.
             </p>
 
             {/* Erottaja */}
-            <div style={{ height: '1px', background: 'linear-gradient(to right, rgba(201,168,76,0.3), transparent)', marginBottom: '40px' }} />
+            <div style={{ height: '1px', background: 'linear-gradient(to right, rgba(201,168,76,0.25), transparent)', marginBottom: '28px' }} />
 
-            {/* Muut osiot */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '32px', marginBottom: '48px' }}>
+            {/* Miten toimii -prose */}
+            <div style={{ marginBottom: '28px' }}>
+              <div style={{ fontSize: '9px', letterSpacing: '0.24em', textTransform: 'uppercase', color: '#C9A84C', marginBottom: '12px', fontFamily: 'var(--font-body), sans-serif' }}>
+                Miten Pesänhoitaja toimii
+              </div>
+              <p style={{ fontSize: '14px', color: '#7A7268', lineHeight: 1.9, fontWeight: 300, margin: 0 }}>
+                Kuolinpesän hoito etenee kolmessa päävaiheessa. Ensin valmistellaan — kerätään tarvittavat asiakirjat ja kutsutaan osakkaat mukaan. Sen jälkeen laaditaan perukirja, joka tulee toimittaa verottajalle määräaikaan mennessä. Lopuksi pesä jaetaan osakkaiden kesken. Pesänhoitaja ei korvaa juristia, mutta säästää aikaa ja rahaa — kerromme matkan varrella, milloin lakimiehen konsultointi on tarpeen.{' '}
+                <button onClick={() => router.push('/miten-toimii')} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontSize: '14px', color: '#C9A84C', fontFamily: 'var(--font-body), sans-serif', textDecoration: 'underline', textUnderlineOffset: '3px', textDecorationColor: 'rgba(201,168,76,0.35)' }}>
+                  Lue tarkemmin miten alusta toimii
+                </button>
+                {' '}ja{' '}
+                <button onClick={() => router.push('/ukk')} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontSize: '14px', color: '#C9A84C', fontFamily: 'var(--font-body), sans-serif', textDecoration: 'underline', textUnderlineOffset: '3px', textDecorationColor: 'rgba(201,168,76,0.35)' }}>
+                  usein kysytyt kysymykset
+                </button>.
+              </p>
+            </div>
+
+            {/* Erottaja */}
+            <div style={{ height: '1px', background: 'linear-gradient(to right, rgba(201,168,76,0.25), transparent)', marginBottom: '40px' }} />
+
+            {/* Muut osiot — kortit */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1px', backgroundColor: 'rgba(201,168,76,0.14)', marginBottom: '48px' }}>
               {[
-                { label: 'Osakkaat', teksti: 'Lisää kuolinpesän osakkaat, jotta hekin voivat seurata pesän tilannetta ja osallistua hoitoon.' },
-                { label: 'Viestit', teksti: 'Jätä viestejä muille osakkaille — yleisiä tai yksittäisiin kirjauksiin sidottuja. Kaikki näkevät saman tiedon.' },
-                { label: 'Tapahtumaloki', teksti: 'Kaikki pesässä tehdyt toimenpiteet tallentuvat automaattisesti lokiin. Täydentyvä ominaisuus.', tulossa: true },
+                {
+                  id: 'osakkaat',
+                  label: 'Osakkaat',
+                  teksti: 'Lisää osakkaat jotta hekin voivat seurata pesän tilannetta.',
+                  icon: (
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                      <circle cx="9" cy="7" r="4"/>
+                      <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>
+                    </svg>
+                  ),
+                },
+                {
+                  id: 'viestit',
+                  label: 'Viestit',
+                  teksti: 'Jätä viestejä osakkaille — yleisiä tai kirjauksiin sidottuja.',
+                  icon: (
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                    </svg>
+                  ),
+                },
+                {
+                  id: 'tapahtumat',
+                  label: 'Tapahtumaloki',
+                  teksti: 'Kaikki toimenpiteet tallentuvat automaattisesti lokiin.',
+                  tulossa: true,
+                  icon: (
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                      <circle cx="12" cy="12" r="9"/>
+                      <path d="M12 7v5l3 3"/>
+                    </svg>
+                  ),
+                },
               ].map(osio => (
-                <div key={osio.label}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
-                    <span style={{ fontSize: '9px', letterSpacing: '0.2em', textTransform: 'uppercase', color: '#C9A84C', fontFamily: 'var(--font-body), sans-serif' }}>{osio.label}</span>
-                    {osio.tulossa && <span style={{ fontSize: '8px', letterSpacing: '0.14em', textTransform: 'uppercase', color: '#4E4840', border: '1px solid rgba(240,235,227,0.08)', padding: '2px 6px' }}>Tulossa</span>}
+                <button
+                  key={osio.id}
+                  onClick={() => navPush(osio.id)}
+                  style={{
+                    backgroundColor: '#0D0B09',
+                    border: 'none',
+                    padding: '24px 18px 22px',
+                    cursor: 'pointer',
+                    textAlign: 'left',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '0',
+                    transition: 'background 0.18s ease',
+                    position: 'relative',
+                    outline: 'none',
+                  }}
+                  onMouseEnter={e => { e.currentTarget.style.backgroundColor = 'rgba(201,168,76,0.05)' }}
+                  onMouseLeave={e => { e.currentTarget.style.backgroundColor = '#0D0B09' }}
+                >
+                  {/* Ikon */}
+                  <div style={{
+                    color: osio.tulossa ? '#3A3630' : '#C9A84C',
+                    marginBottom: '16px',
+                    transition: 'color 0.18s',
+                  }}>
+                    {osio.icon}
                   </div>
-                  <p style={{ fontSize: '13px', color: '#6A6258', lineHeight: 1.8, margin: 0 }}>{osio.teksti}</p>
-                </div>
+
+                  {/* Otsikko + badge */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '7px', marginBottom: '10px', flexWrap: 'wrap' }}>
+                    <span style={{
+                      fontSize: '9px', letterSpacing: '0.2em', textTransform: 'uppercase',
+                      color: osio.tulossa ? '#4A4440' : '#C9A84C',
+                      fontFamily: 'var(--font-body), sans-serif', fontWeight: 500,
+                    }}>
+                      {osio.label}
+                    </span>
+                    {osio.tulossa && (
+                      <span style={{
+                        fontSize: '7px', letterSpacing: '0.14em', textTransform: 'uppercase',
+                        color: '#3A3630', border: '1px solid rgba(240,235,227,0.07)',
+                        padding: '1px 5px', lineHeight: '1.8',
+                      }}>
+                        Tulossa
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Kuvaus */}
+                  <p style={{
+                    fontSize: '11px', color: osio.tulossa ? '#3A3630' : '#5A5248',
+                    lineHeight: 1.75, margin: '0 0 16px',
+                    fontFamily: 'var(--font-body), sans-serif',
+                  }}>
+                    {osio.teksti}
+                  </p>
+
+                  {/* Nuoli */}
+                  <div style={{ marginTop: 'auto' }}>
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none"
+                      stroke={osio.tulossa ? '#2A2620' : 'rgba(201,168,76,0.45)'}
+                      strokeWidth="1.5">
+                      <path d="M5 12h14M12 5l7 7-7 7"/>
+                    </svg>
+                  </div>
+                </button>
               ))}
             </div>
 
@@ -625,15 +724,20 @@ const poistaVahvistettu = async (id, index) => {
               <h1 style={{ fontFamily: 'var(--font-display), Georgia, serif', fontSize: '32px', fontWeight: 300, color: '#F0EBE3', letterSpacing: '-0.02em', lineHeight: 1.2, marginBottom: '8px' }}>
                 {kuolinpesa?.vainajan_nimi || '—'}
               </h1>
-              {kuolinpesa?.kuolinpaiva && (
-                <div style={{ fontSize: '12px', color: '#7A7268', letterSpacing: '0.05em' }}>
-                  {new Date(kuolinpesa.kuolinpaiva).toLocaleDateString('fi-FI', { day: 'numeric', month: 'long', year: 'numeric' })}
-                  {' · '}
-                  <span style={{ color: '#C9A84C' }}>
-                    {Math.max(0, 90 - Math.floor((Date.now() - new Date(kuolinpesa.kuolinpaiva)) / 86400000))} päivää perunkirjoitusaikaa jäljellä
-                  </span>
-                </div>
-              )}
+              {kuolinpesa?.kuolinpaiva && (() => {
+                const deadline = new Date(kuolinpesa.kuolinpaiva)
+                deadline.setMonth(deadline.getMonth() + 3)
+                const pv = Math.max(0, Math.floor((deadline - Date.now()) / 86400000))
+                const deadlineStr = deadline.toLocaleDateString('fi-FI', { day: 'numeric', month: 'long', year: 'numeric' })
+                return (
+                  <div style={{ fontSize: '12px', color: '#7A7268', letterSpacing: '0.05em' }}>
+                    Perukirja tulee toimittaa verottajalle{' '}
+                    <span style={{ color: '#F0EBE3' }}>{deadlineStr}</span>
+                    {' '}mennessä —{' '}
+                    <span style={{ color: pv < 14 ? '#C9A84C' : '#C9A84C' }}>{pv} päivää jäljellä</span>
+                  </div>
+                )
+              })()}
             </div>
 
             {/* Vaiheistatus — data lasketaan ensin, käytetään sekä korteissa että ympyröissä */}
@@ -674,7 +778,7 @@ const poistaVahvistettu = async (id, index) => {
                   kortit: [
                     { otsikko: 'Vaihe', arvo: '3 / 5', kuvaus: 'Perunkirjoitus' },
                     { otsikko: 'Tehtävät', arvo: `${tehtavaLista.filter(t => t.vaihe === 3 && t.tehty).length}/${perunkirjoitusTehtavat.length}`, kuvaus: 'valmiina', pct: Math.round(tehtavaLista.filter(t => t.vaihe === 3 && t.tehty).length / perunkirjoitusTehtavat.length * 100) },
-                    { otsikko: 'Deadline', arvo: kuolinpesa?.kuolinpaiva ? `${Math.max(0, 90 - Math.floor((Date.now() - new Date(kuolinpesa.kuolinpaiva)) / 86400000))} pv` : '—', kuvaus: 'perunkirjoitusaikaa jäljellä' },
+                    { otsikko: 'Deadline', arvo: kuolinpesa?.kuolinpaiva ? `${Math.max(0, Math.floor(((() => { const d = new Date(kuolinpesa.kuolinpaiva); d.setMonth(d.getMonth() + 3); return d })() - Date.now()) / 86400000))} pv` : '—', kuvaus: 'perunkirjoitusaikaa jäljellä' },
                   ]
                 },
                 {

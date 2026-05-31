@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '../supabase'
 import GlobalNav from '../components/GlobalNav'
+import DashboardLink from '../components/DashboardLink'
 
 const C = {
   bg: '#0A0806',
@@ -182,11 +183,13 @@ export default function MitenToimii() {
   return (
     <div style={{ backgroundColor: C.bg, color: C.text, minHeight: '100vh', fontFamily: 'var(--font-body), sans-serif' }}>
       <style>{css}</style>
+      <DashboardLink />
 
       {/* ── NAV ── */}
       <nav className="top-bar">
         <button className="nav-logo" onClick={() => router.push('/')}>Pesänhoitaja</button>
         <button className="nav-item active" onClick={() => router.push('/miten-toimii')}>Miten toimii</button>
+        <button className="nav-item" onClick={() => router.push('/kenelle')}>Kenelle</button>
         <button className="nav-item" onClick={() => router.push('/ukk')}>UKK</button>
         <button className="nav-item" onClick={() => router.push('/hinnat')}>Hinnat</button>
         <button className="nav-item" onClick={() => router.push('/ota-yhteytta')}>Ota yhteyttä</button>
@@ -207,20 +210,6 @@ export default function MitenToimii() {
 
       {/* ── HERO ── */}
       <div style={{ padding: '140px 80px 80px', maxWidth: '1200px' }}>
-        <div className="a1" style={{
-          fontFamily: 'var(--font-body), sans-serif',
-          fontSize: '10px',
-          letterSpacing: '0.28em',
-          textTransform: 'uppercase',
-          color: C.accent,
-          display: 'flex',
-          alignItems: 'center',
-          gap: '14px',
-          marginBottom: '32px',
-        }}>
-          <div style={{ width: '24px', height: '1px', background: C.accent }} />
-          Miten toimii
-        </div>
         <h1 className="a2" style={{
           fontFamily: 'var(--font-display), Georgia, serif',
           fontSize: 'clamp(44px, 6vw, 84px)',

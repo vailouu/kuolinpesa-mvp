@@ -412,6 +412,7 @@ export default function Home() {
       <nav className="top-bar a1">
         <button className="nav-logo" onClick={() => router.push('/')}>Pesänhoitaja</button>
         <button className="nav-item" onClick={() => router.push('/miten-toimii')}>Miten toimii</button>
+        <button className="nav-item" onClick={() => router.push('/kenelle')}>Kenelle</button>
         <button className="nav-item" onClick={() => router.push('/ukk')}>UKK</button>
         <button className="nav-item" onClick={() => router.push('/hinnat')}>Hinnat</button>
         <button className="nav-item" onClick={() => router.push('/ota-yhteytta')}>Ota yhteyttä</button>
