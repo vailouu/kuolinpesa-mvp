@@ -372,6 +372,54 @@ const poistaVahvistettu = async (id, index) => {
     router.push(`/dashboard?nav=${aktiivisetNav}&vaihe=${aktiivinenVaihe}&alivaihe=${alivaihe}`)
   }, [router, aktiivisetNav, aktiivinenVaihe])
 
+  const navigoiKommenttiin = React.useCallback((tyyppi, id) => {
+    if (tyyppi === 'omaisuus') {
+      const isVelat = id.startsWith('velat_')
+      const puhtasId = isVelat ? id.replace('velat_', '') : id
+      const varatKat = [
+        { id: 'pankkivarat', kohteet: ['pankkitilit', 'tallelokero', 'ulkomaantilit'] },
+        { id: 'sijoitukset', kohteet: ['sijoitukset', 'ps-tili', 'joukkovelkakirjat', 'krypto', 'elakesaastot'] },
+        { id: 'kiinteistot', kohteet: ['asunnot', 'mokki', 'metsa', 'tontti', 'maatila', 'autotalli'] },
+        { id: 'ajoneuvot', kohteet: ['ajoneuvot', 'peravaunu', 'tyokone'] },
+        { id: 'muu-arvo-omaisuus', kohteet: ['kateinen', 'korut', 'jalometallit', 'taide', 'antiikki', 'soittimet', 'asekokoelma', 'viinikokoelma', 'arvoesineet'] },
+        { id: 'saatavat', kohteet: ['veronpalautus', 'lomarahat', 'vakuutuskorvaukset', 'vuokravakuus', 'myyntisaatavat', 'osuuskunnat'] },
+      ]
+      const velatKat = [
+        { id: 'lainat', kohteet: ['asuntolaina', 'autolaina', 'opintolaina', 'muupankkilaina'] },
+        { id: 'luotot', kohteet: ['kulutusluotot', 'osamaksut'] },
+        { id: 'muutvelat', kohteet: ['takaukset', 'maksamattomat', 'verorästit', 'vuokrarästit', 'yksityisvelat'] },
+      ]
+      const foundKat = isVelat ? velatKat.find(k => k.kohteet.includes(puhtasId)) : varatKat.find(k => k.kohteet.includes(id))
+      localStorage.setItem('tehtavat_vaihe', '2')
+      localStorage.setItem('tehtavat_alivaihe', '1')
+      localStorage.setItem('tehtavat_avattu_kohta', id)
+      localStorage.removeItem('tehtavat_avattu_sopimus')
+      if (foundKat) localStorage.setItem('varat_valittu_kategoria', JSON.stringify({ id: foundKat.id, etuliite: isVelat ? 'velat_' : '' }))
+      setAvattuKohta(id)
+      setAvattuSopimus(null)
+      navPush('tehtavat', { vaihe: 2, alivaihe: 1 })
+    } else if (tyyppi === 'sopimus') {
+      let foundSopimus = null
+      for (const kat of kategoriat) {
+        const s = kat.sopimukset.find(s => s.nimi === id || s.id === id)
+        if (s) { foundSopimus = { ...s, kategoriaId: kat.id }; break }
+      }
+      localStorage.setItem('tehtavat_vaihe', '2')
+      localStorage.setItem('tehtavat_alivaihe', '2')
+      localStorage.removeItem('tehtavat_avattu_kohta')
+      if (foundSopimus) {
+        localStorage.setItem('tehtavat_avattu_sopimus', JSON.stringify(foundSopimus))
+        setAvattuSopimus(foundSopimus)
+      }
+      setAvattuKohta(null)
+      navPush('tehtavat', { vaihe: 2, alivaihe: 2 })
+    } else if (tyyppi === 'perunkirjoitus') {
+      localStorage.setItem('tehtavat_vaihe', '3')
+      localStorage.setItem('tehtavat_alivaihe', '1')
+      navPush('tehtavat', { vaihe: 3, alivaihe: 1 })
+    }
+  }, [navPush, setAvattuKohta, setAvattuSopimus])
+
   useEffect(() => {
     if (aktiivisetNav === 'tehtavat') {
       localStorage.setItem('tehtavat_vaihe', aktiivinenVaihe)
@@ -1388,6 +1436,7 @@ const poistaVahvistettu = async (id, index) => {
             onKommenttiLisatty={(k) => setKaikkiKommentit(prev => [k, ...prev])}
             onAvaPopup={setKommenttiPopup}
             kaikkiKommentit={kaikkiKommentit}
+            onNavigoiOsioon={navigoiKommenttiin}
           />
         )}
 
@@ -1512,7 +1561,7 @@ function KommenttiKentta({ kuolinpesaId, kayttajaEmail, kontekstiTyyppi = 'ylein
   )
 }
 
-function ViestitNakyma({ kuolinpesaId, kayttajaEmail, onKommenttiLisatty, onAvaPopup, kaikkiKommentit }) {
+function ViestitNakyma({ kuolinpesaId, kayttajaEmail, onKommenttiLisatty, onAvaPopup, kaikkiKommentit, onNavigoiOsioon }) {
   const osioNimiMap = {
     'pankkivarat': '🏦 Pankkivarat',
     'sijoitukset': '📈 Sijoitukset',
@@ -1565,20 +1614,34 @@ function ViestitNakyma({ kuolinpesaId, kayttajaEmail, onKommenttiLisatty, onAvaP
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1px' }}>
             {Object.values(ryhmitelty).map(osio => (
-              <button key={`${osio.tyyppi}::${osio.id}`}
-                onClick={() => onAvaPopup({ tyyppi: osio.tyyppi, id: osio.id, nimi: osio.nimi, kategoriaNimi: osio.tyyppi === 'tehtava' ? 'Tehtävä' : 'Omaisuuden selvitys' })}
-                style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#0D0B09', padding: '14px 16px', border: 'none', borderBottom: '1px solid rgba(240,235,227,0.04)', cursor: 'pointer', textAlign: 'left', width: '100%', transition: 'background 0.15s' }}
-                onMouseEnter={e => e.currentTarget.style.backgroundColor = '#131109'}
-                onMouseLeave={e => e.currentTarget.style.backgroundColor = '#0D0B09'}
+              <div key={`${osio.tyyppi}::${osio.id}`}
+                style={{ display: 'flex', alignItems: 'center', borderBottom: '1px solid rgba(240,235,227,0.04)' }}
               >
-                <span style={{ fontSize: '13px', color: '#D0C8BC' }}>{osio.nimi}</span>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-                  </svg>
-                  <span style={{ fontSize: '11px', color: '#C9A84C' }}>{osio.kommentit.length}</span>
-                </div>
-              </button>
+                <button
+                  onClick={() => onAvaPopup({ tyyppi: osio.tyyppi, id: osio.id, nimi: osio.nimi, kategoriaNimi: osio.tyyppi === 'tehtava' ? 'Tehtävä' : 'Omaisuuden selvitys' })}
+                  style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flex: 1, backgroundColor: '#0D0B09', padding: '14px 16px', border: 'none', cursor: 'pointer', textAlign: 'left', transition: 'background 0.15s' }}
+                  onMouseEnter={e => e.currentTarget.style.backgroundColor = '#131109'}
+                  onMouseLeave={e => e.currentTarget.style.backgroundColor = '#0D0B09'}
+                >
+                  <span style={{ fontSize: '13px', color: '#D0C8BC' }}>{osio.nimi}</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                    </svg>
+                    <span style={{ fontSize: '11px', color: '#C9A84C' }}>{osio.kommentit.length}</span>
+                  </div>
+                </button>
+                {['omaisuus', 'sopimus', 'perunkirjoitus'].includes(osio.tyyppi) && (
+                  <button
+                    onClick={() => onNavigoiOsioon(osio.tyyppi, osio.id)}
+                    style={{ padding: '14px 16px', border: 'none', borderLeft: '1px solid rgba(240,235,227,0.06)', backgroundColor: '#0D0B09', cursor: 'pointer', color: '#5A5248', fontSize: '11px', letterSpacing: '0.08em', whiteSpace: 'nowrap', transition: 'color 0.15s, background 0.15s' }}
+                    onMouseEnter={e => { e.currentTarget.style.color = '#C9A84C'; e.currentTarget.style.backgroundColor = '#131109' }}
+                    onMouseLeave={e => { e.currentTarget.style.color = '#5A5248'; e.currentTarget.style.backgroundColor = '#0D0B09' }}
+                  >
+                    Siirry →
+                  </button>
+                )}
+              </div>
             ))}
           </div>
         )}
