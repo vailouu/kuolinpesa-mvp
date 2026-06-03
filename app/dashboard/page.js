@@ -1632,6 +1632,27 @@ function VaratJaVelat({ rastitattu, onToggle, kirjaukset, onKirjaus, vahvistetut
     }
   }, [lsKey])
 
+  useEffect(() => {
+    const saved = localStorage.getItem('varat_valittu_kategoria')
+    if (saved) {
+      try {
+        const { id, etuliite } = JSON.parse(saved)
+        const varatKat = varatKategoriat.find(k => k.id === id)
+        const velatKat = velatKategoriat.find(k => k.id === id)
+        if (varatKat) setValittuKategoria({ ...varatKat, lista: varatJaVelatMuistilista.varat, etuliite: '' })
+        else if (velatKat) setValittuKategoria({ ...velatKat, lista: varatJaVelatMuistilista.velat, etuliite: 'velat_' })
+      } catch {}
+    }
+  }, [])
+
+  useEffect(() => {
+    if (valittuKategoria) {
+      localStorage.setItem('varat_valittu_kategoria', JSON.stringify({ id: valittuKategoria.id, etuliite: valittuKategoria.etuliite || '' }))
+    } else {
+      localStorage.removeItem('varat_valittu_kategoria')
+    }
+  }, [valittuKategoria])
+
   const lisaaKohde = (katId, etuliite) => {
     if (!lisaysTeksti.trim()) return
     const uusiId = lisaysId || `${etuliite}custom_${Date.now()}`
