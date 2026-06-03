@@ -1,5 +1,5 @@
 'use client'
-import { useState } from 'react'
+import { useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { supabase } from '../supabase'
 
@@ -76,7 +76,7 @@ const css = `
   .back-link:hover { color: ${C.accent}; }
 `
 
-export default function Kirjaudu() {
+function KirjauduInner() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const istuntoVanhentunut = searchParams.get('syy') === 'istunto'
@@ -222,5 +222,13 @@ export default function Kirjaudu() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function Kirjaudu() {
+  return (
+    <Suspense fallback={null}>
+      <KirjauduInner />
+    </Suspense>
   )
 }

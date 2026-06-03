@@ -1,5 +1,5 @@
 'use client'
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { supabase } from '../supabase'
 import TopBar from '../components/TopBar'
@@ -146,7 +146,7 @@ const varatJaVelatMuistilista = {
   ]
 }
 
-export default function Dashboard() {
+function DashboardInner() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const aktiivinenVaihe = parseInt(searchParams?.get('vaihe') || '1')
@@ -3494,5 +3494,13 @@ function WelcomeOverlay({ nimi, etunimi, uusiKayttaja, fading, onDone, onStartFa
         </h1>
       </div>
     </div>
+  )
+}
+
+export default function Dashboard() {
+  return (
+    <Suspense fallback={null}>
+      <DashboardInner />
+    </Suspense>
   )
 }
