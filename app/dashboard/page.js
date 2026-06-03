@@ -387,6 +387,13 @@ const poistaVahvistettu = async (id, index) => {
     }
   }, [avattuSopimus, aktiivisetNav])
 
+  useEffect(() => {
+    if (aktiivisetNav === 'tehtavat') {
+      if (avattuKohta) localStorage.setItem('tehtavat_avattu_kohta', avattuKohta)
+      else localStorage.removeItem('tehtavat_avattu_kohta')
+    }
+  }, [avattuKohta, aktiivisetNav])
+
   const navItems = [
     {
       id: 'aloita', label: 'Aloita tästä',
@@ -528,6 +535,9 @@ const poistaVahvistettu = async (id, index) => {
                     navPush('tehtavat', { vaihe: v, alivaihe: av })
                     const raw = localStorage.getItem('tehtavat_avattu_sopimus')
                     if (raw) { try { setAvattuSopimus(JSON.parse(raw)) } catch {} }
+                    const kohta = localStorage.getItem('tehtavat_avattu_kohta')
+                    if (kohta) setAvattuKohta(kohta)
+                    else setAvattuKohta(null)
                   } else {
                     navPush(item.id)
                   }
