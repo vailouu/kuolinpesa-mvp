@@ -372,6 +372,21 @@ const poistaVahvistettu = async (id, index) => {
     router.push(`/dashboard?nav=${aktiivisetNav}&vaihe=${aktiivinenVaihe}&alivaihe=${alivaihe}`)
   }, [router, aktiivisetNav, aktiivinenVaihe])
 
+  useEffect(() => {
+    if (aktiivisetNav === 'tehtavat') {
+      localStorage.setItem('tehtavat_vaihe', aktiivinenVaihe)
+      localStorage.setItem('tehtavat_alivaihe', aktiivinenAlivaihe)
+    }
+  }, [aktiivisetNav, aktiivinenVaihe, aktiivinenAlivaihe])
+
+  useEffect(() => {
+    if (avattuSopimus) {
+      localStorage.setItem('tehtavat_avattu_sopimus', JSON.stringify(avattuSopimus))
+    } else if (aktiivisetNav === 'tehtavat') {
+      localStorage.removeItem('tehtavat_avattu_sopimus')
+    }
+  }, [avattuSopimus, aktiivisetNav])
+
   const navItems = [
     {
       id: 'aloita', label: 'Aloita tästä',
@@ -506,7 +521,17 @@ const poistaVahvistettu = async (id, index) => {
             return (
               <button
                 key={item.id}
-                onClick={() => navPush(item.id)}
+                onClick={() => {
+                  if (item.id === 'tehtavat') {
+                    const v = parseInt(localStorage.getItem('tehtavat_vaihe') || '1')
+                    const av = parseInt(localStorage.getItem('tehtavat_alivaihe') || '1')
+                    navPush('tehtavat', { vaihe: v, alivaihe: av })
+                    const raw = localStorage.getItem('tehtavat_avattu_sopimus')
+                    if (raw) { try { setAvattuSopimus(JSON.parse(raw)) } catch {} }
+                  } else {
+                    navPush(item.id)
+                  }
+                }}
                 style={{
                   display: 'flex', alignItems: 'center', gap: '12px',
                   width: '100%', padding: '11px 20px',
