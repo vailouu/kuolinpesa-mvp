@@ -1526,6 +1526,8 @@ function ViestitNakyma({ kuolinpesaId, kayttajaEmail, onKommenttiLisatty, onAvaP
     'jasenydet': '🤝 Jäsenyydet',
     'hoiva-terveys': '🏥 Hoiva ja terveys',
     'digitaaliset': '💻 Digitaaliset tilit',
+    ...Object.fromEntries(varatJaVelatMuistilista.varat.map(k => [k.id, k.teksti])),
+    ...Object.fromEntries(varatJaVelatMuistilista.velat.map(k => [`velat_${k.id}`, k.teksti])),
   }
   const osiokohtaiset = kaikkiKommentit.filter(k => k.konteksti_tyyppi !== 'yleinen' && k.konteksti_id)
   const ryhmitelty = osiokohtaiset.reduce((acc, k) => {
