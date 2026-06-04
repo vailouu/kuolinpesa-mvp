@@ -1314,22 +1314,31 @@ const poistaVahvistettu = async (id, index) => {
       <div className="flex-1 min-w-0">
         {aktiivinenAlivaihe === 1 && <VaratJaVelat rastitattu={varatRastitattu} onToggle={toggleVaraRasti} kirjaukset={varatKirjaukset} onKirjaus={tallennaKirjaus} vahvistetut={vahvistetutKirjaukset} onVahvista={tallennaVahvistettu} onPoista={poistaVahvistettu} avattuKohta={avattuKohta} setAvattuKohta={setAvattuKohta} kommenttiMaara={kommenttiMaara} onAvaPopup={setKommenttiPopup} kuolinpesaId={kuolinpesa?.id} kayttajaEmail={kuolinpesa?.kayttaja_email} onKommenttiLisatty={(k) => setKaikkiKommentit(prev => [k, ...prev])} onValmis={() => navigoiVaihe(3)} />}
         {aktiivinenAlivaihe === 2 && (() => {
-          const varatLkm = varatJaVelatMuistilista.varat.filter(k => varatRastitattu?.[k.id] === 'kylla').length
-          const velatLkm = varatJaVelatMuistilista.velat.filter(k => varatRastitattu?.['velat_' + k.id] === 'kylla').length
+          const varatLoydetyt = varatJaVelatMuistilista.varat.filter(k => vahvistetutKirjaukset?.[k.id]?.length > 0)
+          const velatLoydetyt = varatJaVelatMuistilista.velat.filter(k => vahvistetutKirjaukset?.['velat_' + k.id]?.length > 0)
+          const tyhjaTeksti = (
+            <p style={{ fontSize: '12px', color: '#3A3630', fontFamily: 'var(--font-display), Georgia, serif', fontStyle: 'italic', padding: '8px 0' }}>
+              Ei vielä kirjattuja eriä
+            </p>
+          )
+          const renderRivit = (erat, getKey) => erat.flatMap(k =>
+            (vahvistetutKirjaukset[getKey(k)] || []).map((v, i) => (
+              <div key={k.id + i} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 0', borderBottom: '1px solid rgba(240,235,227,0.04)' }}>
+                <span style={{ fontSize: '11px', color: '#5A5248', flexShrink: 0 }}>{k.teksti}</span>
+                <span style={{ color: '#3A3630', fontSize: '11px', flexShrink: 0 }}>→</span>
+                <span style={{ fontSize: '13px', color: '#D0C8BC' }}>{v}</span>
+              </div>
+            ))
+          )
           return (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               <div style={{ backgroundColor: '#0D0B09', border: '1px solid rgba(240,235,227,0.08)', padding: '24px' }}>
-                <div style={{ fontSize: '9px', letterSpacing: '0.2em', textTransform: 'uppercase', color: '#C9A84C', marginBottom: '20px' }}>Yhteenveto</div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 0', borderBottom: '1px solid rgba(240,235,227,0.06)' }}>
-                    <span style={{ fontSize: '13px', color: '#A09890' }}>Varat</span>
-                    <span style={{ fontSize: '15px', color: '#F0EBE3', fontFamily: 'var(--font-display), Georgia, serif', fontWeight: 300 }}>{varatLkm} erää löytyi</span>
-                  </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 0', borderBottom: '1px solid rgba(240,235,227,0.06)' }}>
-                    <span style={{ fontSize: '13px', color: '#A09890' }}>Velat</span>
-                    <span style={{ fontSize: '15px', color: '#F0EBE3', fontFamily: 'var(--font-display), Georgia, serif', fontWeight: 300 }}>{velatLkm} erää löytyi</span>
-                  </div>
-                </div>
+                <div style={{ fontSize: '9px', letterSpacing: '0.2em', textTransform: 'uppercase', color: '#C9A84C', marginBottom: '20px' }}>Varat</div>
+                {varatLoydetyt.length === 0 ? tyhjaTeksti : renderRivit(varatLoydetyt, k => k.id)}
+              </div>
+              <div style={{ backgroundColor: '#0D0B09', border: '1px solid rgba(240,235,227,0.08)', padding: '24px' }}>
+                <div style={{ fontSize: '9px', letterSpacing: '0.2em', textTransform: 'uppercase', color: '#C9A84C', marginBottom: '20px' }}>Velat</div>
+                {velatLoydetyt.length === 0 ? tyhjaTeksti : renderRivit(velatLoydetyt, k => 'velat_' + k.id)}
               </div>
             </div>
           )
