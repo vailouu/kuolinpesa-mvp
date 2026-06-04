@@ -883,10 +883,10 @@ const poistaVahvistettu = async (id, index) => {
                   ]
                 },
                 {
-                  numero: 4, nimi: 'Hoito ja toimeenpano', tehty: Object.values(perintoveroTehty).filter(Boolean).length + Object.values(toimeenpanoTehty).filter(Boolean).length, kaikki: perintoveroTehtavat.length + toimeenpanoTehtavat.length, kuvaus: null,
+                  numero: 4, nimi: 'Hoito ja toimeenpano', tehty: Object.values(perintoveroTehty).filter(Boolean).length, kaikki: perintoveroTehtavat.length, kuvaus: null,
                   kortit: [
                     { otsikko: 'Vaihe', arvo: '4 / 5', kuvaus: 'Hoito ja toimeenpano' },
-                    { otsikko: 'Tehtävät', arvo: `${Object.values(perintoveroTehty).filter(Boolean).length + Object.values(toimeenpanoTehty).filter(Boolean).length}/${perintoveroTehtavat.length + toimeenpanoTehtavat.length}`, kuvaus: 'valmiina', pct: Math.round((Object.values(perintoveroTehty).filter(Boolean).length + Object.values(toimeenpanoTehty).filter(Boolean).length) / (perintoveroTehtavat.length + toimeenpanoTehtavat.length) * 100) },
+                    { otsikko: 'Tehtävät', arvo: `${Object.values(perintoveroTehty).filter(Boolean).length}/${perintoveroTehtavat.length}`, kuvaus: 'valmiina', pct: Math.round(Object.values(perintoveroTehty).filter(Boolean).length / perintoveroTehtavat.length * 100) },
                     { otsikko: 'Sisältää', arvo: '3 osiota', kuvaus: 'perintövero · jako · toimeenpano' },
                   ]
                 },
@@ -1021,7 +1021,7 @@ const poistaVahvistettu = async (id, index) => {
                     : aktiivinenVaihe === 3
                     ? `${Object.values(perunkirjoitusTehty).filter(Boolean).length}/${perunkirjoitusTehtavat.length} valmis`
                     : aktiivinenVaihe === 4
-                    ? `${Object.values(perintoveroTehty).filter(Boolean).length + Object.values(toimeenpanoTehty).filter(Boolean).length}/${perintoveroTehtavat.length + toimeenpanoTehtavat.length} valmis`
+                    ? `${Object.values(perintoveroTehty).filter(Boolean).length}/${perintoveroTehtavat.length} valmis`
                     : `${valmiit}/${kaikki} tehtävää`}
                 </span>
               </div>
@@ -1032,7 +1032,7 @@ const poistaVahvistettu = async (id, index) => {
                     : aktiivinenVaihe === 3
                     ? `${(Object.values(perunkirjoitusTehty).filter(Boolean).length / perunkirjoitusTehtavat.length)*100}%`
                     : aktiivinenVaihe === 4
-                    ? `${((Object.values(perintoveroTehty).filter(Boolean).length + Object.values(toimeenpanoTehty).filter(Boolean).length) / (perintoveroTehtavat.length + toimeenpanoTehtavat.length))*100}%`
+                    ? `${(Object.values(perintoveroTehty).filter(Boolean).length / perintoveroTehtavat.length)*100}%`
                     : kaikki > 0 ? `${(valmiit/kaikki)*100}%` : '0%'
                 }} />
               </div>
