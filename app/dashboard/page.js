@@ -1483,7 +1483,19 @@ const poistaVahvistettu = async (id, index) => {
                 <div style={{ fontSize: '9px', letterSpacing: '0.2em', textTransform: 'uppercase', color: '#C9A84C', marginBottom: '4px' }}>{kommenttiPopup.kategoriaNimi}</div>
                 <h3 style={{ fontSize: '15px', color: '#F0EBE3', fontFamily: 'var(--font-display), Georgia, serif', fontWeight: 400 }}>{kommenttiPopup.nimi}</h3>
               </div>
-              <button onClick={() => setKommenttiPopup(null)} style={{ color: '#4E4840', background: 'none', border: 'none', cursor: 'pointer', fontSize: '18px' }}>✕</button>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexShrink: 0 }}>
+                {['omaisuus', 'sopimus', 'perunkirjoitus'].includes(kommenttiPopup.tyyppi) && (
+                  <button
+                    onClick={() => { setKommenttiPopup(null); navigoiKommenttiin(kommenttiPopup.tyyppi, kommenttiPopup.id) }}
+                    style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '11px', letterSpacing: '0.1em', color: '#C9A84C', fontFamily: 'var(--font-body), sans-serif', padding: 0, transition: 'opacity 0.15s' }}
+                    onMouseEnter={e => e.currentTarget.style.opacity = '0.7'}
+                    onMouseLeave={e => e.currentTarget.style.opacity = '1'}
+                  >
+                    Siirry osioon →
+                  </button>
+                )}
+                <button onClick={() => setKommenttiPopup(null)} style={{ color: '#4E4840', background: 'none', border: 'none', cursor: 'pointer', fontSize: '18px' }}>✕</button>
+              </div>
             </div>
             <div style={{ flex: 1, overflowY: 'auto', padding: '0 24px' }}>
               <KommenttiKentta
@@ -1614,34 +1626,20 @@ function ViestitNakyma({ kuolinpesaId, kayttajaEmail, onKommenttiLisatty, onAvaP
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1px' }}>
             {Object.values(ryhmitelty).map(osio => (
-              <div key={`${osio.tyyppi}::${osio.id}`}
-                style={{ display: 'flex', alignItems: 'center', borderBottom: '1px solid rgba(240,235,227,0.04)' }}
+              <button key={`${osio.tyyppi}::${osio.id}`}
+                onClick={() => onAvaPopup({ tyyppi: osio.tyyppi, id: osio.id, nimi: osio.nimi, kategoriaNimi: osio.tyyppi === 'tehtava' ? 'Tehtävä' : 'Omaisuuden selvitys' })}
+                style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#0D0B09', padding: '14px 16px', border: 'none', borderBottom: '1px solid rgba(240,235,227,0.04)', cursor: 'pointer', textAlign: 'left', width: '100%', transition: 'background 0.15s' }}
+                onMouseEnter={e => e.currentTarget.style.backgroundColor = '#131109'}
+                onMouseLeave={e => e.currentTarget.style.backgroundColor = '#0D0B09'}
               >
-                <button
-                  onClick={() => onAvaPopup({ tyyppi: osio.tyyppi, id: osio.id, nimi: osio.nimi, kategoriaNimi: osio.tyyppi === 'tehtava' ? 'Tehtävä' : 'Omaisuuden selvitys' })}
-                  style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flex: 1, backgroundColor: '#0D0B09', padding: '14px 16px', border: 'none', cursor: 'pointer', textAlign: 'left', transition: 'background 0.15s' }}
-                  onMouseEnter={e => e.currentTarget.style.backgroundColor = '#131109'}
-                  onMouseLeave={e => e.currentTarget.style.backgroundColor = '#0D0B09'}
-                >
-                  <span style={{ fontSize: '13px', color: '#D0C8BC' }}>{osio.nimi}</span>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-                    </svg>
-                    <span style={{ fontSize: '11px', color: '#C9A84C' }}>{osio.kommentit.length}</span>
-                  </div>
-                </button>
-                {['omaisuus', 'sopimus', 'perunkirjoitus'].includes(osio.tyyppi) && (
-                  <button
-                    onClick={() => onNavigoiOsioon(osio.tyyppi, osio.id)}
-                    style={{ padding: '14px 16px', border: 'none', borderLeft: '1px solid rgba(240,235,227,0.06)', backgroundColor: '#0D0B09', cursor: 'pointer', color: '#5A5248', fontSize: '11px', letterSpacing: '0.08em', whiteSpace: 'nowrap', transition: 'color 0.15s, background 0.15s' }}
-                    onMouseEnter={e => { e.currentTarget.style.color = '#C9A84C'; e.currentTarget.style.backgroundColor = '#131109' }}
-                    onMouseLeave={e => { e.currentTarget.style.color = '#5A5248'; e.currentTarget.style.backgroundColor = '#0D0B09' }}
-                  >
-                    Siirry →
-                  </button>
-                )}
-              </div>
+                <span style={{ fontSize: '13px', color: '#D0C8BC' }}>{osio.nimi}</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                  </svg>
+                  <span style={{ fontSize: '11px', color: '#C9A84C' }}>{osio.kommentit.length}</span>
+                </div>
+              </button>
             ))}
           </div>
         )}
