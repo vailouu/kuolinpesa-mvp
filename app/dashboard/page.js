@@ -187,7 +187,7 @@ function DashboardInner() {
     { numero: 1, nimi: 'Ensitoimet' },
     { numero: 2, nimi: 'Omaisuuden selvitys' },
     { numero: 3, nimi: 'Perunkirjoitus' },
-    { numero: 4, nimi: 'Hoito ja toimeenpano' },
+    { numero: 4, nimi: 'Perintövero ja perinnönjako' },
     { numero: 5, nimi: 'Päätös' },
   ]
 
@@ -883,9 +883,9 @@ const poistaVahvistettu = async (id, index) => {
                   ]
                 },
                 {
-                  numero: 4, nimi: 'Hoito ja toimeenpano', tehty: Object.values(perintoveroTehty).filter(Boolean).length, kaikki: perintoveroTehtavat.length, kuvaus: null,
+                  numero: 4, nimi: 'Perintövero ja perinnönjako', tehty: Object.values(perintoveroTehty).filter(Boolean).length, kaikki: perintoveroTehtavat.length, kuvaus: null,
                   kortit: [
-                    { otsikko: 'Vaihe', arvo: '4 / 5', kuvaus: 'Hoito ja toimeenpano' },
+                    { otsikko: 'Vaihe', arvo: '4 / 5', kuvaus: 'Perintövero ja perinnönjako' },
                     { otsikko: 'Tehtävät', arvo: `${Object.values(perintoveroTehty).filter(Boolean).length}/${perintoveroTehtavat.length}`, kuvaus: 'valmiina', pct: Math.round(Object.values(perintoveroTehty).filter(Boolean).length / perintoveroTehtavat.length * 100) },
                     { otsikko: 'Sisältää', arvo: '3 osiota', kuvaus: 'perintövero · jako · toimeenpano' },
                   ]
@@ -3226,7 +3226,7 @@ function HoitoJaToimeenpanoOsio({ kuolinpesa, vahvistetutKirjaukset, varatRastit
     <div>
       {/* Sub-tabs */}
       <div className="flex gap-2 mb-6">
-        {[{ num: 1, nimi: 'Perintövero' }, { num: 2, nimi: 'Toimeenpano' }].map(a => (
+        {[{ num: 1, nimi: 'Perintövero' }, { num: 2, nimi: 'Perinnönjako' }, { num: 3, nimi: 'Toimeenpano' }].map(a => (
           <button key={a.num}
             onClick={() => { setAktiivinenAlivaihe(a.num); setAvattuTehtava(null); setAvattuKohde(null) }}
             className="flex-1 py-2 px-4 text-sm font-bold"
@@ -3399,8 +3399,15 @@ function HoitoJaToimeenpanoOsio({ kuolinpesa, vahvistetutKirjaukset, varatRastit
         </>
       )}
 
-      {/* ── 4.2 TOIMEENPANO ── */}
+      {/* ── 4.2 PERINNÖNJAKO ── */}
       {aktiivinenAlivaihe === 2 && (
+        <div style={{ padding: '24px', backgroundColor: '#0D0B09', border: '1px solid rgba(240,235,227,0.08)' }}>
+          <p style={{ color: '#7A7268', fontSize: '13px', lineHeight: 1.75 }}>Perinnönjako-osio on tulossa.</p>
+        </div>
+      )}
+
+      {/* ── 4.3 TOIMEENPANO ── */}
+      {aktiivinenAlivaihe === 3 && (
         <div style={{ display: 'flex', gap: '24px', alignItems: 'flex-start' }}>
           <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: '2px' }}>
             {aktiivisetToimeenpanoTehtavat.map((tehtava, i) => {
