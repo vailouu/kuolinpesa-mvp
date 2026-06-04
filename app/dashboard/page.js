@@ -1322,19 +1322,14 @@ const poistaVahvistettu = async (id, index) => {
                 <div style={{ fontSize: '9px', letterSpacing: '0.2em', textTransform: 'uppercase', color: '#C9A84C', marginBottom: '20px' }}>Yhteenveto</div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 0', borderBottom: '1px solid rgba(240,235,227,0.06)' }}>
-                    <span style={{ fontSize: '13px', color: '#A09890' }}>Varat yhteensä ({varatLkm} erää löytyi)</span>
-                    <span style={{ fontSize: '18px', color: '#F0EBE3', fontFamily: 'var(--font-display), Georgia, serif', fontWeight: 300 }}>0 €</span>
+                    <span style={{ fontSize: '13px', color: '#A09890' }}>Varat</span>
+                    <span style={{ fontSize: '15px', color: '#F0EBE3', fontFamily: 'var(--font-display), Georgia, serif', fontWeight: 300 }}>{varatLkm} erää löytyi</span>
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 0', borderBottom: '1px solid rgba(240,235,227,0.06)' }}>
-                    <span style={{ fontSize: '13px', color: '#A09890' }}>Velat yhteensä ({velatLkm} erää löytyi)</span>
-                    <span style={{ fontSize: '18px', color: '#F0EBE3', fontFamily: 'var(--font-display), Georgia, serif', fontWeight: 300 }}>0 €</span>
-                  </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px', backgroundColor: 'rgba(201,168,76,0.06)', border: '1px solid rgba(201,168,76,0.2)', marginTop: '4px' }}>
-                    <span style={{ fontSize: '13px', color: '#C9A84C', fontWeight: 600, letterSpacing: '0.04em' }}>Nettopesä</span>
-                    <span style={{ fontSize: '22px', color: '#C9A84C', fontFamily: 'var(--font-display), Georgia, serif', fontWeight: 300 }}>0 €</span>
+                    <span style={{ fontSize: '13px', color: '#A09890' }}>Velat</span>
+                    <span style={{ fontSize: '15px', color: '#F0EBE3', fontFamily: 'var(--font-display), Georgia, serif', fontWeight: 300 }}>{velatLkm} erää löytyi</span>
                   </div>
                 </div>
-                <p style={{ fontSize: '11px', color: '#4E4840', marginTop: '16px', lineHeight: 1.6 }}>Euromäärät täydennetään perukirjan valmistuttua. Tässä näkyy löydettyjen erien lukumäärät.</p>
               </div>
             </div>
           )
