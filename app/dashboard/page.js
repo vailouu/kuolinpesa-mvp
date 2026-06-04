@@ -185,16 +185,11 @@ function DashboardInner() {
   const selvitysKaikki = kategoriat.reduce((sum, k) => sum + k.sopimukset.length, 0)
   const vaiheet = [
     { numero: 1, nimi: 'Ensitoimet' },
-    { numero: 2, nimi: 'Omaisuuden selvitys' },
-    { numero: 3, nimi: 'Perunkirjoitus' },
-    { numero: 4, nimi: 'Perintövero ja perinnönjako' },
-    { numero: 5, nimi: 'Päätös' },
-  ]
-
-  const alivaiheet = [
-    { numero: 1, nimi: 'Varat ja velat' },
-    { numero: 2, nimi: 'Sopimukset' },
-    { numero: 3, nimi: 'Yhteenveto' },
+    { numero: 2, nimi: 'Varat ja velat' },
+    { numero: 3, nimi: 'Sopimukset' },
+    { numero: 4, nimi: 'Perunkirjoitus' },
+    { numero: 5, nimi: 'Jako ja verot' },
+    { numero: 6, nimi: 'Päätös' },
   ]
 
   const oletusTehtavat = [
@@ -414,9 +409,9 @@ const poistaVahvistettu = async (id, index) => {
       setAvattuKohta(null)
       navPush('tehtavat', { vaihe: 2, alivaihe: 2 })
     } else if (tyyppi === 'perunkirjoitus') {
-      localStorage.setItem('tehtavat_vaihe', '3')
+      localStorage.setItem('tehtavat_vaihe', '4')
       localStorage.setItem('tehtavat_alivaihe', '1')
-      navPush('tehtavat', { vaihe: 3, alivaihe: 1 })
+      navPush('tehtavat', { vaihe: 4, alivaihe: 1 })
     }
   }, [navPush, setAvattuKohta, setAvattuSopimus])
 
@@ -861,39 +856,50 @@ const poistaVahvistettu = async (id, index) => {
                   ]
                 },
                 {
-                  numero: 2, nimi: 'Omaisuuden selvitys',
-                  tehty: varatKasitelty + sopimusKasitelty,
-                  kaikki: varatKaikki + sopimusKaikki,
-                  kuvaus: `Varat ja velat ${varatKasitelty}/${varatKaikki} · Sopimukset ${sopimusKasitelty}/${sopimusKaikki}`,
+                  numero: 2, nimi: 'Varat ja velat',
+                  tehty: varatKasitelty,
+                  kaikki: varatKaikki,
+                  kuvaus: `${varatKasitelty}/${varatKaikki} tarkistettu`,
                   kortit: [
-                    { otsikko: 'Vaihe', arvo: '2 / 5', kuvaus: 'Omaisuuden selvitys' },
-                    { otsikko: 'Varat ja velat', arvo: `${varatKasitelty}/${varatKaikki}`, kuvaus: 'tarkistettu', pct: varatKaikki > 0 ? Math.round(varatKasitelty / varatKaikki * 100) : 0 },
-                    { otsikko: 'Sopimukset', arvo: `${sopimusKasitelty}/${sopimusKaikki}`, kuvaus: 'hoidettu', pct: sopimusKaikki > 0 ? Math.round(sopimusKasitelty / sopimusKaikki * 100) : 0 },
+                    { otsikko: 'Vaihe', arvo: '2 / 6', kuvaus: 'Varat ja velat' },
+                    { otsikko: 'Tarkistettu', arvo: `${varatKasitelty}/${varatKaikki}`, kuvaus: 'erää käyty läpi', pct: varatKaikki > 0 ? Math.round(varatKasitelty / varatKaikki * 100) : 0 },
+                    { otsikko: 'Löytyi', arvo: `${Object.values(varatRastitattu).filter(v => v === 'kylla').length}`, kuvaus: 'merkitty löytyneeksi' },
                   ]
                 },
                 {
-                  numero: 3, nimi: 'Perunkirjoitus',
-                  tehty: tehtavaLista.filter(t => t.vaihe === 3 && t.tehty).length,
+                  numero: 3, nimi: 'Sopimukset',
+                  tehty: sopimusKasitelty,
+                  kaikki: sopimusKaikki,
+                  kuvaus: `${sopimusKasitelty}/${sopimusKaikki} hoidettu`,
+                  kortit: [
+                    { otsikko: 'Vaihe', arvo: '3 / 6', kuvaus: 'Sopimukset' },
+                    { otsikko: 'Hoidettu', arvo: `${sopimusKasitelty}/${sopimusKaikki}`, kuvaus: 'sopimusta', pct: sopimusKaikki > 0 ? Math.round(sopimusKasitelty / sopimusKaikki * 100) : 0 },
+                    { otsikko: 'Avoinna', arvo: `${kategoriat.reduce((sum, k) => sum + k.sopimukset.filter(s => sopimusTilat[s.nimi] === 'kesken').length, 0)}`, kuvaus: 'kesken' },
+                  ]
+                },
+                {
+                  numero: 4, nimi: 'Perunkirjoitus',
+                  tehty: Object.values(perunkirjoitusTehty).filter(Boolean).length,
                   kaikki: perunkirjoitusTehtavat.length,
                   kuvaus: null,
                   kortit: [
-                    { otsikko: 'Vaihe', arvo: '3 / 5', kuvaus: 'Perunkirjoitus' },
-                    { otsikko: 'Tehtävät', arvo: `${tehtavaLista.filter(t => t.vaihe === 3 && t.tehty).length}/${perunkirjoitusTehtavat.length}`, kuvaus: 'valmiina', pct: Math.round(tehtavaLista.filter(t => t.vaihe === 3 && t.tehty).length / perunkirjoitusTehtavat.length * 100) },
+                    { otsikko: 'Vaihe', arvo: '4 / 6', kuvaus: 'Perunkirjoitus' },
+                    { otsikko: 'Tehtävät', arvo: `${Object.values(perunkirjoitusTehty).filter(Boolean).length}/${perunkirjoitusTehtavat.length}`, kuvaus: 'valmiina', pct: Math.round(Object.values(perunkirjoitusTehty).filter(Boolean).length / perunkirjoitusTehtavat.length * 100) },
                     { otsikko: 'Deadline', arvo: kuolinpesa?.kuolinpaiva ? `${Math.max(0, Math.floor(((() => { const d = new Date(kuolinpesa.kuolinpaiva); d.setMonth(d.getMonth() + 3); return d })() - Date.now()) / 86400000))} pv` : '—', kuvaus: 'perunkirjoitusaikaa jäljellä' },
                   ]
                 },
                 {
-                  numero: 4, nimi: 'Perintövero ja perinnönjako', tehty: Object.values(perintoveroTehty).filter(Boolean).length, kaikki: perintoveroTehtavat.length, kuvaus: null,
+                  numero: 5, nimi: 'Jako ja verot', tehty: Object.values(perintoveroTehty).filter(Boolean).length, kaikki: perintoveroTehtavat.length, kuvaus: null,
                   kortit: [
-                    { otsikko: 'Vaihe', arvo: '4 / 5', kuvaus: 'Perintövero ja perinnönjako' },
+                    { otsikko: 'Vaihe', arvo: '5 / 6', kuvaus: 'Jako ja verot' },
                     { otsikko: 'Tehtävät', arvo: `${Object.values(perintoveroTehty).filter(Boolean).length}/${perintoveroTehtavat.length}`, kuvaus: 'valmiina', pct: Math.round(Object.values(perintoveroTehty).filter(Boolean).length / perintoveroTehtavat.length * 100) },
-                    { otsikko: 'Sisältää', arvo: '3 osiota', kuvaus: 'perintövero · jako · toimeenpano' },
+                    { otsikko: 'Sisältää', arvo: '3 osiota', kuvaus: 'perintövero · perinnönjako · toimeenpano' },
                   ]
                 },
                 {
-                  numero: 5, nimi: 'Päätös', tehty: 0, kaikki: 0, kuvaus: null,
+                  numero: 6, nimi: 'Päätös', tehty: 0, kaikki: 0, kuvaus: null,
                   kortit: [
-                    { otsikko: 'Vaihe', arvo: '5 / 5', kuvaus: 'Päätös' },
+                    { otsikko: 'Vaihe', arvo: '6 / 6', kuvaus: 'Päätös' },
                     { otsikko: 'Tila', arvo: 'Odottaa', kuvaus: 'aiemmat vaiheet kesken' },
                     { otsikko: 'Toiminto', arvo: 'Sulje pesä', kuvaus: 'viimeinen vaihe' },
                   ]
@@ -1017,10 +1023,12 @@ const poistaVahvistettu = async (id, index) => {
                 <span className="text-white font-bold">Edistyminen</span>
                 <span style={{color: '#C9A84C'}} className="text-sm font-bold">
                   {aktiivinenVaihe === 2
-                    ? `${selvitysHoidettu}/${selvitysKaikki} hoidettu`
+                    ? `${Object.entries(varatRastitattu).filter(([,v]) => v === 'kylla' || v === 'ei').length}/${varatJaVelatMuistilista.varat.length + varatJaVelatMuistilista.velat.length} tarkistettu`
                     : aktiivinenVaihe === 3
-                    ? `${Object.values(perunkirjoitusTehty).filter(Boolean).length}/${perunkirjoitusTehtavat.length} valmis`
+                    ? `${selvitysHoidettu}/${selvitysKaikki} hoidettu`
                     : aktiivinenVaihe === 4
+                    ? `${Object.values(perunkirjoitusTehty).filter(Boolean).length}/${perunkirjoitusTehtavat.length} valmis`
+                    : aktiivinenVaihe === 5
                     ? `${Object.values(perintoveroTehty).filter(Boolean).length}/${perintoveroTehtavat.length} valmis`
                     : `${valmiit}/${kaikki} tehtävää`}
                 </span>
@@ -1028,10 +1036,12 @@ const poistaVahvistettu = async (id, index) => {
               <div className="w-full rounded-full h-2" style={{backgroundColor: '#110E0B'}}>
                 <div className="h-2 rounded-full transition-all" style={{backgroundColor: '#C9A84C', width:
                   aktiivinenVaihe === 2
-                    ? `${(selvitysHoidettu/selvitysKaikki)*100}%`
+                    ? `${(Object.entries(varatRastitattu).filter(([,v]) => v === 'kylla' || v === 'ei').length / (varatJaVelatMuistilista.varat.length + varatJaVelatMuistilista.velat.length))*100}%`
                     : aktiivinenVaihe === 3
-                    ? `${(Object.values(perunkirjoitusTehty).filter(Boolean).length / perunkirjoitusTehtavat.length)*100}%`
+                    ? `${(selvitysHoidettu/selvitysKaikki)*100}%`
                     : aktiivinenVaihe === 4
+                    ? `${(Object.values(perunkirjoitusTehty).filter(Boolean).length / perunkirjoitusTehtavat.length)*100}%`
+                    : aktiivinenVaihe === 5
                     ? `${(Object.values(perintoveroTehty).filter(Boolean).length / perintoveroTehtavat.length)*100}%`
                     : kaikki > 0 ? `${(valmiit/kaikki)*100}%` : '0%'
                 }} />
@@ -1293,7 +1303,7 @@ const poistaVahvistettu = async (id, index) => {
       </div>
     )}
     <div className="flex gap-2 mb-6">
-      {alivaiheet.map(a => (
+      {[{ numero: 1, nimi: 'Varat ja velat' }, { numero: 2, nimi: 'Yhteenveto' }].map(a => (
         <button key={a.numero} onClick={() => navigoiAlivaihe(a.numero)} className="flex-1 py-2 px-4 rounded text-sm font-bold"
           style={{backgroundColor: aktiivinenAlivaihe === a.numero ? '#C9A84C' : '#110E0B', color: aktiivinenAlivaihe === a.numero ? '#110E0B' : '#8A8278', border: '1px solid', borderColor: aktiivinenAlivaihe === a.numero ? '#C9A84C' : 'rgba(240,235,227,0.08)'}}>
           {a.numero}. {a.nimi}
@@ -1302,15 +1312,88 @@ const poistaVahvistettu = async (id, index) => {
     </div>
     <div className="flex gap-6">
       <div className="flex-1 min-w-0">
-        {aktiivinenAlivaihe === 1 && <VaratJaVelat rastitattu={varatRastitattu} onToggle={toggleVaraRasti} kirjaukset={varatKirjaukset} onKirjaus={tallennaKirjaus} vahvistetut={vahvistetutKirjaukset} onVahvista={tallennaVahvistettu} onPoista={poistaVahvistettu} avattuKohta={avattuKohta} setAvattuKohta={setAvattuKohta} kommenttiMaara={kommenttiMaara} onAvaPopup={setKommenttiPopup} kuolinpesaId={kuolinpesa?.id} kayttajaEmail={kuolinpesa?.kayttaja_email} onKommenttiLisatty={(k) => setKaikkiKommentit(prev => [k, ...prev])} onValmis={() => navigoiAlivaihe(2)} />}
-        {aktiivinenAlivaihe === 2 && <SelvitysOsio onValmis={() => navigoiAlivaihe(3)} onEdistyminen={setSelvitysHoidettu} avattuSopimus={avattuSopimus} setAvattuSopimus={setAvattuSopimus} sopimusTilat={sopimusTilat} tallennaSopimusTila={tallennaSopimusTila} kuolinpesaId={kuolinpesa?.id} kayttajaEmail={kuolinpesa?.kayttaja_email} />}
-        {aktiivinenAlivaihe === 3 && <Yhteenveto varatRastitattu={varatRastitattu} vahvistetutKirjaukset={vahvistetutKirjaukset} sopimusTilat={sopimusTilat} tallennaSopimusTila={tallennaSopimusTila} onValmis={() => navigoiVaihe(3)} setAktiivinenAlivaihe={navigoiAlivaihe} setAvattuSopimus={setAvattuSopimus} kuolinpesa={kuolinpesa} />}
+        {aktiivinenAlivaihe === 1 && <VaratJaVelat rastitattu={varatRastitattu} onToggle={toggleVaraRasti} kirjaukset={varatKirjaukset} onKirjaus={tallennaKirjaus} vahvistetut={vahvistetutKirjaukset} onVahvista={tallennaVahvistettu} onPoista={poistaVahvistettu} avattuKohta={avattuKohta} setAvattuKohta={setAvattuKohta} kommenttiMaara={kommenttiMaara} onAvaPopup={setKommenttiPopup} kuolinpesaId={kuolinpesa?.id} kayttajaEmail={kuolinpesa?.kayttaja_email} onKommenttiLisatty={(k) => setKaikkiKommentit(prev => [k, ...prev])} onValmis={() => navigoiVaihe(3)} />}
+        {aktiivinenAlivaihe === 2 && (() => {
+          const varatLkm = varatJaVelatMuistilista.varat.filter(k => varatRastitattu?.[k.id] === 'kylla').length
+          const velatLkm = varatJaVelatMuistilista.velat.filter(k => varatRastitattu?.['velat_' + k.id] === 'kylla').length
+          return (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <div style={{ backgroundColor: '#0D0B09', border: '1px solid rgba(240,235,227,0.08)', padding: '24px' }}>
+                <div style={{ fontSize: '9px', letterSpacing: '0.2em', textTransform: 'uppercase', color: '#C9A84C', marginBottom: '20px' }}>Yhteenveto</div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 0', borderBottom: '1px solid rgba(240,235,227,0.06)' }}>
+                    <span style={{ fontSize: '13px', color: '#A09890' }}>Varat yhteensä ({varatLkm} erää löytyi)</span>
+                    <span style={{ fontSize: '18px', color: '#F0EBE3', fontFamily: 'var(--font-display), Georgia, serif', fontWeight: 300 }}>0 €</span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 0', borderBottom: '1px solid rgba(240,235,227,0.06)' }}>
+                    <span style={{ fontSize: '13px', color: '#A09890' }}>Velat yhteensä ({velatLkm} erää löytyi)</span>
+                    <span style={{ fontSize: '18px', color: '#F0EBE3', fontFamily: 'var(--font-display), Georgia, serif', fontWeight: 300 }}>0 €</span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px', backgroundColor: 'rgba(201,168,76,0.06)', border: '1px solid rgba(201,168,76,0.2)', marginTop: '4px' }}>
+                    <span style={{ fontSize: '13px', color: '#C9A84C', fontWeight: 600, letterSpacing: '0.04em' }}>Nettopesä</span>
+                    <span style={{ fontSize: '22px', color: '#C9A84C', fontFamily: 'var(--font-display), Georgia, serif', fontWeight: 300 }}>0 €</span>
+                  </div>
+                </div>
+                <p style={{ fontSize: '11px', color: '#4E4840', marginTop: '16px', lineHeight: 1.6 }}>Euromäärät täydennetään perukirjan valmistuttua. Tässä näkyy löydettyjen erien lukumäärät.</p>
+              </div>
+            </div>
+          )
+        })()}
       </div>
     </div>
   </>
 )}
 
-              {aktiivinenVaihe === 3 && (
+{aktiivinenVaihe === 3 && (
+  <>
+    <div className="flex gap-2 mb-6">
+      {[{ numero: 1, nimi: 'Sopimukset' }, { numero: 2, nimi: 'Yhteenveto' }].map(a => (
+        <button key={a.numero} onClick={() => navigoiAlivaihe(a.numero)} className="flex-1 py-2 px-4 rounded text-sm font-bold"
+          style={{backgroundColor: aktiivinenAlivaihe === a.numero ? '#C9A84C' : '#110E0B', color: aktiivinenAlivaihe === a.numero ? '#110E0B' : '#8A8278', border: '1px solid', borderColor: aktiivinenAlivaihe === a.numero ? '#C9A84C' : 'rgba(240,235,227,0.08)'}}>
+          {a.numero}. {a.nimi}
+        </button>
+      ))}
+    </div>
+    <div className="flex gap-6">
+      <div className="flex-1 min-w-0">
+        {aktiivinenAlivaihe === 1 && <SelvitysOsio onValmis={() => navigoiAlivaihe(2)} onEdistyminen={setSelvitysHoidettu} avattuSopimus={avattuSopimus} setAvattuSopimus={setAvattuSopimus} sopimusTilat={sopimusTilat} tallennaSopimusTila={tallennaSopimusTila} kuolinpesaId={kuolinpesa?.id} kayttajaEmail={kuolinpesa?.kayttaja_email} />}
+        {aktiivinenAlivaihe === 2 && (() => {
+          const kaikkiSop = kategoriat.reduce((sum, k) => sum + k.sopimukset.length, 0)
+          const hoidettuSop = kategoriat.reduce((sum, k) => sum + k.sopimukset.filter(s => sopimusTilat[s.nimi] === 'hoidettu').length, 0)
+          const keskenSop = kategoriat.flatMap(k => k.sopimukset.filter(s => sopimusTilat[s.nimi] === 'kesken').map(s => ({ ...s, kategoriaNimi: k.nimi })))
+          return (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <div style={{ backgroundColor: '#0D0B09', border: '1px solid rgba(240,235,227,0.08)', padding: '24px' }}>
+                <div style={{ fontSize: '9px', letterSpacing: '0.2em', textTransform: 'uppercase', color: '#C9A84C', marginBottom: '20px' }}>Yhteenveto</div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px', backgroundColor: 'rgba(201,168,76,0.06)', border: '1px solid rgba(201,168,76,0.2)', marginBottom: '20px' }}>
+                  <span style={{ fontSize: '13px', color: '#C9A84C', fontWeight: 600 }}>Hoidettu</span>
+                  <span style={{ fontSize: '22px', color: '#C9A84C', fontFamily: 'var(--font-display), Georgia, serif', fontWeight: 300 }}>{hoidettuSop} / {kaikkiSop}</span>
+                </div>
+                {keskenSop.length > 0 ? (
+                  <div>
+                    <div style={{ fontSize: '11px', color: '#5A5248', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '12px' }}>Vielä kesken</div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1px' }}>
+                      {keskenSop.map((s, i) => (
+                        <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 12px', backgroundColor: '#110E0B', borderLeft: '2px solid rgba(201,168,76,0.4)' }}>
+                          <span style={{ fontSize: '13px', color: '#D0C8BC' }}>{s.nimi}</span>
+                          <span style={{ fontSize: '11px', color: '#5A5248' }}>{s.kategoriaNimi}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <p style={{ fontSize: '13px', color: '#5A5248' }}>Ei avoimia sopimuksia.</p>
+                )}
+              </div>
+            </div>
+          )
+        })()}
+      </div>
+    </div>
+  </>
+)}
+
+              {aktiivinenVaihe === 4 && (
   <>
     {!vaihe3OhjeNahty && (
       <div style={{ borderLeft: '3px solid rgba(201,168,76,0.6)', backgroundColor: 'rgba(201,168,76,0.04)', padding: '18px 24px', marginBottom: '32px' }}>
@@ -1333,7 +1416,7 @@ const poistaVahvistettu = async (id, index) => {
   </>
 )}
 
-{aktiivinenVaihe === 4 && (
+{aktiivinenVaihe === 5 && (
   <>
     {!vaihe4OhjeNahty && (
       <div style={{ borderLeft: '3px solid rgba(201,168,76,0.6)', backgroundColor: 'rgba(201,168,76,0.04)', padding: '18px 24px', marginBottom: '32px' }}>
@@ -1358,7 +1441,7 @@ const poistaVahvistettu = async (id, index) => {
   />
   </>
 )}
-{aktiivinenVaihe === 5 && (
+{aktiivinenVaihe === 6 && (
   <>
     {!vaihe5OhjeNahty && (
       <div style={{ borderLeft: '3px solid rgba(201,168,76,0.6)', backgroundColor: 'rgba(201,168,76,0.04)', padding: '18px 24px', marginBottom: '32px' }}>
