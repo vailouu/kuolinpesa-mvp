@@ -3112,12 +3112,6 @@ function PaatosOsio({ kuolinpesa, sopimusTilat, varatRastitattu, tehtavaLista, s
           </div>
         ))}
 
-        {kaikki.length === 0 && (
-          <div style={{ padding: '20px', backgroundColor: 'rgba(74,222,128,0.04)', border: '1px solid rgba(74,222,128,0.15)', display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <span style={{ color: '#4ADE80', fontSize: '14px' }}>✓</span>
-            <span style={{ fontSize: '13px', color: '#4ADE80' }}>Ei kesken olevia sopimuksia</span>
-          </div>
-        )}
 
         {kaymattaLapiMaara > 0 && (
           <div style={{ marginTop: '20px', padding: '14px 16px', backgroundColor: '#0D0B09', border: '1px solid rgba(240,235,227,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px' }}>
