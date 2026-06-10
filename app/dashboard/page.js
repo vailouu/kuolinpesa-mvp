@@ -1489,9 +1489,24 @@ const tallennaVahvistettuArvo = async (id, arvo) => {
                         <span style={{ fontSize: '11px', color: onAvattu ? '#C9A84C' : '#3A3630', flexShrink: 0, transition: 'color 0.15s' }}>{onAvattu ? '▴' : '▾'}</span>
                       </div>
                       {onAvattu && (
-                        <div style={{ padding: '0 0 12px 0' }}>
+                        <div style={{ padding: '0 0 12px 0', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                          {sopimusMeta?.[s.nimi]?.keskenMerkkaaja && (
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                              <span style={{ fontSize: '11px', color: '#4E4840' }}>Merkitsi kesken:</span>
+                              <span style={{ fontSize: '11px', color: '#C9A84C', fontWeight: 500 }}>{sopimusMeta[s.nimi].keskenMerkkaaja}</span>
+                              {sopimusMeta[s.nimi].keskenPvm && <span style={{ fontSize: '11px', color: '#5A5248', fontStyle: 'italic' }}>{sopimusMeta[s.nimi].keskenPvm}</span>}
+                            </div>
+                          )}
                           {odottaa ? (
-                            <p style={{ fontSize: '12px', color: '#8A8278', lineHeight: 1.6, fontStyle: 'italic', margin: 0 }}>⏳ {odottaa}</p>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                              <p style={{ fontSize: '12px', color: '#8A8278', lineHeight: 1.6, fontStyle: 'italic', margin: 0 }}>⏳ {odottaa}</p>
+                              {sopimusMeta?.[s.nimi]?.odottaaLahettaja && (
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                  <span style={{ fontSize: '11px', color: '#C9A84C', fontWeight: 500 }}>{sopimusMeta[s.nimi].odottaaLahettaja}</span>
+                                  {sopimusMeta[s.nimi].odottaaPvm && <span style={{ fontSize: '11px', color: '#5A5248', fontStyle: 'italic' }}>{sopimusMeta[s.nimi].odottaaPvm}</span>}
+                                </div>
+                              )}
+                            </div>
                           ) : (
                             <p style={{ fontSize: '12px', color: '#3A3630', fontStyle: 'italic', margin: 0 }}>Ei odottavaa viestiä kirjattu.</p>
                           )}
@@ -1745,6 +1760,11 @@ function KommenttiKentta({ kuolinpesaId, kayttajaEmail, kontekstiTyyppi = 'ylein
     }
   }
 
+  const poista = async (id) => {
+    const { error } = await supabase.from('kommentit').delete().eq('id', id).eq('kirjoittaja_email', kayttajaEmail)
+    if (!error) setKommentit(prev => prev.filter(k => k.id !== id))
+  }
+
   return (
     <div style={{ paddingTop: '16px', paddingBottom: '16px' }}>
       <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
@@ -1761,9 +1781,20 @@ function KommenttiKentta({ kuolinpesaId, kayttajaEmail, kontekstiTyyppi = 'ylein
         {kommentit.length === 0 && <p style={{ color: '#7A7268', fontSize: '12px' }}>Ei vielä viestejä.</p>}
         {kommentit.map(k => (
           <div key={k.id} style={{ backgroundColor: '#110E0B', border: '1px solid rgba(240,235,227,0.12)', padding: '10px 14px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-              <span style={{ color: '#C9A84C', fontSize: '11px', fontWeight: 600 }}>{k.kirjoittaja_email}</span>
-              <span style={{ color: '#5A5248', fontSize: '11px' }}>{new Date(k.created_at).toLocaleDateString('fi-FI')} {new Date(k.created_at).toLocaleTimeString('fi-FI', { hour: '2-digit', minute: '2-digit' })}</span>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '4px' }}>
+              <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                <span style={{ color: '#C9A84C', fontSize: '11px', fontWeight: 600 }}>{k.kirjoittaja_email}</span>
+                <span style={{ color: '#5A5248', fontSize: '11px' }}>{new Date(k.created_at).toLocaleDateString('fi-FI')} {new Date(k.created_at).toLocaleTimeString('fi-FI', { hour: '2-digit', minute: '2-digit' })}</span>
+              </div>
+              {k.kirjoittaja_email === kayttajaEmail && (
+                <button
+                  onClick={() => poista(k.id)}
+                  title="Poista viesti"
+                  style={{ background: 'none', border: 'none', color: '#3A3530', fontSize: '13px', cursor: 'pointer', padding: '0 0 0 8px', lineHeight: 1, flexShrink: 0, transition: 'color 0.15s' }}
+                  onMouseEnter={e => e.currentTarget.style.color = '#8A4040'}
+                  onMouseLeave={e => e.currentTarget.style.color = '#3A3530'}
+                >✕</button>
+              )}
             </div>
             <p style={{ color: '#D0C8BC', fontSize: '13px', lineHeight: 1.5 }}>{k.teksti}</p>
           </div>
@@ -2259,7 +2290,7 @@ const odottaaEsimerkit = {
   'Lemmikin hoitopalvelu': 'esim. Vahvistusta peruutuksesta...',
   // Digitaaliset — sähköposti
   'Gmail': 'esim. Tilin poistovahvistusta Googlelta...',
-  'Outlook / Hotmail': 'esim. DVD-pyyntöä tai vastausta Microsoftilta...',
+  'Outlook / Hotmail': 'esim. Vastausta Microsoftilta tai DVD-pyyntöä tilin sisällöstä...',
   'iCloud Mail': 'esim. Apple ID -pyynnön käsittelyä...',
   'Yahoo Mail': 'esim. Vastausta Yahoon asiakaspalvelulta...',
   // Digitaaliset — sosiaalinen media
@@ -2273,7 +2304,7 @@ const odottaaEsimerkit = {
   // Digitaaliset — pilvi ja laitetilit
   'Apple ID / iCloud': 'esim. Digital Legacy -pyynnön käsittelyä Applelta...',
   'Google-tili (Drive, Photos, YouTube)': 'esim. Tilin poistolupaa Googlelta...',
-  'Microsoft-tili (OneDrive)': 'esim. DVD-pyyntöä tai vastausta Microsoftilta...',
+  'Microsoft-tili (OneDrive)': 'esim. Vastausta Microsoftilta tai DVD-pyyntöä tilin sisällöstä...',
   'Dropbox': 'esim. Vastausta Dropboxin tuesta...',
   // Digitaaliset — verkkokaupat ja maksut
   'Amazon': 'esim. Vastausta Amazonin asiakaspalvelulta...',
@@ -2400,7 +2431,7 @@ function SelvitysOsio({ onValmis, onEdistyminen, avattuSopimus, setAvattuSopimus
               kontekstiId={avattuSopimus.nimi}
               kompakti={true}
               placeholder={odottaaEsimerkit[avattuSopimus?.nimi] || 'esim. Odottaa vastausta...'}
-              onLaheta={teksti => tallennaSopimusMeta(avattuSopimus.nimi, { odottaa: teksti })}
+              onLaheta={teksti => tallennaSopimusMeta(avattuSopimus.nimi, { odottaa: teksti, odottaaLahettaja: kayttajaNimi || kayttajaEmail, odottaaPvm: new Date().toLocaleDateString('fi-FI') + ' ' + new Date().toLocaleTimeString('fi-FI', { hour: '2-digit', minute: '2-digit' }) })}
             />
           </div>
         ) : (
@@ -2580,7 +2611,7 @@ function SelvitysOsio({ onValmis, onEdistyminen, avattuSopimus, setAvattuSopimus
                         style={{ fontSize: '11px', padding: '4px 13px', cursor: 'pointer', fontFamily: 'var(--font-body)', letterSpacing: '0.06em', backgroundColor: onOhitettu ? 'transparent' : '#1C1916', color: onOhitettu ? '#C9A84C' : '#A09890', border: onOhitettu ? '1px solid #C9A84C' : '1px solid rgba(240,235,227,0.15)', transition: 'background 0.15s, border-color 0.15s, color 0.15s', whiteSpace: 'nowrap' }}>
                         Ei sopimusta
                       </button>
-                      <button onClick={() => { setSopLisaysAuki(null); tallennaSopimusTila(sopimus.nimi, 'kesken'); setAvattuSopimus({ ...sopimus, kategoriaId: kategoria.id }) }}
+                      <button onClick={() => { setSopLisaysAuki(null); tallennaSopimusTila(sopimus.nimi, 'kesken'); if (!onKesken) tallennaSopimusMeta(sopimus.nimi, { keskenMerkkaaja: kayttajaNimi, keskenPvm: new Date().toLocaleDateString('fi-FI') }); setAvattuSopimus({ ...sopimus, kategoriaId: kategoria.id }) }}
                         style={{ fontSize: '11px', padding: '4px 13px', cursor: 'pointer', fontFamily: 'var(--font-body)', letterSpacing: '0.06em', backgroundColor: onKesken ? 'transparent' : '#1C1916', color: onKesken ? '#C9A84C' : '#A09890', border: onKesken ? '1px solid #C9A84C' : '1px solid rgba(240,235,227,0.15)', transition: 'background 0.15s, border-color 0.15s, color 0.15s', whiteSpace: 'nowrap' }}>
                         Kesken
                       </button>
@@ -2616,7 +2647,7 @@ function SelvitysOsio({ onValmis, onEdistyminen, avattuSopimus, setAvattuSopimus
                         style={{ fontSize: '11px', padding: '4px 13px', cursor: 'pointer', fontFamily: 'var(--font-body)', letterSpacing: '0.06em', backgroundColor: onOhitettu ? 'transparent' : '#1C1916', color: onOhitettu ? '#C9A84C' : '#A09890', border: onOhitettu ? '1px solid #C9A84C' : '1px solid rgba(240,235,227,0.15)', transition: 'background 0.15s, border-color 0.15s, color 0.15s', whiteSpace: 'nowrap' }}>
                         Ei sopimusta
                       </button>
-                      <button onClick={() => { setSopLisaysAuki(null); tallennaSopimusTila(nimi, 'kesken'); setAvattuSopimus({ nimi, id, kategoriaId: kategoria.id, miksi: '', miten: [] }) }}
+                      <button onClick={() => { setSopLisaysAuki(null); tallennaSopimusTila(nimi, 'kesken'); if (!onKesken) tallennaSopimusMeta(nimi, { keskenMerkkaaja: kayttajaNimi, keskenPvm: new Date().toLocaleDateString('fi-FI') }); setAvattuSopimus({ nimi, id, kategoriaId: kategoria.id, miksi: '', miten: [] }) }}
                         style={{ fontSize: '11px', padding: '4px 13px', cursor: 'pointer', fontFamily: 'var(--font-body)', letterSpacing: '0.06em', backgroundColor: onKesken ? 'transparent' : '#1C1916', color: onKesken ? '#C9A84C' : '#A09890', border: onKesken ? '1px solid #C9A84C' : '1px solid rgba(240,235,227,0.15)', transition: 'background 0.15s, border-color 0.15s, color 0.15s', whiteSpace: 'nowrap' }}>
                         Kesken
                       </button>
@@ -2893,9 +2924,24 @@ function Yhteenveto({ varatRastitattu, vahvistetutKirjaukset, sopimusTilat, tall
                           <span style={{color: onAvattu ? '#C9A84C' : '#3A3630', fontSize: '11px', flexShrink: 0, transition: 'color 0.15s'}}>{onAvattu ? '▴' : '▾'}</span>
                         </div>
                         {onAvattu && (
-                          <div style={{ padding: '0 0 10px 0' }}>
+                          <div style={{ padding: '0 0 10px 0', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                            {sopimusMeta?.[s.nimi]?.keskenMerkkaaja && (
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <span style={{ fontSize: '11px', color: '#4E4840' }}>Merkitsi kesken:</span>
+                                <span style={{ fontSize: '11px', color: '#C9A84C', fontWeight: 500 }}>{sopimusMeta[s.nimi].keskenMerkkaaja}</span>
+                                {sopimusMeta[s.nimi].keskenPvm && <span style={{ fontSize: '11px', color: '#5A5248', fontStyle: 'italic' }}>{sopimusMeta[s.nimi].keskenPvm}</span>}
+                              </div>
+                            )}
                             {odottaa ? (
-                              <p style={{ fontSize: '12px', color: '#8A8278', lineHeight: 1.6, fontStyle: 'italic', margin: 0 }}>⏳ {odottaa}</p>
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                <p style={{ fontSize: '12px', color: '#8A8278', lineHeight: 1.6, fontStyle: 'italic', margin: 0 }}>⏳ {odottaa}</p>
+                                {sopimusMeta?.[s.nimi]?.odottaaLahettaja && (
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                    <span style={{ fontSize: '11px', color: '#C9A84C', fontWeight: 500 }}>{sopimusMeta[s.nimi].odottaaLahettaja}</span>
+                                    {sopimusMeta[s.nimi].odottaaPvm && <span style={{ fontSize: '11px', color: '#5A5248', fontStyle: 'italic' }}>{sopimusMeta[s.nimi].odottaaPvm}</span>}
+                                  </div>
+                                )}
+                              </div>
                             ) : (
                               <p style={{ fontSize: '12px', color: '#3A3630', fontStyle: 'italic', margin: 0 }}>Ei odottavaa viestiä kirjattu.</p>
                             )}
