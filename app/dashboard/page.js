@@ -82,16 +82,48 @@ const kategoriat = [
   {
     id: 'digitaaliset', nimi: 'Digitaaliset tilit', ikoni: '💻',
     sopimukset: [
-      { nimi: 'Sähköpostitilit (Gmail, Outlook)', miksi: 'Sähköpostitilit jäävät auki kunnes suljetaan — ne voivat sisältää tärkeitä viestejä.', miten: ['Kirjaudu tilille jos salasana on tiedossa — tallenna tärkeät viestit','Gmail: pyydä tilin sulkemista Googlen kautta kuolintodistuksella','Outlook: ota yhteyttä Microsoftiin'] },
-      { nimi: 'Facebook', miksi: 'Facebook-tili voidaan muuttaa muistotilaksi tai poistaa kokonaan.', miten: ['Mene Facebookin erikoispyyntölomakkeelle','Valitse muutako tili muistotilaksi vai poistetaanko se','Tarvitset kuolintodistuksen'] },
-      { nimi: 'Instagram', miksi: 'Instagram-tili voidaan muuttaa muistotilaksi tai poistaa.', miten: ['Täytä Instagramin erikoispyyntölomake','Tarvitset kuolintodistuksen'] },
-      { nimi: 'X (Twitter)', miksi: 'X-tili jää auki kunnes se suljetaan tai poistetaan.', miten: ['Kirjaudu tilille jos salasana on tiedossa ja poista tili','Tai ota yhteyttä X:n asiakaspalveluun kuolintodistuksella'] },
-      { nimi: 'LinkedIn', miksi: 'LinkedIn-profiili jää näkyviin kunnes se poistetaan.', miten: ['Ota yhteyttä LinkedInin asiakaspalveluun','Pyydä profiilin poistamista kuolintodistuksella'] },
-      { nimi: 'Pilvipalvelut (iCloud, Google Drive, Dropbox)', miksi: 'Pilvipalveluissa voi olla tärkeitä dokumentteja ja valokuvia — maksulliset tilat laskutetaan kuukausittain.', miten: ['Tallenna tärkeät tiedostot ennen tilin sulkemista','Sulje maksutilit','iCloud vaatii Apple ID:n — ota yhteyttä Appleen'] },
-      { nimi: 'Apple ID / iTunes', miksi: 'Apple ID:hen liittyvät tilaukset jatkuvat kunnes peruutetaan.', miten: ['Ota yhteyttä Applen asiakaspalveluun kuolintodistuksella','Pyydä tilin sulkemista ja tilausten peruuttamista'] },
-      { nimi: 'Microsoft-tili', miksi: 'Microsoft 365 ja muut tilaukset laskutetaan kuukausittain.', miten: ['Ota yhteyttä Microsoftin asiakaspalveluun','Pyydä tilin sulkemista'] },
-      { nimi: 'Verkkokauppojen tilit (Amazon, Zalando)', miksi: 'Verkkokauppojen tilit voivat sisältää tallennettuja maksukortteja ja automaattisia tilauksia.', miten: ['Kirjaudu tilille jos salasana on tiedossa','Peruuta automaattiset tilaukset','Poista maksukorttitiedot'] },
-      { nimi: 'Wolt+ / ruoan kotiinkuljetus', miksi: 'Kuukausittain laskutettava tilaus jatkuu kunnes peruutetaan.', miten: ['Kirjaudu tilille ja peruuta tilaus','Jos salasana ei ole tiedossa — kuoleta luottokortti'] },
+      { type: 'header', nimi: 'Sähköposti' },
+      { nimi: 'Gmail', miksi: 'Google-tili sisältää usein kriittistä tietoa muiden tilien palautukseen — tallenna tärkeät tiedot ennen sulkemista.', miten: ['Kirjaudu Google-tilille ja poista tili asetuksista, tai lähetä pyyntö Googlelle lomakkeen kautta', 'Google ei luovuta kirjautumistietoja — tilin poisto vaatii kuolintodistuksen ja henkilöllisyystodistuksen', 'Huom: Google-tilin poisto poistaa myös YouTube-kanavan ja Google Drive -tiedostot'] },
+      { nimi: 'Outlook / Hotmail', miksi: 'Microsoft-sähköposti voi sisältää tärkeitä viestejä ja dokumentteja. Microsoft voi luovuttaa sisällön omaisille.', miten: ['Microsoft tyhjentää tilin automaattisesti 9 kuukauden käyttämättömyyden jälkeen', 'Tilin sisällön voi pyytää DVD:nä — vaatii kuolintodistuksen, henkilöllisyystodistuksen ja todisteen sukulaisuudesta', 'Ota yhteyttä Microsoftin asiakaspalveluun'] },
+      { nimi: 'iCloud Mail', miksi: 'iCloud-sähköposti on osa Apple ID -ekosysteemiä — sen voi hoitaa Apple ID / iCloud -kohdan yhteydessä.', miten: ['Katso Apple ID / iCloud -kohdan ohjeet — sähköposti on osa Apple ID:tä'] },
+      { nimi: 'Yahoo Mail', miksi: 'Yahoo-tilit suljetaan Yahoon toimesta kun ne jäävät käyttämättä — sulkemispyyntö nopeuttaa prosessia.', miten: ['Ota yhteyttä Yahoon asiakaspalveluun sähköpostitse', 'Vaatii kuolintodistuksen'] },
+      { type: 'header', nimi: 'Sosiaalinen media' },
+      { nimi: 'Facebook', miksi: 'Facebook-tili voidaan muuttaa muistosivuksi tai poistaa kokonaan.', miten: ['Profiili voidaan muuttaa muistosivuksi tai poistaa kokonaan', 'Vaatii kuolintodistuksen sekä todisteen sukulaisuudesta tai pesänhoitajan asemasta', 'Lomake löytyy: facebook.com/help → "Report a deceased person"', 'Vinkki: tallenna kuvat ja julkaisut ennen poistoa — "Lataa Facebook-tietojesi kopio"'] },
+      { nimi: 'Instagram', miksi: 'Instagram-tili voidaan muuttaa muistotilaksi tai poistaa.', miten: ['Muistotiliksi asettaminen onnistuu keneltä tahansa kuolinilmoituksen tai kuolintodistuksen perusteella', 'Tilin poisto vaatii lähiomaisen, virkatodistuksen sukulaisuudesta ja vainajan kuolinpäivästä', 'Ota yhteyttä Instagramin tukeen sähköpostitse'] },
+      { nimi: 'X (Twitter)', miksi: 'X-tili jää auki kunnes se suljetaan — muistotilaa ei ole.', miten: ['Vain lähiomainen voi pyytää tilin sulkemista', 'Vaatii kuolintodistuksen — lähetä sähköpostitse tai kirjeitse', 'X on Facebookia tiukempi: muistosivua ei ole'] },
+      { nimi: 'LinkedIn', miksi: 'LinkedIn-profiili jää julkisesti näkyviin kunnes se poistetaan.', miten: ['Kuka tahansa vainajan LinkedIn-kontakti voi ilmoittaa kuolemasta lomakkeen kautta', 'Ilmoita: nimi, viimeisin työpaikka, ilmoittajan suhde vainajaan, profiilin osoite ja kuolinpäivä'] },
+      { nimi: 'TikTok', miksi: 'TikTok-tili jää auki kunnes se suljetaan erikseen.', miten: ['Ota yhteyttä TikTokin asiakaspalveluun — vaatii kuolintodistuksen', 'Tilin voi pyytää poistettavaksi tai jäädytettäväksi'] },
+      { nimi: 'Snapchat', miksi: 'Snapchat-tili voidaan sulkea asiakaspalvelun kautta.', miten: ['Ota yhteyttä Snapchatin tukeen lomakkeen kautta', 'Vaatii kuolintodistuksen ja todisteen sukulaisuudesta'] },
+      { nimi: 'Pinterest', miksi: 'Pinterest-tili jää auki kunnes se poistetaan erikseen.', miten: ['Ota yhteyttä Pinterestin tukeen — vaatii kuolintodistuksen', 'Tilin voi pyytää poistettavaksi'] },
+      { type: 'header', nimi: 'Pilvi- ja laitetilit' },
+      { nimi: 'Apple ID / iCloud', miksi: 'Apple ID:hen liittyvät tilit, ostokset ja pilvipalvelut vaativat erityistä huolellisuutta — pääsy on rajattu.', miten: ['Apple ei anna pääsyä tilille kuoleman jälkeen ilman etukäteisvalmisteluja', 'iTunes/App Store -ostoksia (musiikki, elokuvat, kirjat) ei voi periä — ne palautuvat Applelle', 'iCloud-tiedostoihin ei pääse käsiksi ilman salasanaa — Apple ei luovuta niitä', 'Jos vainaja oli määrittänyt "Digital Legacy" -yhteyshenkilön, tämä voi hakea pääsyä'] },
+      { nimi: 'Google-tili (Drive, Photos, YouTube)', miksi: 'Google-tili kattaa Gmailin, Driven, Photosin, YouTuben ja Google Payn — poisto vaikuttaa kaikkiin.', miten: ['Google ei luovuta kirjautumistietoja', 'Tilin poisto onnistuu lomakkeen kautta: myaccount.google.com → lähetä kuolintodistus ja henkilöllisyystodistus', 'Tilin poisto poistaa myös: Gmail, Drive, Photos, YouTube, Google Pay', 'Jos vainaja oli määrittänyt "Inactive Account Manager" -henkilön, tämä saa automaattisen ilmoituksen'] },
+      { nimi: 'Microsoft-tili (OneDrive)', miksi: 'Microsoft-tili kattaa OneDriven, Outlookin ja Microsoft 365 -tilaukset.', miten: ['Tili tyhjenee automaattisesti 9 kuukauden käyttämättömyyden jälkeen, sulkeutuu 3 kk sen jälkeen', 'Tilin sisällön voi pyytää DVD:nä omaisille — monimutkainen prosessi, vaatii useita asiakirjoja', 'Ota yhteyttä Microsoftin asiakaspalveluun'] },
+      { nimi: 'Dropbox', miksi: 'Dropbox-pilvipalvelussa voi olla tärkeitä tiedostoja — tallenna ennen sulkemista.', miten: ['Ota yhteyttä Dropboxin tukeen — vaatii kuolintodistuksen', 'Tilin voi pyytää poistettavaksi tai tiedostoja siirrettäväksi'] },
+      { type: 'header', nimi: 'Verkkokaupat ja maksut' },
+      { nimi: 'Amazon', miksi: 'Amazon-tilillä voi olla tallennettuja maksukortteja, lahjakorttisaldoja tai aktiivisia tilauksia.', miten: ['Ota yhteyttä Amazonin asiakaspalveluun puhelimitse tai chatissa', 'Vaatii kuolintodistuksen', 'Tarkista onko tilillä lahjakorttisaldoa tai palautuksia odottamassa'] },
+      { nimi: 'Zalando', miksi: 'Zalando-tilillä voi olla avoimia tilauksia tai palautuksia odottamassa.', miten: ['Ota yhteyttä Zalandon asiakaspalveluun — vaatii kuolintodistuksen', 'Tarkista avoimet tilaukset tai palautukset'] },
+      { nimi: 'PayPal', miksi: 'PayPal-tilillä voi olla rahaa — varat palautetaan kuolinpesälle asianmukaisten asiakirjojen avulla.', miten: ['Vain kuolinpesän hoitaja tai perunkirjoittaja voi pyytää tilin sulkemista', 'Vaatii: kuolintodistus, asianhoitajan laillisuustodistus ja henkilöllisyystodistus', 'Tilillä olevat varat palautetaan kuolinpesälle'] },
+      { nimi: 'Vinted', miksi: 'Vinted-tilillä voi olla aktiivisia myynti-ilmoituksia tai saldoa.', miten: ['Ota yhteyttä Vintedin asiakaspalveluun — vaatii kuolintodistuksen', 'Tarkista onko tilillä myymättömiä tuotteita tai saldoa'] },
+      { nimi: 'Tori.fi', miksi: 'Tori.fi-tilillä voi olla aktiivisia ilmoituksia.', miten: ['Ota yhteyttä Torin asiakaspalveluun', 'Tarkista onko aktiivisia ilmoituksia'] },
+      { type: 'header', nimi: 'Viihde ja tilaukset' },
+      { nimi: 'Spotify', miksi: 'Kuukausittain laskutettava tilaus jatkuu kunnes peruutetaan.', miten: ['Nopein tapa: sulje vainajan luottokortti — tilaus päättyy automaattisesti', 'Voi myös ottaa yhteyttä Spotifyn asiakaspalveluun lomakkeen kautta'] },
+      { nimi: 'Netflix', miksi: 'Kuukausittain laskutettava tilaus jatkuu kunnes peruutetaan.', miten: ['Nopein tapa: sulje vainajan luottokortti tai peru maksu pankista — tilaus päättyy automaattisesti', 'Vaihtoehtoisesti: kirjaudu tilille ja peruuta tilaus asetuksista, tai ota yhteyttä asiakaspalveluun'] },
+      { nimi: 'Disney+', miksi: 'Kuukausittain laskutettava tilaus jatkuu kunnes peruutetaan.', miten: ['Nopein tapa: sulje vainajan luottokortti tai peru maksu pankista — tilaus päättyy automaattisesti', 'Vaihtoehtoisesti: kirjaudu tilille ja peruuta tilaus asetuksista, tai ota yhteyttä asiakaspalveluun'] },
+      { nimi: 'HBO Max', miksi: 'Kuukausittain laskutettava tilaus jatkuu kunnes peruutetaan.', miten: ['Nopein tapa: sulje vainajan luottokortti tai peru maksu pankista — tilaus päättyy automaattisesti', 'Vaihtoehtoisesti: kirjaudu tilille ja peruuta tilaus asetuksista, tai ota yhteyttä asiakaspalveluun'] },
+      { nimi: 'Viaplay', miksi: 'Kuukausittain laskutettava tilaus jatkuu kunnes peruutetaan.', miten: ['Nopein tapa: sulje vainajan luottokortti tai peru maksu pankista — tilaus päättyy automaattisesti', 'Vaihtoehtoisesti: kirjaudu tilille ja peruuta tilaus asetuksista, tai ota yhteyttä asiakaspalveluun'] },
+      { nimi: 'C More', miksi: 'Kuukausittain laskutettava tilaus jatkuu kunnes peruutetaan.', miten: ['Nopein tapa: sulje vainajan luottokortti tai peru maksu pankista — tilaus päättyy automaattisesti', 'Vaihtoehtoisesti: kirjaudu tilille ja peruuta tilaus asetuksista, tai ota yhteyttä asiakaspalveluun'] },
+      { nimi: 'Elisa Viihde', miksi: 'Kuukausittain laskutettava tilaus jatkuu kunnes peruutetaan.', miten: ['Nopein tapa: sulje vainajan luottokortti tai peru maksu pankista — tilaus päättyy automaattisesti', 'Vaihtoehtoisesti: kirjaudu tilille ja peruuta tilaus asetuksista, tai ota yhteyttä asiakaspalveluun'] },
+      { nimi: 'Ruutu', miksi: 'Kuukausittain laskutettava tilaus jatkuu kunnes peruutetaan.', miten: ['Nopein tapa: sulje vainajan luottokortti tai peru maksu pankista — tilaus päättyy automaattisesti', 'Vaihtoehtoisesti: kirjaudu tilille ja peruuta tilaus asetuksista, tai ota yhteyttä asiakaspalveluun'] },
+      { nimi: 'MTV Katsomo', miksi: 'Kuukausittain laskutettava tilaus jatkuu kunnes peruutetaan.', miten: ['Nopein tapa: sulje vainajan luottokortti tai peru maksu pankista — tilaus päättyy automaattisesti', 'Vaihtoehtoisesti: kirjaudu tilille ja peruuta tilaus asetuksista, tai ota yhteyttä asiakaspalveluun'] },
+      { nimi: 'Amazon Prime Video', miksi: 'Kuukausittain laskutettava tilaus jatkuu kunnes peruutetaan.', miten: ['Nopein tapa: sulje vainajan luottokortti tai peru maksu pankista — tilaus päättyy automaattisesti', 'Vaihtoehtoisesti: kirjaudu tilille ja peruuta tilaus asetuksista, tai ota yhteyttä asiakaspalveluun'] },
+      { type: 'header', nimi: 'Rahapelit' },
+      { nimi: 'Veikkaus', miksi: 'Veikkaus hoitaa tilin sulkemisen automaattisesti väestötietojen perusteella.', miten: ['Veikkaus tarkistaa väestörekisterin automaattisesti 3 kuukauden välein', 'Jos tilillä on rahaa, se palautetaan automaattisesti vainajan pankkitilille', 'Ei vaadi toimenpiteitä omaisilta'] },
+      { nimi: 'Paf', miksi: 'Paf-tilillä voi olla saldoa — vaatii asiakaspalveluyhteydenoton.', miten: ['Ota yhteyttä Pafin asiakaspalveluun — vaatii kuolintodistuksen', 'Tarkista onko tilillä saldoa'] },
+      { type: 'header', nimi: 'Ruoka ja liikkuminen' },
+      { nimi: 'Wolt', miksi: 'Kuukausittain laskutettava Wolt+ -tilaus jatkuu kunnes peruutetaan.', miten: ['Nopein tapa: sulje vainajan luottokortti', 'Voi myös ottaa yhteyttä asiakaspalveluun tilin sulkemiseksi'] },
+      { nimi: 'Foodora', miksi: 'Kuukausittain laskutettava tilaus jatkuu kunnes peruutetaan.', miten: ['Nopein tapa: sulje vainajan luottokortti', 'Voi myös ottaa yhteyttä asiakaspalveluun tilin sulkemiseksi'] },
+      { nimi: 'HSL (mobiililippu)', miksi: 'Käyttämättömistä kausilipuista voi saada hyvityksen.', miten: ['Ota yhteyttä HSL:n asiakaspalveluun', 'Käyttämättömät kausiliput voidaan hyvittää — vaatii kuolintodistuksen'] },
     ]
   }
 ]
@@ -171,6 +203,7 @@ function DashboardInner() {
  const [wizardAlustettu, setWizardAlustettu] = useState(false)
  const [avattuKohta, setAvattuKohta] = useState(null)
  const [avattuSopimus, setAvattuSopimus] = useState(null)
+  const [yhteenvetoKeskenAvattu, setYhteenvetoKeskenAvattu] = useState(null)
   const [varatRastitattu, setVaratRastitattu] = useState({})
   const [varatVelatTeksti, setVaratVelatTeksti] = useState('')
   const [varatKirjaukset, setVaratKirjaukset] = useState({})
@@ -321,6 +354,21 @@ useEffect(() => {
   setSopimusMeta(uudetMeta)
   if (kuolinpesa?.id) {
     const merged = { ...sopimusTilat }
+    Object.entries(uudetMeta).forEach(([k, v]) => { merged['_m_' + k] = v })
+    await supabase.from('kuolinpesat').update({ sopimus_tilat: merged }).eq('id', kuolinpesa.id)
+  }
+}
+ const tallennaSopimusTilatBulk = async (tilatObj, metaObj) => {
+  const uudet = { ...sopimusTilat }
+  Object.entries(tilatObj).forEach(([nimi, tila]) => {
+    if (tila == null) delete uudet[nimi]
+    else uudet[nimi] = tila
+  })
+  setSopimusTilat(uudet)
+  const uudetMeta = metaObj ? { ...(sopimusMeta || {}), ...metaObj } : (sopimusMeta || {})
+  if (metaObj) setSopimusMeta(uudetMeta)
+  if (kuolinpesa?.id) {
+    const merged = { ...uudet }
     Object.entries(uudetMeta).forEach(([k, v]) => { merged['_m_' + k] = v })
     await supabase.from('kuolinpesat').update({ sopimus_tilat: merged }).eq('id', kuolinpesa.id)
   }
@@ -1085,7 +1133,7 @@ const tallennaVahvistettuArvo = async (id, arvo) => {
             <div className="rounded-lg p-6" style={{backgroundColor: '#1C1916', border: '1px solid rgba(240,235,227,0.08)'}}>
   <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '24px' }}>
     <h2 style={{ fontFamily: 'var(--font-body), sans-serif', fontSize: '16px', fontWeight: 700, color: '#F0EBE3', margin: 0 }}>
-      {aktiivinenVaihe === 3 ? 'Valmistaudu tapaamiseen' : `Vaihe ${aktiivinenVaihe}: ${vaiheet[aktiivinenVaihe-1].nimi}`}
+      {aktiivinenVaihe === 3 ? 'Sopimukset' : `Vaihe ${aktiivinenVaihe}: ${vaiheet[aktiivinenVaihe-1].nimi}`}
     </h2>
     {(() => {
       const ohjeNahty = aktiivinenVaihe === 1 ? ensitoimetOhjeNahty
@@ -1385,34 +1433,73 @@ const tallennaVahvistettuArvo = async (id, arvo) => {
     </div>
     <div className="flex gap-6">
       <div className="flex-1 min-w-0">
-        {aktiivinenAlivaihe === 1 && <SelvitysOsio onValmis={() => navigoiAlivaihe(2)} onEdistyminen={setSelvitysHoidettu} avattuSopimus={avattuSopimus} setAvattuSopimus={setAvattuSopimus} sopimusTilat={sopimusTilat} tallennaSopimusTila={tallennaSopimusTila} sopimusMeta={sopimusMeta} tallennaSopimusMeta={tallennaSopimusMeta} kayttajaNimi={kayttajaNimiTeksti || kuolinpesa?.kayttaja_email} kuolinpesaId={kuolinpesa?.id} kayttajaEmail={kuolinpesa?.kayttaja_email} />}
+        {aktiivinenAlivaihe === 1 && <SelvitysOsio onValmis={() => navigoiAlivaihe(2)} onEdistyminen={setSelvitysHoidettu} avattuSopimus={avattuSopimus} setAvattuSopimus={setAvattuSopimus} sopimusTilat={sopimusTilat} tallennaSopimusTila={tallennaSopimusTila} tallennaSopimusTilatBulk={tallennaSopimusTilatBulk} sopimusMeta={sopimusMeta} tallennaSopimusMeta={tallennaSopimusMeta} kayttajaNimi={kayttajaNimiTeksti || kuolinpesa?.kayttaja_email} kuolinpesaId={kuolinpesa?.id} kayttajaEmail={kuolinpesa?.kayttaja_email} />}
         {aktiivinenAlivaihe === 2 && (() => {
-          const kaikkiSop = kategoriat.reduce((sum, k) => sum + k.sopimukset.length, 0)
-          const hoidettuSop = kategoriat.reduce((sum, k) => sum + k.sopimukset.filter(s => sopimusTilat[s.nimi] === 'hoidettu').length, 0)
-          const keskenSop = kategoriat.flatMap(k => k.sopimukset.filter(s => sopimusTilat[s.nimi] === 'kesken').map(s => ({ ...s, kategoriaNimi: k.nimi })))
+          const tyhjaTeksti = (
+            <p style={{ fontSize: '12px', color: '#3A3630', fontFamily: 'var(--font-display), Georgia, serif', fontStyle: 'italic', padding: '8px 0' }}>
+              Ei vielä kirjattuja sopimuksia
+            </p>
+          )
+          const hoidetutRyhmat = []
+          const keskenLista = []
+          kategoriat.forEach(k => {
+            const hoidetut = k.sopimukset.filter(s => !s.type && sopimusTilat[s.nimi] === 'hoidettu')
+            if (hoidetut.length > 0) hoidetutRyhmat.push({ nimi: k.nimi, sopimukset: hoidetut })
+            k.sopimukset.filter(s => !s.type && sopimusTilat[s.nimi] === 'kesken').forEach(s => {
+              keskenLista.push({ nimi: s.nimi, kategoriaNimi: k.nimi })
+            })
+          })
           return (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               <div style={{ backgroundColor: '#0D0B09', border: '1px solid rgba(240,235,227,0.08)', padding: '24px' }}>
-                <div style={{ fontSize: '9px', letterSpacing: '0.2em', textTransform: 'uppercase', color: '#C9A84C', marginBottom: '20px' }}>Yhteenveto</div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px', backgroundColor: 'rgba(201,168,76,0.06)', border: '1px solid rgba(201,168,76,0.2)', marginBottom: '20px' }}>
-                  <span style={{ fontSize: '13px', color: '#C9A84C', fontWeight: 600 }}>Hoidettu</span>
-                  <span style={{ fontSize: '22px', color: '#C9A84C', fontFamily: 'var(--font-display), Georgia, serif', fontWeight: 300 }}>{hoidettuSop} / {kaikkiSop}</span>
-                </div>
-                {keskenSop.length > 0 ? (
-                  <div>
-                    <div style={{ fontSize: '11px', color: '#5A5248', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '12px' }}>Vielä kesken</div>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1px' }}>
-                      {keskenSop.map((s, i) => (
-                        <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 12px', backgroundColor: '#110E0B', borderLeft: '2px solid rgba(201,168,76,0.4)' }}>
-                          <span style={{ fontSize: '13px', color: '#D0C8BC' }}>{s.nimi}</span>
-                          <span style={{ fontSize: '11px', color: '#5A5248' }}>{s.kategoriaNimi}</span>
+                <div style={{ fontSize: '9px', letterSpacing: '0.2em', textTransform: 'uppercase', color: '#C9A84C', marginBottom: '20px' }}>Hoidetut sopimukset</div>
+                {hoidetutRyhmat.length === 0 ? tyhjaTeksti : hoidetutRyhmat.map(ryhma => (
+                  <div key={ryhma.nimi} style={{ marginBottom: '16px' }}>
+                    <div style={{ fontSize: '9px', letterSpacing: '0.18em', textTransform: 'uppercase', color: '#5A5248', marginBottom: '6px', fontFamily: 'var(--font-body), sans-serif' }}>{ryhma.nimi}</div>
+                    {ryhma.sopimukset.map((s, i) => {
+                      const meta = sopimusMeta?.[s.nimi] || {}
+                      return (
+                        <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 0', borderBottom: '1px solid rgba(240,235,227,0.04)' }}>
+                          <span style={{ fontSize: '13px', color: '#D0C8BC', flex: 1 }}>{s.nimi}</span>
+                          {meta.hoitaja && <span style={{ fontSize: '12px', color: '#C9A84C', fontWeight: 500, flexShrink: 0 }}>{meta.hoitaja}</span>}
+                          {meta.timestamp && <span style={{ fontSize: '11px', color: '#5A5248', fontStyle: 'italic', flexShrink: 0 }}>{meta.timestamp}</span>}
                         </div>
-                      ))}
-                    </div>
+                      )
+                    })}
                   </div>
-                ) : (
-                  <p style={{ fontSize: '13px', color: '#5A5248' }}>Ei avoimia sopimuksia.</p>
-                )}
+                ))}
+              </div>
+              <div style={{ backgroundColor: '#0D0B09', border: '1px solid rgba(240,235,227,0.08)', padding: '24px' }}>
+                <div style={{ fontSize: '9px', letterSpacing: '0.2em', textTransform: 'uppercase', color: '#C9A84C', marginBottom: '20px' }}>Kesken / odottaa</div>
+                {keskenLista.length === 0 ? (
+                  <p style={{ fontSize: '12px', color: '#3A3630', fontFamily: 'var(--font-display), Georgia, serif', fontStyle: 'italic', padding: '8px 0' }}>Ei avoimia sopimuksia.</p>
+                ) : keskenLista.map((s, i) => {
+                  const avainKey = s.kategoriaNimi + ':' + s.nimi
+                  const onAvattu = yhteenvetoKeskenAvattu === avainKey
+                  const odottaa = sopimusMeta?.[s.nimi]?.odottaa
+                  return (
+                    <div key={i} style={{ borderBottom: '1px solid rgba(240,235,227,0.04)' }}>
+                      <div
+                        onClick={() => setYhteenvetoKeskenAvattu(onAvattu ? null : avainKey)}
+                        style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 0', cursor: 'pointer' }}
+                      >
+                        <span style={{ fontSize: '11px', color: '#5A5248', flexShrink: 0 }}>{s.kategoriaNimi}</span>
+                        <span style={{ color: '#3A3630', fontSize: '11px', flexShrink: 0 }}>→</span>
+                        <span style={{ fontSize: '13px', color: '#D0C8BC', flex: 1 }}>{s.nimi}</span>
+                        <span style={{ fontSize: '11px', color: onAvattu ? '#C9A84C' : '#3A3630', flexShrink: 0, transition: 'color 0.15s' }}>{onAvattu ? '▴' : '▾'}</span>
+                      </div>
+                      {onAvattu && (
+                        <div style={{ padding: '0 0 12px 0' }}>
+                          {odottaa ? (
+                            <p style={{ fontSize: '12px', color: '#8A8278', lineHeight: 1.6, fontStyle: 'italic', margin: 0 }}>⏳ {odottaa}</p>
+                          ) : (
+                            <p style={{ fontSize: '12px', color: '#3A3630', fontStyle: 'italic', margin: 0 }}>Ei odottavaa viestiä kirjattu.</p>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  )
+                })}
               </div>
             </div>
           )
@@ -1625,7 +1712,7 @@ const tallennaVahvistettuArvo = async (id, arvo) => {
   )
 }
 
-function KommenttiKentta({ kuolinpesaId, kayttajaEmail, kontekstiTyyppi = 'yleinen', kontekstiId = null, onKommenttiLisatty, kompakti = false }) {
+function KommenttiKentta({ kuolinpesaId, kayttajaEmail, kontekstiTyyppi = 'yleinen', kontekstiId = null, onKommenttiLisatty, kompakti = false, placeholder = 'Kirjoita viesti...', onLaheta }) {
   const [kommentit, setKommentit] = useState([])
   const [uusi, setUusi] = useState('')
 
@@ -1652,6 +1739,7 @@ function KommenttiKentta({ kuolinpesaId, kayttajaEmail, kontekstiTyyppi = 'ylein
     }).select().single()
     if (data) {
       setKommentit([data, ...kommentit])
+      if (onLaheta) onLaheta(uusi.trim())
       setUusi('')
       if (onKommenttiLisatty) onKommenttiLisatty(data)
     }
@@ -1664,7 +1752,7 @@ function KommenttiKentta({ kuolinpesaId, kayttajaEmail, kontekstiTyyppi = 'ylein
           value={uusi}
           onChange={e => setUusi(e.target.value)}
           onKeyDown={e => e.key === 'Enter' && laheta()}
-          placeholder="Kirjoita viesti..."
+          placeholder={placeholder}
           style={{ flex: 1, backgroundColor: '#110E0B', border: '1px solid rgba(240,235,227,0.15)', color: '#F0EBE3', fontSize: '13px', padding: '10px 14px', outline: 'none', fontFamily: 'var(--font-body)' }}
         />
         <button onClick={laheta} style={{ backgroundColor: '#C9A84C', color: '#110E0B', border: 'none', padding: '10px 18px', fontSize: '13px', fontWeight: 600, cursor: 'pointer', fontFamily: 'var(--font-body)' }}>→</button>
@@ -2114,13 +2202,113 @@ function VaratJaVelat({ rastitattu, onToggle, kirjaukset, onKirjaus, vahvistetut
   )
 }
 
-function SelvitysOsio({ onValmis, onEdistyminen, avattuSopimus, setAvattuSopimus, sopimusTilat, tallennaSopimusTila, sopimusMeta, tallennaSopimusMeta, kayttajaNimi, kuolinpesaId, kayttajaEmail }) {
+const odottaaEsimerkit = {
+  // Asuminen ja liikenne
+  'Sähkösopimus': 'esim. Vahvistusta irtisanomisesta sähköyhtiöltä...',
+  'Vesisopimus': 'esim. Vahvistusta irtisanomisesta vesiyhtiöltä...',
+  'Kaukolämpösopimus': 'esim. Vahvistusta kaukolämpöyhtiöltä...',
+  'Vuokrasopimus': 'esim. Kaikkien osakkaiden allekirjoituksia...',
+  'Internet / laajakaista': 'esim. Vahvistusta irtisanomisesta operaattorilta...',
+  'Kaapeli-TV': 'esim. Vahvistusta irtisanomisesta palveluntarjoajalta...',
+  'Hälytyspalvelu / turvapuhelin': 'esim. Laitteiden palautusaikataulua...',
+  'Siivouspalvelu': 'esim. Vahvistusta peruutuksesta siivousyritykseltä...',
+  'Piha- tai lumityöpalvelu': 'esim. Vahvistusta irtisanomisesta...',
+  'Säilytystila / varasto': 'esim. Tilan tyhjennysaikataulua...',
+  'Parkkipaikka / autohalli': 'esim. Avaimen palautusaikaa...',
+  'Pysäköintikortti / aluekortti': 'esim. Vahvistusta irtisanomisesta...',
+  'Autopesusopimus': 'esim. Vahvistusta irtisanomisesta...',
+  'Autolaina / rahoitussopimus': 'esim. Lainan loppusummaa rahoitusyhtiöltä...',
+  'Leasingsopimus': 'esim. Ajoneuvon palautusaikataulua...',
+  // Vakuutukset
+  'Henkivakuutus': 'esim. Korvauspäätöstä vakuutusyhtiöltä...',
+  'Ryhmähenkivakuutus (työnantajan kautta)': 'esim. Vastausta työnantajalta tai tvk.fi:stä...',
+  'Tapaturmavakuutus': 'esim. Korvauspäätöstä vakuutusyhtiöltä...',
+  'Autovakuutus (liikennevakuutus + kasko)': 'esim. Vahvistusta muutoksista vakuutusyhtiöltä...',
+  'Moottoripyörän / veneen vakuutus': 'esim. Vahvistusta muutoksista vakuutusyhtiöltä...',
+  'Kotivakuutus': 'esim. Vahvistusta siirtymisestä pesän nimiin...',
+  'Kiinteistövakuutus': 'esim. Vahvistusta siirtymisestä pesän nimiin...',
+  'Matkavakuutus (vuosivakuutus)': 'esim. Vahvistusta irtisanomisesta...',
+  'Sairausvakuutus (yksityinen)': 'esim. Tietoa avoimista korvauksista...',
+  'Eläkevakuutus (vapaaehtoinen)': 'esim. Nostomahdollisuuden selvittämistä...',
+  'Lainaturva': 'esim. Korvaushakemuksen käsittelyä...',
+  'Oikeusturvavakuutus': 'esim. Vakuutusehtojen tarkistamista...',
+  // Tilaukset ja media
+  'Puhelinliittymät': 'esim. Kaikkien liittymien listausta operaattorilta...',
+  'Lehtitilaukset (sanomalehdet ja aikakauslehdet)': 'esim. Vahvistusta tilauksen päättymisestä...',
+  'Netflix': 'esim. Luottokortin sulkemista tai tilin peruutusta...',
+  'Spotify / Apple Music': 'esim. Luottokortin sulkemista tai tilin peruutusta...',
+  'Disney+ / C More / Viaplay / Elisa Viihde': 'esim. Luottokortin sulkemista tai tilin peruutusta...',
+  'Kirjakerho / kirjatilaus': 'esim. Vahvistusta irtisanomisesta kirjakerholta...',
+  'Äänikirjapalvelu (Storytel, BookBeat)': 'esim. Luottokortin sulkemista tai tilin peruutusta...',
+  // Jäsenyydet
+  'Ammattiliitto': 'esim. Kuolemanvaraturvan selvittämistä liitolta...',
+  'Työttömyyskassa': 'esim. Avointen korvausten selvittämistä kassalta...',
+  'Urheiluseura / harrastusseura': 'esim. Vahvistusta jäsenyyden päättymisestä...',
+  'SPR / Lions / Rotary / muu järjestö': 'esim. Vahvistusta jäsenyyden päättymisestä...',
+  'Eläkeläisjärjestö': 'esim. Vahvistusta jäsenyyden päättymisestä...',
+  'Kuntosalijäsenyys': 'esim. Avainkortin palautusaikaa...',
+  'Uimahalli / liikuntakeskus': 'esim. Kortin palautusaikaa...',
+  // Hoiva ja terveys
+  'Kotihoito': 'esim. Avainten palautusaikaa...',
+  'Ateriapalvelu': 'esim. Vahvistusta toimituksen peruutuksesta...',
+  'Taksikortti / Kela-taksi': 'esim. Taksikortin palautusaikaa...',
+  'Yksityislääkärisopimus': 'esim. Vahvistusta irtisanomisesta...',
+  'Hammaslääkärisopimus': 'esim. Vahvistusta irtisanomisesta...',
+  'Hierontapalvelu': 'esim. Hyvitystä käyttämättömistä sarjakortin kerroista...',
+  'Jumppatunnit / ryhmäliikunta': 'esim. Hyvitystä käyttämättömistä tunneista...',
+  'Lemmikin hoitopalvelu': 'esim. Vahvistusta peruutuksesta...',
+  // Digitaaliset — sähköposti
+  'Gmail': 'esim. Tilin poistovahvistusta Googlelta...',
+  'Outlook / Hotmail': 'esim. DVD-pyyntöä tai vastausta Microsoftilta...',
+  'iCloud Mail': 'esim. Apple ID -pyynnön käsittelyä...',
+  'Yahoo Mail': 'esim. Vastausta Yahoon asiakaspalvelulta...',
+  // Digitaaliset — sosiaalinen media
+  'Facebook': 'esim. Lomakkeen käsittelyä Facebookilta...',
+  'Instagram': 'esim. Vastausta Instagramin tuesta...',
+  'X (Twitter)': 'esim. Vastausta X:n asiakaspalvelulta...',
+  'LinkedIn': 'esim. Profiilin poiston vahvistusta LinkedIniltä...',
+  'TikTok': 'esim. Vastausta TikTokin asiakaspalvelulta...',
+  'Snapchat': 'esim. Vastausta Snapchatin tuesta...',
+  'Pinterest': 'esim. Vastausta Pinterestin tuesta...',
+  // Digitaaliset — pilvi ja laitetilit
+  'Apple ID / iCloud': 'esim. Digital Legacy -pyynnön käsittelyä Applelta...',
+  'Google-tili (Drive, Photos, YouTube)': 'esim. Tilin poistolupaa Googlelta...',
+  'Microsoft-tili (OneDrive)': 'esim. DVD-pyyntöä tai vastausta Microsoftilta...',
+  'Dropbox': 'esim. Vastausta Dropboxin tuesta...',
+  // Digitaaliset — verkkokaupat ja maksut
+  'Amazon': 'esim. Vastausta Amazonin asiakaspalvelulta...',
+  'Zalando': 'esim. Avointen palautusten selvittämistä...',
+  'PayPal': 'esim. Asiakirjojen toimittamista PayPalille...',
+  'Vinted': 'esim. Saldon tai tuotteiden selvittämistä...',
+  'Tori.fi': 'esim. Ilmoitusten poistoa...',
+  // Digitaaliset — viihde ja tilaukset
+  'Spotify': 'esim. Luottokortin sulkemista tai tilin peruutusta...',
+  'Disney+': 'esim. Luottokortin sulkemista tai tilin peruutusta...',
+  'HBO Max': 'esim. Luottokortin sulkemista tai tilin peruutusta...',
+  'Viaplay': 'esim. Luottokortin sulkemista tai tilin peruutusta...',
+  'C More': 'esim. Luottokortin sulkemista tai tilin peruutusta...',
+  'Elisa Viihde': 'esim. Luottokortin sulkemista tai tilin peruutusta...',
+  'Ruutu': 'esim. Luottokortin sulkemista tai tilin peruutusta...',
+  'MTV Katsomo': 'esim. Luottokortin sulkemista tai tilin peruutusta...',
+  'Amazon Prime Video': 'esim. Luottokortin sulkemista tai tilin peruutusta...',
+  // Digitaaliset — rahapelit
+  'Veikkaus': 'esim. Automaattista palautusta (tapahtuu 3 kk:n sisällä)...',
+  'Paf': 'esim. Saldon palautusta Pafilta...',
+  // Digitaaliset — ruoka ja liikkuminen
+  'Wolt': 'esim. Luottokortin sulkemista tai tilin sulkemista...',
+  'Foodora': 'esim. Luottokortin sulkemista tai tilin sulkemista...',
+  'HSL (mobiililippu)': 'esim. Kausilipun hyvitystä HSL:ltä...',
+}
+
+function SelvitysOsio({ onValmis, onEdistyminen, avattuSopimus, setAvattuSopimus, sopimusTilat, tallennaSopimusTila, tallennaSopimusTilatBulk, sopimusMeta, tallennaSopimusMeta, kayttajaNimi, kuolinpesaId, kayttajaEmail }) {
   const [valittuKategoria, setValittuKategoria] = useState(avattuSopimus?.kategoriaId || null)
   const [muutSopimukset, setMuutSopimukset] = useState({})
   const [sopLisaysAuki, setSopLisaysAuki] = useState(null)
   const [sopLisaysTeksti, setSopLisaysTeksti] = useState('')
   const [sopLisaysId, setSopLisaysId] = useState(null)
-  const [odottaaKentat, setOdottaaKentat] = useState({})
+  const [ohitaModalAuki, setOhitaModalAuki] = useState(false)
+  const [ohitaValinta, setOhitaValinta] = useState('hoidettu')
+  const [ohitetutKategoriat, setOhitetutKategoriat] = useState({})
 
   const sopLsKey = kuolinpesaId ? `muut_sopimukset_${kuolinpesaId}` : null
 
@@ -2146,6 +2334,34 @@ function SelvitysOsio({ onValmis, onEdistyminen, avattuSopimus, setAvattuSopimus
     const uudet = { ...muutSopimukset, [katId]: (muutSopimukset[katId] || []).filter(s => s.id !== id) }
     setMuutSopimukset(uudet)
     if (sopLsKey) localStorage.setItem(sopLsKey, JSON.stringify(uudet))
+  }
+
+  const vahvistaOhitus = () => {
+    const tila = ohitaValinta === 'hoidettu' ? 'hoidettu' : 'ei'
+    const kat = kategoriat.find(k => k.id === valittuKategoria)
+    if (!kat) return
+    const sopimukset = kat.sopimukset.filter(s => !s.type)
+    const prevStates = {}
+    const uudetTilat = {}
+    const uudetMeta = {}
+    const nyt = new Date().toLocaleDateString('fi-FI')
+    sopimukset.forEach(s => {
+      prevStates[s.nimi] = sopimusTilat[s.nimi] ?? null
+      uudetTilat[s.nimi] = tila
+      if (tila === 'hoidettu') uudetMeta[s.nimi] = { timestamp: nyt, hoitaja: kayttajaNimi }
+    })
+    tallennaSopimusTilatBulk(uudetTilat, tila === 'hoidettu' ? uudetMeta : undefined)
+    setOhitetutKategoriat(prev => ({ ...prev, [valittuKategoria]: { prevStates, tila } }))
+    setOhitaModalAuki(false)
+    setAvattuSopimus(null)
+  }
+
+  const peruutaOhitus = () => {
+    const ohitus = ohitetutKategoriat[valittuKategoria]
+    if (!ohitus) return
+    tallennaSopimusTilatBulk(ohitus.prevStates)
+    setOhitetutKategoriat(prev => { const u = { ...prev }; delete u[valittuKategoria]; return u })
+    setAvattuSopimus(null)
   }
 
   useEffect(() => {
@@ -2175,16 +2391,16 @@ function SelvitysOsio({ onValmis, onEdistyminen, avattuSopimus, setAvattuSopimus
             <p style={{color: '#8A8278', fontSize: '13px'}}>👤 Hoiti: <span style={{color: '#D0C8BC'}}>{meta.hoitaja || '—'}</span></p>
           </div>
         ) : onKesken ? (
-          <div style={{display: 'flex', flexDirection: 'column', gap: '8px'}}>
+          <div style={{display: 'flex', flexDirection: 'column', gap: '4px'}}>
             <p className="text-white font-bold text-sm">Mitä odotat?</p>
-            <input
-              type="text"
-              value={odottaaKentat[avattuSopimus.nimi] ?? meta.odottaa ?? ''}
-              onChange={e => setOdottaaKentat(prev => ({...prev, [avattuSopimus.nimi]: e.target.value}))}
-              onBlur={e => tallennaSopimusMeta(avattuSopimus.nimi, { odottaa: e.target.value })}
-              placeholder="esim. Valtakirjaa osakkailta..."
-              className="px-3 py-2 text-sm text-white placeholder-gray-500 outline-none"
-              style={{backgroundColor: '#110E0B', border: '1px solid rgba(240,235,227,0.08)'}}
+            <KommenttiKentta
+              kuolinpesaId={kuolinpesaId}
+              kayttajaEmail={kayttajaEmail}
+              kontekstiTyyppi="sopimus_odottaa"
+              kontekstiId={avattuSopimus.nimi}
+              kompakti={true}
+              placeholder={odottaaEsimerkit[avattuSopimus?.nimi] || 'esim. Odottaa vastausta...'}
+              onLaheta={teksti => tallennaSopimusMeta(avattuSopimus.nimi, { odottaa: teksti })}
             />
           </div>
         ) : (
@@ -2228,8 +2444,8 @@ function SelvitysOsio({ onValmis, onEdistyminen, avattuSopimus, setAvattuSopimus
             const kasitelty = kat.sopimukset.filter(s => sopimusTilat[s.nimi] === 'hoidettu' || sopimusTilat[s.nimi] === 'ei').length
             const hoidettu = kat.sopimukset.filter(s => sopimusTilat[s.nimi] === 'hoidettu').length
             const kesken = kat.sopimukset.filter(s => sopimusTilat[s.nimi] === 'kesken').length
-            const kasittelematta = kat.sopimukset.length - kasitelty - kesken
-            const kaikki = kat.sopimukset.length
+            const kasittelematta = kat.sopimukset.filter(s => !s.type).length - kasitelty - kesken
+            const kaikki = kat.sopimukset.filter(s => !s.type).length
             const valmis = kasitelty === kaikki && kaikki > 0
             return (
               <div key={kat.id}
@@ -2319,17 +2535,32 @@ function SelvitysOsio({ onValmis, onEdistyminen, avattuSopimus, setAvattuSopimus
                 </div>
               </div>
             </div>
-            <button
-              onClick={() => { kategoria.sopimukset.forEach(s => tallennaSopimusTila(s.nimi, 'ei')); setAvattuSopimus(null) }}
-              style={{ fontSize: '11px', color: '#4E4840', background: 'none', border: '1px solid rgba(240,235,227,0.08)', padding: '5px 12px', cursor: 'pointer', letterSpacing: '0.04em', fontFamily: 'var(--font-body)', transition: 'color 0.15s' }}
-              onMouseEnter={e => e.currentTarget.style.color = '#8A8278'}
-              onMouseLeave={e => e.currentTarget.style.color = '#4E4840'}
-            >
-              Ei koske tätä pesää
-            </button>
+            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+              {ohitetutKategoriat[valittuKategoria]
+                ? <button
+                    onClick={peruutaOhitus}
+                    style={{ fontSize: '11px', color: '#4E4840', background: 'none', border: '1px solid rgba(240,235,227,0.06)', padding: '5px 12px', cursor: 'pointer', letterSpacing: '0.04em', fontFamily: 'var(--font-body)', transition: 'color 0.15s, border-color 0.15s' }}
+                    onMouseEnter={e => { e.currentTarget.style.color = '#7A7268'; e.currentTarget.style.borderColor = 'rgba(240,235,227,0.15)' }}
+                    onMouseLeave={e => { e.currentTarget.style.color = '#4E4840'; e.currentTarget.style.borderColor = 'rgba(240,235,227,0.06)' }}
+                  >Peruuta ohitus</button>
+                : <button
+                    onClick={() => { setOhitaValinta('hoidettu'); setOhitaModalAuki(true) }}
+                    style={{ fontSize: '11px', color: '#5A5450', background: 'none', border: '1px solid rgba(240,235,227,0.1)', padding: '5px 12px', cursor: 'pointer', letterSpacing: '0.04em', fontFamily: 'var(--font-body)', transition: 'color 0.15s, border-color 0.15s' }}
+                    onMouseEnter={e => { e.currentTarget.style.color = '#8A8278'; e.currentTarget.style.borderColor = 'rgba(240,235,227,0.22)' }}
+                    onMouseLeave={e => { e.currentTarget.style.color = '#5A5450'; e.currentTarget.style.borderColor = 'rgba(240,235,227,0.1)' }}
+                  >Ohita osio</button>
+              }
+            </div>
           </div>
           <div className="flex flex-col gap-2">
             {kategoria.sopimukset.map(sopimus => {
+              if (sopimus.type === 'header') {
+                return (
+                  <div key={`header-${sopimus.nimi}`} style={{ paddingTop: '20px', paddingBottom: '4px', paddingLeft: '2px' }}>
+                    <span style={{ fontSize: '10px', letterSpacing: '0.22em', textTransform: 'uppercase', color: '#C9A84C', fontFamily: 'var(--font-body), sans-serif' }}>{sopimus.nimi}</span>
+                  </div>
+                )
+              }
               const tila = sopimusTilat[sopimus.nimi]
               const onHoidettu = tila === 'hoidettu'
               const onOhitettu = tila === 'ei'
@@ -2456,13 +2687,52 @@ function SelvitysOsio({ onValmis, onEdistyminen, avattuSopimus, setAvattuSopimus
           ) : sopimusDetailPanel}
         </div>
       </div>
+
+      {ohitaModalAuki && (
+        <div
+          style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.72)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}
+          onClick={e => { if (e.target === e.currentTarget) setOhitaModalAuki(false) }}
+        >
+          <div style={{ backgroundColor: '#1C1916', border: '1px solid rgba(201,168,76,0.25)', padding: '32px', width: '400px', maxWidth: '90vw', boxShadow: '0 24px 64px rgba(0,0,0,0.6)' }}>
+            <h3 style={{ fontSize: '15px', color: '#F0EBE3', fontWeight: 600, marginBottom: '20px', letterSpacing: '-0.01em' }}>Ohitetaanko tämä osio?</h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '28px' }}>
+              {[
+                { val: 'hoidettu', label: 'Kaikki on jo hoidettu etukäteen' },
+                { val: 'ei', label: 'Ei koske tätä pesää' },
+              ].map(({ val, label }) => (
+                <label key={val} style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer' }} onClick={() => setOhitaValinta(val)}>
+                  <div style={{ width: '16px', height: '16px', borderRadius: '50%', flexShrink: 0, border: `2px solid ${ohitaValinta === val ? '#C9A84C' : 'rgba(240,235,227,0.18)'}`, backgroundColor: ohitaValinta === val ? 'rgba(201,168,76,0.12)' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'border-color 0.15s, background 0.15s' }}>
+                    {ohitaValinta === val && <div style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#C9A84C' }} />}
+                  </div>
+                  <span style={{ fontSize: '13px', color: ohitaValinta === val ? '#F0EBE3' : '#7A7268', transition: 'color 0.15s' }}>{label}</span>
+                </label>
+              ))}
+            </div>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <button
+                onClick={() => setOhitaModalAuki(false)}
+                style={{ flex: 1, padding: '10px', fontSize: '11px', letterSpacing: '0.1em', textTransform: 'uppercase', color: '#7A7268', backgroundColor: 'transparent', border: '1px solid rgba(240,235,227,0.1)', cursor: 'pointer', fontFamily: 'var(--font-body)', transition: 'color 0.15s' }}
+                onMouseEnter={e => e.currentTarget.style.color = '#F0EBE3'}
+                onMouseLeave={e => e.currentTarget.style.color = '#7A7268'}
+              >Peruuta</button>
+              <button
+                onClick={vahvistaOhitus}
+                style={{ flex: 1, padding: '10px', fontSize: '11px', letterSpacing: '0.1em', textTransform: 'uppercase', color: '#110E0B', backgroundColor: '#C9A84C', border: 'none', cursor: 'pointer', fontFamily: 'var(--font-body)', transition: 'background 0.15s' }}
+                onMouseEnter={e => e.currentTarget.style.backgroundColor = '#D4B560'}
+                onMouseLeave={e => e.currentTarget.style.backgroundColor = '#C9A84C'}
+              >Ohita osio</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
 
-function Yhteenveto({ varatRastitattu, vahvistetutKirjaukset, sopimusTilat, tallennaSopimusTila, onValmis, setAktiivinenAlivaihe, setAvattuSopimus, kuolinpesa }) {
+function Yhteenveto({ varatRastitattu, vahvistetutKirjaukset, sopimusTilat, tallennaSopimusTila, onValmis, setAktiivinenAlivaihe, setAvattuSopimus, kuolinpesa, sopimusMeta }) {
   const [modalAuki, setModalAuki] = useState(false)
   const [lataa, setLataa] = useState(null)
+  const [keskenAvattu, setKeskenAvattu] = useState(null)
 
   const lataaTiedosto = async (tyyppi) => {
     setLataa(tyyppi)
@@ -2515,7 +2785,7 @@ function Yhteenveto({ varatRastitattu, vahvistetutKirjaukset, sopimusTilat, tall
     </button>
   )
 
-  const kaikkiSopimukset = kategoriat.flatMap(k => k.sopimukset.map(s => ({ ...s, kategoriaId: k.id, kategoriaNimi: k.nimi })))
+  const kaikkiSopimukset = kategoriat.flatMap(k => k.sopimukset.filter(s => !s.type).map(s => ({ ...s, kategoriaId: k.id, kategoriaNimi: k.nimi })))
   const hoidetutSopimukset = kaikkiSopimukset.filter(s => sopimusTilat[s.nimi] === 'hoidettu')
   const avoimet = kaikkiSopimukset.filter(s => sopimusTilat[s.nimi] === 'kesken')
 
@@ -2565,36 +2835,80 @@ function Yhteenveto({ varatRastitattu, vahvistetutKirjaukset, sopimusTilat, tall
         {downloadNappi('velat', 'Lataa velkaluettelo (.docx)')}
       </div>
 
-      {/* Sopimukset */}
+      {/* Sopimukset — hoidetut */}
       <div className="rounded-lg p-5" style={{backgroundColor: '#1C1916', border: '1px solid rgba(240,235,227,0.08)'}}>
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-white font-bold">Sopimukset</h3>
-        </div>
-        {avoimet.length === 0 ? (
-          <p style={{color: '#4E4840'}} className="text-sm">Ei avoimia sopimuksia. Käy Sopimukset-osio läpi ensin.</p>
+        <h3 className="text-white font-bold mb-4">Hoidetut sopimukset</h3>
+        {hoidetutSopimukset.length === 0 ? (
+          <p style={{color: '#4E4840'}} className="text-sm">Ei hoidettuja sopimuksia. Käy Sopimukset-osio läpi ensin.</p>
         ) : (
-          <div className="flex flex-col gap-2">
-            <p style={{color: '#8A8278'}} className="text-xs mb-2">Nämä sopimukset odottavat hoitamista ennen perunkirjoitusta:</p>
-            {avoimet.map(s => (
-              <div key={s.nimi} className="rounded p-3 flex items-center justify-between gap-3 cursor-pointer"
-                style={{backgroundColor: '#110E0B', border: '1px solid rgba(240,235,227,0.08)'}}
-                onClick={() => {
-                  setAvattuSopimus({ ...s })
-                  setAktiivinenAlivaihe(2)
-                }}>
-                <div>
-                  <p className="text-white text-sm">{s.nimi}</p>
-                  <p style={{color: '#4E4840'}} className="text-xs">{s.kategoriaNimi}</p>
+          <div className="flex flex-col gap-3">
+            {kategoriat.map(k => {
+              const hoidetut = k.sopimukset.filter(s => !s.type && sopimusTilat[s.nimi] === 'hoidettu')
+              if (hoidetut.length === 0) return null
+              return (
+                <div key={k.id}>
+                  <p style={{color: '#C9A84C'}} className="text-xs font-bold uppercase tracking-wider mb-1">{k.nimi}</p>
+                  {hoidetut.map((s, i) => {
+                    const meta = sopimusMeta?.[s.nimi] || {}
+                    return (
+                      <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '6px 0', borderBottom: '1px solid rgba(240,235,227,0.04)' }}>
+                        <span style={{color: '#D0C8BC', fontSize: '13px', flex: 1}}>{s.nimi}</span>
+                        {meta.hoitaja && <span style={{color: '#C9A84C', fontSize: '12px', fontWeight: 500, flexShrink: 0}}>{meta.hoitaja}</span>}
+                        {meta.timestamp && <span style={{color: '#5A5248', fontSize: '11px', fontStyle: 'italic', flexShrink: 0}}>{meta.timestamp}</span>}
+                      </div>
+                    )
+                  })}
                 </div>
-                <span className="text-xs px-3 py-1 rounded flex-shrink-0"
-                  style={{backgroundColor: 'rgba(201,168,76,0.15)', color: '#C9A84C'}}>
-                  ⏳ Kesken →
-                </span>
-              </div>
-            ))}
+              )
+            })}
           </div>
         )}
         {downloadNappi('sopimukset', 'Lataa sopimusluettelo (.docx)')}
+      </div>
+
+      {/* Sopimukset — kesken */}
+      <div className="rounded-lg p-5" style={{backgroundColor: '#1C1916', border: '1px solid rgba(240,235,227,0.08)'}}>
+        <h3 className="text-white font-bold mb-4">Kesken / odottaa</h3>
+        {avoimet.length === 0 ? (
+          <p style={{color: '#4E4840'}} className="text-sm">Ei avoimia sopimuksia.</p>
+        ) : (
+          <div className="flex flex-col gap-3">
+            {kategoriat.map(k => {
+              const kesken = k.sopimukset.filter(s => !s.type && sopimusTilat[s.nimi] === 'kesken')
+              if (kesken.length === 0) return null
+              return (
+                <div key={k.id}>
+                  <p style={{color: '#C9A84C'}} className="text-xs font-bold uppercase tracking-wider mb-1">{k.nimi}</p>
+                  {kesken.map((s, i) => {
+                    const avainKey = k.nimi + ':' + s.nimi
+                    const onAvattu = keskenAvattu === avainKey
+                    const odottaa = sopimusMeta?.[s.nimi]?.odottaa
+                    return (
+                      <div key={i} style={{ borderBottom: '1px solid rgba(240,235,227,0.04)' }}>
+                        <div
+                          onClick={() => setKeskenAvattu(onAvattu ? null : avainKey)}
+                          style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '6px 0', cursor: 'pointer' }}
+                        >
+                          <span style={{color: '#D0C8BC', fontSize: '13px', flex: 1}}>{s.nimi}</span>
+                          <span style={{color: onAvattu ? '#C9A84C' : '#3A3630', fontSize: '11px', flexShrink: 0, transition: 'color 0.15s'}}>{onAvattu ? '▴' : '▾'}</span>
+                        </div>
+                        {onAvattu && (
+                          <div style={{ padding: '0 0 10px 0' }}>
+                            {odottaa ? (
+                              <p style={{ fontSize: '12px', color: '#8A8278', lineHeight: 1.6, fontStyle: 'italic', margin: 0 }}>⏳ {odottaa}</p>
+                            ) : (
+                              <p style={{ fontSize: '12px', color: '#3A3630', fontStyle: 'italic', margin: 0 }}>Ei odottavaa viestiä kirjattu.</p>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    )
+                  })}
+                </div>
+              )
+            })}
+          </div>
+        )}
       </div>
 
       <button
