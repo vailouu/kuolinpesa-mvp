@@ -3,6 +3,7 @@ import React, { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { supabase } from '../supabase'
 import TopBar from '../components/TopBar'
+import InfoModal from '../components/InfoModal'
 
 const kategoriat = [
   {
@@ -211,6 +212,7 @@ function DashboardInner() {
   const [sopimusTilat, setSopimusTilat] = useState({})
   const [sopimusMeta, setSopimusMeta] = useState({})
   const [dropdownAuki, setDropdownAuki] = useState(false)
+  const [infoModalAuki, setInfoModalAuki] = useState(false)
   const [kaikkiKommentit, setKaikkiKommentit] = useState([])
   const [perunkirjoitusTehty, setPerunkirjoitusTehty] = useState({})
   const [perintoveroTehty, setPerintoveroTehty] = useState({})
@@ -420,7 +422,7 @@ const tallennaVahvistettuArvo = async (id, arvo) => {
 
   const kommenttiMaara = (tyyppi, id) => kaikkiKommentit.filter(k => k.konteksti_tyyppi === tyyppi && k.konteksti_id === id).length
 
-  const aktiivisetNav = searchParams?.get('nav') || 'aloita'
+  const aktiivisetNav = searchParams?.get('nav') || 'tehtavat'
   const [valittuVaihe, setValittuVaihe] = React.useState(null)
 
   const navPush = React.useCallback((osioId, extra = {}) => {
@@ -511,10 +513,6 @@ const tallennaVahvistettuArvo = async (id, arvo) => {
   }, [avattuKohta, aktiivisetNav])
 
   const navItems = [
-    {
-      id: 'aloita', label: 'Aloita tästä',
-      icon: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>,
-    },
     {
       id: 'tehtavat', label: 'Tehtävät',
       icon: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="3" y="5" width="18" height="14" rx="1"/><path d="M3 9h18M7 13h2M7 16h5"/><circle cx="17" cy="14.5" r="2.5"/></svg>,
@@ -637,6 +635,40 @@ const tallennaVahvistettuArvo = async (id, arvo) => {
           )
         })()}
 
+        {/* ── NYKYINEN VAIHE ── */}
+        {tehtavaLista.length > 0 && (() => {
+          const nykyinen = vaiheet.find(v =>
+            tehtavaLista.filter(t => t.vaihe === v.numero).some(t => !t.tehty)
+          ) ?? vaiheet[vaiheet.length - 1]
+          return (
+            <button
+              onClick={() => navPush('tehtavat', { vaihe: nykyinen.numero, alivaihe: 1 })}
+              style={{
+                display: 'flex', flexDirection: 'column',
+                width: '100%', padding: '12px 18px',
+                background: 'none', border: 'none',
+                borderBottom: '1px solid rgba(201,168,76,0.28)',
+                cursor: 'pointer', textAlign: 'left',
+                transition: 'background 0.2s, box-shadow 0.2s',
+              }}
+              onMouseEnter={e => { e.currentTarget.style.background = 'rgba(201,168,76,0.06)'; e.currentTarget.style.boxShadow = '0 0 32px rgba(201,168,76,0.14)' }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'none'; e.currentTarget.style.boxShadow = 'none' }}
+            >
+              <p style={{ fontSize: '9px', letterSpacing: '0.1em', color: '#C9A84C', textTransform: 'uppercase', margin: '0 0 6px', fontFamily: 'var(--font-body), sans-serif' }}>
+                Olet tässä vaiheessa
+              </p>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', width: '100%' }}>
+                <span style={{ fontSize: '10px', letterSpacing: '0.1em', textTransform: 'uppercase', color: '#7A7268', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontFamily: 'var(--font-body), sans-serif', lineHeight: 1.4 }}>
+                  {nykyinen.numero}. {nykyinen.nimi}
+                </span>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" strokeWidth="1.5" style={{ flexShrink: 0 }}>
+                  <path d="M5 12h14M12 5l7 7-7 7"/>
+                </svg>
+              </div>
+            </button>
+          )
+        })()}
+
         {/* Navigaatio */}
         <nav style={{ padding: '8px 0', flex: 1 }}>
           {navItems.map(item => {
@@ -683,6 +715,32 @@ const tallennaVahvistettuArvo = async (id, arvo) => {
           })}
         </nav>
 
+        {/* ── MITEN TOIMII ── */}
+        <div style={{ padding: '0 0' }}>
+          <button
+            onClick={() => setInfoModalAuki(true)}
+            style={{
+              display: 'flex', alignItems: 'center', gap: '12px',
+              width: '100%', padding: '11px 20px',
+              background: 'none', border: 'none', borderLeft: '2px solid transparent', cursor: 'pointer',
+              borderTop: '1px solid rgba(201,168,76,0.28)',
+              transition: 'background 0.15s',
+              color: '#5A5248',
+            }}
+            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(240,235,227,0.04)'; e.currentTarget.style.color = '#8A8278' }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'none'; e.currentTarget.style.color = '#5A5248' }}
+          >
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="12" y1="8" x2="12" y2="12"/>
+              <line x1="12" y1="16" x2="12.01" y2="16"/>
+            </svg>
+            <span style={{ fontSize: '11px', letterSpacing: '0.1em', textTransform: 'uppercase', fontFamily: 'var(--font-body), sans-serif' }}>
+              Miten toimii?
+            </span>
+          </button>
+        </div>
+
         {/* ── OTA YHTEYTTÄ ── */}
         <div style={{ padding: '0 0', marginBottom: '8px' }}>
           <button
@@ -715,13 +773,9 @@ const tallennaVahvistettuArvo = async (id, arvo) => {
       {/* ── MAIN CONTENT ── */}
       <main style={{ marginLeft: '220px', flex: 1, minHeight: '100vh', padding: '40px 48px', paddingRight: '128px' }}>
 
-        {/* ── ALOITA TÄSTÄ ── */}
-        {aktiivisetNav === 'aloita' && (
-          <div style={{ maxWidth: '560px' }}>
-
-            <h1 style={{ fontFamily: 'var(--font-display), Georgia, serif', fontSize: '36px', fontWeight: 300, letterSpacing: '-0.02em', color: '#F0EBE3', lineHeight: 1.1, margin: '0 0 32px' }}>
-              Tervetuloa<br /><em style={{ fontStyle: 'italic', color: '#C9A84C' }}>Pesänhoitajaan.</em>
-            </h1>
+        {/* ── PESÄNI YHTEENVETO (placeholder removed) ── */}
+        {false && (
+          <div>
 
             {/* Empaattinen intro */}
             <p style={{ fontSize: '15px', color: '#B0A898', lineHeight: 1.95, margin: '0 0 32px', fontWeight: 300 }}>
@@ -1655,6 +1709,8 @@ const tallennaVahvistettuArvo = async (id, arvo) => {
         )}
 
       </main>
+
+      {infoModalAuki && <InfoModal onClose={() => setInfoModalAuki(false)} />}
 
       {/* ── WELCOME OVERLAY ── */}
       {naytaWelcome && (uusiKayttaja ? !welcomeNimi : kayttajaEtunimi === null) && (

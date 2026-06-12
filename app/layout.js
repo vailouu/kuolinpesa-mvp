@@ -2,6 +2,7 @@ import { Cormorant_Garamond, DM_Sans } from "next/font/google";
 import "./globals.css";
 import BackgroundGlow from "./components/BackgroundGlow";
 import SessionWatcher from "./components/SessionWatcher";
+import OnboardingModal from "./components/OnboardingModal";
 
 const cormorant = Cormorant_Garamond({
   variable: "--font-display",
@@ -27,6 +28,7 @@ export default function RootLayout({ children }) {
       <body className={`${cormorant.variable} ${dmSans.variable} antialiased`}>
         <BackgroundGlow />
         <SessionWatcher />
+        <OnboardingModal />
         {children}
       </body>
     </html>
