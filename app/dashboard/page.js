@@ -4,6 +4,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { supabase } from '../supabase'
 import TopBar from '../components/TopBar'
 import InfoModal from '../components/InfoModal'
+import jsPDF from 'jspdf'
 
 const kategoriat = [
   {
@@ -410,6 +411,157 @@ const tallennaVahvistettuArvo = async (id, arvo) => {
   const tallennaTeksti = async (teksti) => {
     setVaratVelatTeksti(teksti)
     if (kuolinpesa) await supabase.from('kuolinpesat').update({ varat_velat_teksti: teksti }).eq('id', kuolinpesa.id)
+  }
+
+  const generateVaratPDF = () => {
+    const doc = new jsPDF()
+    const pageW = doc.internal.pageSize.getWidth()
+    const pageH = doc.internal.pageSize.getHeight()
+    const margin = 20
+    const cw = pageW - 2 * margin
+    let y = margin
+
+    const checkPage = (needed = 10) => {
+      if (y + needed > pageH - margin) { doc.addPage(); y = margin }
+    }
+
+    const formatEntry = (v) => {
+      if (v !== null && typeof v === 'object') {
+        if (v.pankki != null) return `${v.pankki}${v.tyyppi ? ' — ' + v.tyyppi : ''}`
+        return `${v.tyyppi || ''}${v.kuvaus ? ' — ' + v.kuvaus : ''}`
+      }
+      return String(v ?? '')
+    }
+
+    doc.setFillColor(245, 242, 237)
+    doc.rect(0, 0, pageW, 42, 'F')
+    doc.setFontSize(18); doc.setFont('helvetica', 'bold'); doc.setTextColor(30, 25, 20)
+    doc.text('Omaisuusluettelo', margin, 18)
+    doc.setFontSize(10); doc.setFont('helvetica', 'normal'); doc.setTextColor(100, 90, 80)
+    const pesaHdr = kuolinpesa?.vainajan_nimi ? `${kuolinpesa.vainajan_nimi} kuolinpesä` : 'Kuolinpesä'
+    doc.text(pesaHdr, margin, 28)
+    doc.text(`Tulostettu ${new Date().toLocaleDateString('fi-FI')}`, margin, 35)
+    y = 52
+
+    const sectionHeader = (label) => {
+      checkPage(14)
+      doc.setFillColor(235, 228, 215)
+      doc.rect(margin, y - 4, cw, 8, 'F')
+      doc.setFontSize(9); doc.setFont('helvetica', 'bold'); doc.setTextColor(100, 80, 40)
+      doc.text(label, margin + 2, y + 1)
+      y += 10
+    }
+
+    const renderItems = (items, getKey) => {
+      if (items.length === 0) {
+        doc.setFontSize(9); doc.setFont('helvetica', 'italic'); doc.setTextColor(150, 140, 130)
+        doc.text('Ei kirjattuja eriä', margin, y); y += 8
+        return
+      }
+      items.forEach(k => {
+        const entries = vahvistetutKirjaukset[getKey(k)] || []
+        checkPage(8 + entries.length * 5)
+        doc.setFontSize(9); doc.setFont('helvetica', 'bold'); doc.setTextColor(60, 55, 50)
+        doc.text(k.teksti, margin, y); y += 5
+        entries.forEach(v => {
+          doc.setFontSize(9); doc.setFont('helvetica', 'normal'); doc.setTextColor(80, 75, 70)
+          const lines = doc.splitTextToSize('• ' + formatEntry(v), cw - 6)
+          checkPage(lines.length * 4.5 + 1)
+          doc.text(lines, margin + 5, y)
+          y += lines.length * 4.5
+        })
+        y += 3
+      })
+    }
+
+    const varatLoydetyt = varatJaVelatMuistilista.varat.filter(k => vahvistetutKirjaukset?.[k.id]?.length > 0)
+    const velatLoydetyt = varatJaVelatMuistilista.velat.filter(k => vahvistetutKirjaukset?.['velat_' + k.id]?.length > 0)
+
+    sectionHeader('VARAT')
+    renderItems(varatLoydetyt, k => k.id)
+    y += 4
+    sectionHeader('VELAT')
+    renderItems(velatLoydetyt, k => 'velat_' + k.id)
+
+    const fname = `omaisuusluettelo_${(kuolinpesa?.vainajan_nimi || 'kuolinpesa').replace(/\s+/g, '_')}.pdf`
+    doc.save(fname)
+  }
+
+  const generateSopimusPDF = () => {
+    const doc = new jsPDF()
+    const pageW = doc.internal.pageSize.getWidth()
+    const pageH = doc.internal.pageSize.getHeight()
+    const margin = 20
+    const cw = pageW - 2 * margin
+    let y = margin
+
+    const checkPage = (needed = 10) => {
+      if (y + needed > pageH - margin) { doc.addPage(); y = margin }
+    }
+
+    doc.setFillColor(245, 242, 237)
+    doc.rect(0, 0, pageW, 42, 'F')
+    doc.setFontSize(18); doc.setFont('helvetica', 'bold'); doc.setTextColor(30, 25, 20)
+    doc.text('Sopimusten yhteenveto', margin, 18)
+    doc.setFontSize(10); doc.setFont('helvetica', 'normal'); doc.setTextColor(100, 90, 80)
+    const pesaHdr = kuolinpesa?.vainajan_nimi ? `${kuolinpesa.vainajan_nimi} kuolinpesä` : 'Kuolinpesä'
+    doc.text(pesaHdr, margin, 28)
+    doc.text(`Tulostettu ${new Date().toLocaleDateString('fi-FI')}`, margin, 35)
+    y = 52
+
+    const sectionHeader = (label) => {
+      checkPage(14)
+      doc.setFillColor(235, 228, 215)
+      doc.rect(margin, y - 4, cw, 8, 'F')
+      doc.setFontSize(9); doc.setFont('helvetica', 'bold'); doc.setTextColor(100, 80, 40)
+      doc.text(label, margin + 2, y + 1)
+      y += 10
+    }
+
+    const hoidetutRyhmat = []
+    const keskenLista = []
+    kategoriat.forEach(k => {
+      const hoidetut = k.sopimukset.filter(s => !s.type && sopimusTilat[s.nimi] === 'hoidettu')
+      if (hoidetut.length > 0) hoidetutRyhmat.push({ nimi: k.nimi, sopimukset: hoidetut })
+      k.sopimukset.filter(s => !s.type && sopimusTilat[s.nimi] === 'kesken').forEach(s => {
+        keskenLista.push({ nimi: s.nimi, kategoriaNimi: k.nimi })
+      })
+    })
+
+    sectionHeader('HOIDETUT SOPIMUKSET')
+    if (hoidetutRyhmat.length === 0) {
+      doc.setFontSize(9); doc.setFont('helvetica', 'italic'); doc.setTextColor(150, 140, 130)
+      doc.text('Ei hoidettuja sopimuksia', margin, y); y += 8
+    } else {
+      hoidetutRyhmat.forEach(ryhma => {
+        checkPage(10 + ryhma.sopimukset.length * 5)
+        doc.setFontSize(9); doc.setFont('helvetica', 'bold'); doc.setTextColor(60, 55, 50)
+        doc.text(ryhma.nimi, margin, y); y += 5
+        ryhma.sopimukset.forEach(s => {
+          doc.setFontSize(9); doc.setFont('helvetica', 'normal'); doc.setTextColor(80, 75, 70)
+          doc.text('• ' + s.nimi, margin + 5, y); y += 4.5
+        })
+        y += 3
+      })
+    }
+
+    y += 4
+    sectionHeader('KESKEN / ODOTTAA')
+    if (keskenLista.length === 0) {
+      doc.setFontSize(9); doc.setFont('helvetica', 'italic'); doc.setTextColor(150, 140, 130)
+      doc.text('Ei avoimia sopimuksia', margin, y); y += 8
+    } else {
+      keskenLista.forEach(s => {
+        checkPage(6)
+        doc.setFontSize(9); doc.setFont('helvetica', 'normal'); doc.setTextColor(80, 75, 70)
+        const lines = doc.splitTextToSize(`• ${s.nimi}  (${s.kategoriaNimi})`, cw - 6)
+        doc.text(lines, margin + 5, y)
+        y += lines.length * 4.5 + 0.5
+      })
+    }
+
+    const fname = `sopimukset_${(kuolinpesa?.vainajan_nimi || 'kuolinpesa').replace(/\s+/g, '_')}.pdf`
+    doc.save(fname)
   }
 
   const jarjestys = ['Hanki sukuselvitys', 'Tilaa virkatodistus', 'Selvitä onko testamentti', 'Ilmoita pankeille', 'Irtisano kiireelliset sopimukset', 'Ilmoita Kelalle', 'Ilmoita työnantajalle ja taloyhtiölle', 'Ohjaa posti uuteen osoitteeseen', 'Hae henkivakuutuskorvaus']
@@ -1459,6 +1611,16 @@ const tallennaVahvistettuArvo = async (id, arvo) => {
           )
           return (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                <button
+                  onClick={generateVaratPDF}
+                  style={{ padding: '7px 18px', border: '1px solid rgba(201,168,76,0.4)', borderRadius: '6px', background: 'transparent', color: '#C9A84C', fontSize: '12px', fontFamily: 'var(--font-body)', letterSpacing: '0.02em', cursor: 'pointer', transition: 'box-shadow 0.2s' }}
+                  onMouseEnter={e => e.currentTarget.style.boxShadow = '0 0 14px rgba(201,168,76,0.28)'}
+                  onMouseLeave={e => e.currentTarget.style.boxShadow = 'none'}
+                >
+                  Tallenna PDF
+                </button>
+              </div>
               <div style={{ backgroundColor: '#0D0B09', border: '1px solid rgba(240,235,227,0.08)', padding: '24px' }}>
                 <div style={{ fontSize: '9px', letterSpacing: '0.2em', textTransform: 'uppercase', color: '#C9A84C', marginBottom: '20px' }}>Varat</div>
                 {varatLoydetyt.length === 0 ? tyhjaTeksti : renderRivit(varatLoydetyt, k => k.id)}
@@ -1505,6 +1667,16 @@ const tallennaVahvistettuArvo = async (id, arvo) => {
           })
           return (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                <button
+                  onClick={generateSopimusPDF}
+                  style={{ padding: '7px 18px', border: '1px solid rgba(201,168,76,0.4)', borderRadius: '6px', background: 'transparent', color: '#C9A84C', fontSize: '12px', fontFamily: 'var(--font-body)', letterSpacing: '0.02em', cursor: 'pointer', transition: 'box-shadow 0.2s' }}
+                  onMouseEnter={e => e.currentTarget.style.boxShadow = '0 0 14px rgba(201,168,76,0.28)'}
+                  onMouseLeave={e => e.currentTarget.style.boxShadow = 'none'}
+                >
+                  Tallenna PDF
+                </button>
+              </div>
               <div style={{ backgroundColor: '#0D0B09', border: '1px solid rgba(240,235,227,0.08)', padding: '24px' }}>
                 <div style={{ fontSize: '9px', letterSpacing: '0.2em', textTransform: 'uppercase', color: '#C9A84C', marginBottom: '20px' }}>Hoidetut sopimukset</div>
                 {hoidetutRyhmat.length === 0 ? tyhjaTeksti : hoidetutRyhmat.map(ryhma => (
@@ -3777,9 +3949,12 @@ function HoitoJaToimeenpanoOsio({ kuolinpesa, vahvistetutKirjaukset, varatRastit
   Object.entries(vahvistetutKirjaukset || {}).forEach(([id, kirjaukset]) => {
     const lista = Array.isArray(kirjaukset) ? kirjaukset : kirjaukset ? [kirjaukset] : []
     lista.forEach((kirjaus, i) => {
-      if (kirjaus && kirjaus.trim()) {
+      const kirjausNimi = kirjaus !== null && typeof kirjaus === 'object'
+        ? (kirjaus.pankki != null ? `${kirjaus.pankki}${kirjaus.tyyppi ? ' — ' + kirjaus.tyyppi : ''}` : `${kirjaus.tyyppi || ''}${kirjaus.kuvaus ? ' — ' + kirjaus.kuvaus : ''}`)
+        : String(kirjaus ?? '')
+      if (kirjaus && kirjausNimi.trim()) {
         const kategoriaTiedot = varatJaVelatMuistilista.varat.find(k => k.id === id) || varatJaVelatMuistilista.velat.find(k => k.id === id)
-        omaisuusErat.push({ avain: `${id}_${i}`, nimi: kirjaus, kategoriaLabel: kategoriaTiedot?.teksti || id })
+        omaisuusErat.push({ avain: `${id}_${i}`, nimi: kirjausNimi, kategoriaLabel: kategoriaTiedot?.teksti || id })
       }
     })
   })
