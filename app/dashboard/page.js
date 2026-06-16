@@ -206,6 +206,7 @@ function DashboardInner() {
  const [avattuKohta, setAvattuKohta] = useState(null)
  const [avattuSopimus, setAvattuSopimus] = useState(null)
   const [yhteenvetoKeskenAvattu, setYhteenvetoKeskenAvattu] = useState(null)
+  const [poistoVahvistus, setPoistoVahvistus] = useState(null)
   const [varatRastitattu, setVaratRastitattu] = useState({})
   const [varatVelatTeksti, setVaratVelatTeksti] = useState('')
   const [varatKirjaukset, setVaratKirjaukset] = useState({})
@@ -620,7 +621,7 @@ const tallennaVahvistettuArvo = async (id, arvo) => {
       setAvattuKohta(id)
       setAvattuSopimus(null)
       navPush('tehtavat', { vaihe: 2, alivaihe: 1 })
-    } else if (tyyppi === 'sopimus') {
+    } else if (tyyppi === 'sopimus' || tyyppi === 'sopimus_odottaa') {
       let foundSopimus = null
       for (const kat of kategoriat) {
         const s = kat.sopimukset.find(s => s.nimi === id || s.id === id)
@@ -1601,13 +1602,47 @@ const tallennaVahvistettuArvo = async (id, arvo) => {
             </p>
           )
           const renderRivit = (erat, getKey) => erat.flatMap(k =>
-            (vahvistetutKirjaukset[getKey(k)] || []).map((v, i) => (
-              <div key={k.id + i} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 0', borderBottom: '1px solid rgba(240,235,227,0.04)' }}>
-                <span style={{ fontSize: '11px', color: '#5A5248', flexShrink: 0 }}>{k.teksti}</span>
-                <span style={{ color: '#3A3630', fontSize: '11px', flexShrink: 0 }}>→</span>
-                <span style={{ fontSize: '13px', color: '#D0C8BC' }}>{v !== null && typeof v === 'object' ? (v.pankki != null ? `${v.pankki}${v.tyyppi ? ' — ' + v.tyyppi : ''}` : `${v.tyyppi || ''}${v.kuvaus ? ' — ' + v.kuvaus : ''}`) : String(v ?? '')}</span>
-              </div>
-            ))
+            (vahvistetutKirjaukset[getKey(k)] || []).map((v, i) => {
+              const confirmKey = `vv:${getKey(k)}:${i}`
+              const vahvistettava = poistoVahvistus === confirmKey
+              return (
+                <div key={k.id + i} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 0', borderBottom: '1px solid rgba(240,235,227,0.04)' }}>
+                  <span style={{ fontSize: '11px', color: '#5A5248', flexShrink: 0 }}>{k.teksti}</span>
+                  <span style={{ color: '#3A3630', fontSize: '11px', flexShrink: 0 }}>→</span>
+                  <span style={{ fontSize: '13px', color: '#D0C8BC', flex: 1 }}>{v !== null && typeof v === 'object' ? (v.pankki != null ? `${v.pankki}${v.tyyppi ? ' — ' + v.tyyppi : ''}` : `${v.tyyppi || ''}${v.kuvaus ? ' — ' + v.kuvaus : ''}`) : String(v ?? '')}</span>
+                  {vahvistettava ? (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
+                      <span style={{ fontSize: '11px', color: '#8A8278' }}>Poistetaanko?</span>
+                      <button
+                        onClick={() => { poistaVahvistettu(getKey(k), i); setPoistoVahvistus(null) }}
+                        style={{ fontSize: '11px', color: '#C9786E', background: 'none', border: '1px solid rgba(201,120,110,0.4)', borderRadius: '4px', padding: '2px 8px', cursor: 'pointer', fontFamily: 'var(--font-body)' }}
+                      >
+                        Kyllä
+                      </button>
+                      <button
+                        onClick={() => setPoistoVahvistus(null)}
+                        style={{ fontSize: '11px', color: '#8A8278', background: 'none', border: '1px solid rgba(240,235,227,0.12)', borderRadius: '4px', padding: '2px 8px', cursor: 'pointer', fontFamily: 'var(--font-body)' }}
+                      >
+                        Peruuta
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => setPoistoVahvistus(confirmKey)}
+                      aria-label="Poista"
+                      style={{ flexShrink: 0, background: 'none', border: 'none', color: '#4a4540', cursor: 'pointer', padding: '2px', display: 'flex', transition: 'color 0.15s' }}
+                      onMouseEnter={e => e.currentTarget.style.color = '#C9786E'}
+                      onMouseLeave={e => e.currentTarget.style.color = '#4a4540'}
+                    >
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                        <line x1="18" y1="6" x2="6" y2="18"/>
+                        <line x1="6" y1="6" x2="18" y2="18"/>
+                      </svg>
+                    </button>
+                  )}
+                </div>
+              )
+            })
           )
           return (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
@@ -1684,11 +1719,43 @@ const tallennaVahvistettuArvo = async (id, arvo) => {
                     <div style={{ fontSize: '9px', letterSpacing: '0.18em', textTransform: 'uppercase', color: '#5A5248', marginBottom: '6px', fontFamily: 'var(--font-body), sans-serif' }}>{ryhma.nimi}</div>
                     {ryhma.sopimukset.map((s, i) => {
                       const meta = sopimusMeta?.[s.nimi] || {}
+                      const confirmKey = `sh:${ryhma.nimi}:${s.nimi}`
+                      const vahvistettava = poistoVahvistus === confirmKey
                       return (
                         <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 0', borderBottom: '1px solid rgba(240,235,227,0.04)' }}>
                           <span style={{ fontSize: '13px', color: '#D0C8BC', flex: 1 }}>{s.nimi}</span>
                           {meta.hoitaja && <span style={{ fontSize: '12px', color: '#C9A84C', fontWeight: 500, flexShrink: 0 }}>{meta.hoitaja}</span>}
                           {meta.timestamp && <span style={{ fontSize: '11px', color: '#5A5248', fontStyle: 'italic', flexShrink: 0 }}>{meta.timestamp}</span>}
+                          {vahvistettava ? (
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
+                              <span style={{ fontSize: '11px', color: '#8A8278' }}>Poistetaanko?</span>
+                              <button
+                                onClick={() => { tallennaSopimusTila(s.nimi, 'hoidettu'); setPoistoVahvistus(null) }}
+                                style={{ fontSize: '11px', color: '#C9786E', background: 'none', border: '1px solid rgba(201,120,110,0.4)', borderRadius: '4px', padding: '2px 8px', cursor: 'pointer', fontFamily: 'var(--font-body)' }}
+                              >
+                                Kyllä
+                              </button>
+                              <button
+                                onClick={() => setPoistoVahvistus(null)}
+                                style={{ fontSize: '11px', color: '#8A8278', background: 'none', border: '1px solid rgba(240,235,227,0.12)', borderRadius: '4px', padding: '2px 8px', cursor: 'pointer', fontFamily: 'var(--font-body)' }}
+                              >
+                                Peruuta
+                              </button>
+                            </div>
+                          ) : (
+                            <button
+                              onClick={() => setPoistoVahvistus(confirmKey)}
+                              aria-label="Poista"
+                              style={{ flexShrink: 0, background: 'none', border: 'none', color: '#4a4540', cursor: 'pointer', padding: '2px', display: 'flex', transition: 'color 0.15s' }}
+                              onMouseEnter={e => e.currentTarget.style.color = '#C9786E'}
+                              onMouseLeave={e => e.currentTarget.style.color = '#4a4540'}
+                            >
+                              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                                <line x1="18" y1="6" x2="6" y2="18"/>
+                                <line x1="6" y1="6" x2="18" y2="18"/>
+                              </svg>
+                            </button>
+                          )}
                         </div>
                       )
                     })}
@@ -1703,16 +1770,54 @@ const tallennaVahvistettuArvo = async (id, arvo) => {
                   const avainKey = s.kategoriaNimi + ':' + s.nimi
                   const onAvattu = yhteenvetoKeskenAvattu === avainKey
                   const odottaa = sopimusMeta?.[s.nimi]?.odottaa
+                  const confirmKey = `sk:${avainKey}`
+                  const vahvistettava = poistoVahvistus === confirmKey
                   return (
                     <div key={i} style={{ borderBottom: '1px solid rgba(240,235,227,0.04)' }}>
                       <div
-                        onClick={() => setYhteenvetoKeskenAvattu(onAvattu ? null : avainKey)}
-                        style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 0', cursor: 'pointer' }}
+                        onClick={() => !vahvistettava && setYhteenvetoKeskenAvattu(onAvattu ? null : avainKey)}
+                        onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.03)'}
+                        onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                        style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 8px', margin: '0 -8px', cursor: 'pointer', borderRadius: '4px', transition: 'background 0.15s' }}
                       >
                         <span style={{ fontSize: '11px', color: '#5A5248', flexShrink: 0 }}>{s.kategoriaNimi}</span>
                         <span style={{ color: '#3A3630', fontSize: '11px', flexShrink: 0 }}>→</span>
                         <span style={{ fontSize: '13px', color: '#D0C8BC', flex: 1 }}>{s.nimi}</span>
-                        <span style={{ fontSize: '11px', color: onAvattu ? '#C9A84C' : '#3A3630', flexShrink: 0, transition: 'color 0.15s' }}>{onAvattu ? '▴' : '▾'}</span>
+                        {vahvistettava ? (
+                          <div onClick={e => e.stopPropagation()} style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
+                            <span style={{ fontSize: '11px', color: '#8A8278' }}>Poistetaanko?</span>
+                            <button
+                              onClick={() => { tallennaSopimusTila(s.nimi, 'kesken'); setPoistoVahvistus(null) }}
+                              style={{ fontSize: '11px', color: '#C9786E', background: 'none', border: '1px solid rgba(201,120,110,0.4)', borderRadius: '4px', padding: '2px 8px', cursor: 'pointer', fontFamily: 'var(--font-body)' }}
+                            >
+                              Kyllä
+                            </button>
+                            <button
+                              onClick={() => setPoistoVahvistus(null)}
+                              style={{ fontSize: '11px', color: '#8A8278', background: 'none', border: '1px solid rgba(240,235,227,0.12)', borderRadius: '4px', padding: '2px 8px', cursor: 'pointer', fontFamily: 'var(--font-body)' }}
+                            >
+                              Peruuta
+                            </button>
+                          </div>
+                        ) : (
+                          <>
+                            <button
+                              onClick={e => { e.stopPropagation(); setPoistoVahvistus(confirmKey) }}
+                              aria-label="Poista"
+                              style={{ flexShrink: 0, background: 'none', border: 'none', color: '#4a4540', cursor: 'pointer', padding: '2px', display: 'flex', transition: 'color 0.15s' }}
+                              onMouseEnter={e => e.currentTarget.style.color = '#C9786E'}
+                              onMouseLeave={e => e.currentTarget.style.color = '#4a4540'}
+                            >
+                              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                                <line x1="18" y1="6" x2="6" y2="18"/>
+                                <line x1="6" y1="6" x2="18" y2="18"/>
+                              </svg>
+                            </button>
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={onAvattu ? '#C9A84C' : '#6A6258'} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, transition: 'transform 0.2s, stroke 0.15s', transform: onAvattu ? 'rotate(180deg)' : 'rotate(0deg)' }}>
+                              <polyline points="6 9 12 15 18 9"/>
+                            </svg>
+                          </>
+                        )}
                       </div>
                       {onAvattu && (
                         <div style={{ padding: '0 0 12px 0', display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -1725,13 +1830,8 @@ const tallennaVahvistettuArvo = async (id, arvo) => {
                           )}
                           {odottaa ? (
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                              <span style={{ fontSize: '9px', letterSpacing: '0.12em', textTransform: 'uppercase', color: '#4E4840', fontFamily: 'var(--font-body)' }}>Mitä odotat?</span>
                               <p style={{ fontSize: '12px', color: '#8A8278', lineHeight: 1.6, fontStyle: 'italic', margin: 0 }}>⏳ {odottaa}</p>
-                              {sopimusMeta?.[s.nimi]?.odottaaLahettaja && (
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                  <span style={{ fontSize: '11px', color: '#C9A84C', fontWeight: 500 }}>{sopimusMeta[s.nimi].odottaaLahettaja}</span>
-                                  {sopimusMeta[s.nimi].odottaaPvm && <span style={{ fontSize: '11px', color: '#5A5248', fontStyle: 'italic' }}>{sopimusMeta[s.nimi].odottaaPvm}</span>}
-                                </div>
-                              )}
                             </div>
                           ) : (
                             <p style={{ fontSize: '12px', color: '#3A3630', fontStyle: 'italic', margin: 0 }}>Ei odottavaa viestiä kirjattu.</p>
@@ -1874,7 +1974,6 @@ const tallennaVahvistettuArvo = async (id, arvo) => {
             kuolinpesaId={kuolinpesa?.id}
             kayttajaEmail={kuolinpesa?.kayttaja_email}
             onKommenttiLisatty={(k) => setKaikkiKommentit(prev => [k, ...prev])}
-            onAvaPopup={setKommenttiPopup}
             kaikkiKommentit={kaikkiKommentit}
             onNavigoiOsioon={navigoiKommenttiin}
           />
@@ -2032,7 +2131,8 @@ function KommenttiKentta({ kuolinpesaId, kayttajaEmail, kontekstiTyyppi = 'ylein
   )
 }
 
-function ViestitNakyma({ kuolinpesaId, kayttajaEmail, onKommenttiLisatty, onAvaPopup, kaikkiKommentit, onNavigoiOsioon }) {
+function ViestitNakyma({ kuolinpesaId, kayttajaEmail, onKommenttiLisatty, kaikkiKommentit, onNavigoiOsioon }) {
+  const [avattuOsio, setAvattuOsio] = useState(null)
   const osioNimiMap = {
     'pankkivarat': '🏦 Pankkivarat',
     'sijoitukset': '📈 Sijoitukset',
@@ -2049,7 +2149,7 @@ function ViestitNakyma({ kuolinpesaId, kayttajaEmail, onKommenttiLisatty, onAvaP
     ...Object.fromEntries(varatJaVelatMuistilista.varat.map(k => [k.id, k.teksti])),
     ...Object.fromEntries(varatJaVelatMuistilista.velat.map(k => [`velat_${k.id}`, k.teksti])),
   }
-  const osiokohtaiset = kaikkiKommentit.filter(k => k.konteksti_tyyppi !== 'yleinen' && k.konteksti_id)
+  const osiokohtaiset = kaikkiKommentit.filter(k => k.konteksti_tyyppi !== 'yleinen' && k.konteksti_tyyppi !== 'sopimus_odottaa' && k.konteksti_id)
   const ryhmitelty = osiokohtaiset.reduce((acc, k) => {
     const avain = `${k.konteksti_tyyppi}::${k.konteksti_id}`
     if (!acc[avain]) acc[avain] = { tyyppi: k.konteksti_tyyppi, id: k.konteksti_id, nimi: osioNimiMap[k.konteksti_id] || k.konteksti_id, kommentit: [] }
@@ -2084,22 +2184,57 @@ function ViestitNakyma({ kuolinpesaId, kayttajaEmail, onKommenttiLisatty, onAvaP
           <p style={{ fontSize: '12px', color: '#7A7268' }}>Ei vielä osiokohtaisia viestejä. Voit jättää viestin suoraan tehtävän tai omaisuuskohdan yhteydessä.</p>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1px' }}>
-            {Object.values(ryhmitelty).map(osio => (
-              <button key={`${osio.tyyppi}::${osio.id}`}
-                onClick={() => onAvaPopup({ tyyppi: osio.tyyppi, id: osio.id, nimi: osio.nimi, kategoriaNimi: osio.tyyppi === 'tehtava' ? 'Tehtävä' : 'Omaisuuden selvitys' })}
-                style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#0D0B09', padding: '14px 16px', border: 'none', borderBottom: '1px solid rgba(240,235,227,0.04)', cursor: 'pointer', textAlign: 'left', width: '100%', transition: 'background 0.15s' }}
-                onMouseEnter={e => e.currentTarget.style.backgroundColor = '#131109'}
-                onMouseLeave={e => e.currentTarget.style.backgroundColor = '#0D0B09'}
-              >
-                <span style={{ fontSize: '13px', color: '#D0C8BC' }}>{osio.nimi}</span>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-                  </svg>
-                  <span style={{ fontSize: '11px', color: '#C9A84C' }}>{osio.kommentit.length}</span>
+            {Object.values(ryhmitelty).map(osio => {
+              const avain = `${osio.tyyppi}::${osio.id}`
+              const onAvattu = avattuOsio === avain
+              const voiNavigoida = ['omaisuus', 'sopimus', 'perunkirjoitus'].includes(osio.tyyppi)
+              return (
+                <div key={avain}>
+                  <div
+                    onClick={() => setAvattuOsio(onAvattu ? null : avain)}
+                    onMouseEnter={e => e.currentTarget.style.backgroundColor = '#131109'}
+                    onMouseLeave={e => e.currentTarget.style.backgroundColor = '#0D0B09'}
+                    style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#0D0B09', padding: '14px 16px', borderBottom: '1px solid rgba(240,235,227,0.04)', cursor: 'pointer', transition: 'background 0.15s' }}
+                  >
+                    <span style={{ fontSize: '13px', color: '#D0C8BC' }}>{osio.nimi}</span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                      </svg>
+                      <span style={{ fontSize: '11px', color: '#C9A84C' }}>{osio.kommentit.length}</span>
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke={onAvattu ? '#C9A84C' : '#6A6258'} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ transition: 'transform 0.2s, stroke 0.15s', transform: onAvattu ? 'rotate(180deg)' : 'rotate(0deg)' }}>
+                        <polyline points="6 9 12 15 18 9"/>
+                      </svg>
+                    </div>
+                  </div>
+                  {onAvattu && (
+                    <div style={{ backgroundColor: '#0A0907', padding: '14px 16px', borderBottom: '1px solid rgba(240,235,227,0.04)', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        {osio.kommentit.map(k => (
+                          <div key={k.id} style={{ backgroundColor: '#110E0B', border: '1px solid rgba(240,235,227,0.1)', padding: '10px 14px' }}>
+                            <div style={{ display: 'flex', gap: '10px', alignItems: 'center', marginBottom: '4px' }}>
+                              <span style={{ color: '#C9A84C', fontSize: '11px', fontWeight: 600 }}>{k.kirjoittaja_email}</span>
+                              <span style={{ color: '#5A5248', fontSize: '11px' }}>{new Date(k.created_at).toLocaleDateString('fi-FI')} {new Date(k.created_at).toLocaleTimeString('fi-FI', { hour: '2-digit', minute: '2-digit' })}</span>
+                            </div>
+                            <p style={{ color: '#D0C8BC', fontSize: '13px', lineHeight: 1.5, margin: 0 }}>{k.teksti}</p>
+                          </div>
+                        ))}
+                      </div>
+                      {voiNavigoida && (
+                        <button
+                          onClick={() => onNavigoiOsioon(osio.tyyppi, osio.id)}
+                          style={{ alignSelf: 'flex-end', background: 'transparent', border: '1px solid rgba(201,168,76,0.4)', borderRadius: '6px', cursor: 'pointer', fontSize: '11px', letterSpacing: '0.1em', textTransform: 'uppercase', color: '#C9A84C', fontFamily: 'var(--font-body), sans-serif', padding: '7px 16px', transition: 'box-shadow 0.2s' }}
+                          onMouseEnter={e => e.currentTarget.style.boxShadow = '0 0 14px rgba(201,168,76,0.28)'}
+                          onMouseLeave={e => e.currentTarget.style.boxShadow = 'none'}
+                        >
+                          Siirry osioon →
+                        </button>
+                      )}
+                    </div>
+                  )}
                 </div>
-              </button>
-            ))}
+              )
+            })}
           </div>
         )}
       </div>
