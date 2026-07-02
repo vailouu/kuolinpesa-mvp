@@ -290,6 +290,8 @@ useEffect(() => {
         if (pesaData.varat_rastitattu) setVaratRastitattu(pesaData.varat_rastitattu)
         if (pesaData.varat_kirjaukset) setVaratKirjaukset(pesaData.varat_kirjaukset)
         if (pesaData.varat_vahvistetut) setVahvistetutKirjaukset(pesaData.varat_vahvistetut)
+        if (pesaData.perintovero_tehty) setPerintoveroTehty(pesaData.perintovero_tehty)
+        if (pesaData.perinnonjako_tehty) setPerinnonjakoTehty(pesaData.perinnonjako_tehty)
         if (pesaData.sopimus_tilat) {
           const raw = pesaData.sopimus_tilat
           const meta = {}, tilat = {}
@@ -4150,27 +4152,63 @@ function PaatosOsio({ kuolinpesa, sopimusTilat, setAvattuSopimus, navigoiVaihe }
           </p>
         </div>
 
-        {onMoniosakkainenPesa && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', marginBottom: '24px' }}>
-            {kaikkiOsalliset.map(email => {
-              const onHyvaksynyt = hyvaksynnat.includes(email)
-              const onOma = email === kayttajaEmail
-              return (
-                <div key={email} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px', padding: '13px 16px', backgroundColor: '#0D0B09', border: `1px solid ${onHyvaksynyt ? 'rgba(201,168,76,0.2)' : 'rgba(240,235,227,0.06)'}` }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <div style={{ width: '14px', height: '14px', flexShrink: 0, border: `1px solid ${onHyvaksynyt ? '#C9A84C' : '#3A3530'}`, backgroundColor: onHyvaksynyt ? '#C9A84C' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      {onHyvaksynyt && <span style={{ fontSize: '8px', color: '#110E0B', fontWeight: 700 }}>✓</span>}
+        {onMoniosakkainenPesa && (() => {
+          const nimikirjaimet = (email) => {
+            const osa = (email || '').split('@')[0]
+            const osat = osa.split(/[._\-]/).filter(Boolean)
+            if (osat.length >= 2) return (osat[0][0] + osat[1][0]).toUpperCase()
+            return osa.slice(0, 2).toUpperCase()
+          }
+          return (
+            <div style={{ marginBottom: '32px' }}>
+              <div style={{ display: 'flex', gap: '24px', flexWrap: 'wrap', marginBottom: '24px' }}>
+                {kaikkiOsalliset.map(email => {
+                  const onHyvaksynyt = hyvaksynnat.includes(email)
+                  const onOma = email === kayttajaEmail
+                  return (
+                    <div key={email} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px' }}>
+                      <div style={{
+                        width: '56px', height: '56px', borderRadius: '50%',
+                        backgroundColor: onHyvaksynyt ? 'rgba(201,168,76,0.15)' : '#0D0B09',
+                        border: `2px solid ${onHyvaksynyt ? '#C9A84C' : '#2A2620'}`,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        transition: 'all 0.3s',
+                        position: 'relative',
+                      }}>
+                        <span style={{ fontSize: '15px', fontWeight: 600, color: onHyvaksynyt ? '#C9A84C' : '#3A3630', letterSpacing: '0.05em', fontFamily: 'var(--font-body), sans-serif' }}>
+                          {nimikirjaimet(email)}
+                        </span>
+                        {onHyvaksynyt && (
+                          <div style={{ position: 'absolute', bottom: '-2px', right: '-2px', width: '18px', height: '18px', borderRadius: '50%', backgroundColor: '#C9A84C', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid #0D0B09' }}>
+                            <span style={{ fontSize: '9px', color: '#110E0B', fontWeight: 700 }}>✓</span>
+                          </div>
+                        )}
+                      </div>
+                      <div style={{ textAlign: 'center' }}>
+                        <div style={{ fontSize: '11px', color: onHyvaksynyt ? '#5A5248' : '#4E4840', fontFamily: 'var(--font-body), sans-serif' }}>
+                          {onOma ? 'Sinä' : email.split('@')[0]}
+                        </div>
+                        <div style={{ fontSize: '10px', color: onHyvaksynyt ? 'rgba(201,168,76,0.6)' : '#2A2620', letterSpacing: '0.06em', marginTop: '2px' }}>
+                          {onHyvaksynyt ? 'hyväksynyt' : 'odottaa'}
+                        </div>
+                      </div>
+                      {onOma && !onHyvaksynyt && (
+                        <button
+                          onClick={hyvaksy}
+                          style={{ fontSize: '10px', letterSpacing: '0.1em', textTransform: 'uppercase', color: '#C9A84C', backgroundColor: 'transparent', border: '1px solid rgba(201,168,76,0.35)', padding: '6px 14px', cursor: 'pointer', transition: 'all 0.15s', fontFamily: 'var(--font-body), sans-serif' }}
+                          onMouseEnter={e => { e.currentTarget.style.borderColor = '#C9A84C'; e.currentTarget.style.backgroundColor = 'rgba(201,168,76,0.08)' }}
+                          onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(201,168,76,0.35)'; e.currentTarget.style.backgroundColor = 'transparent' }}
+                        >
+                          Hyväksyn
+                        </button>
+                      )}
                     </div>
-                    <span style={{ fontSize: '13px', color: onHyvaksynyt ? '#5A5248' : '#8A8278' }}>{email}{onOma ? ' (sinä)' : ''}</span>
-                  </div>
-                  {onOma && !onHyvaksynyt && (
-                    <button onClick={hyvaksy} style={{ fontSize: '10px', letterSpacing: '0.08em', color: '#C9A84C', backgroundColor: 'transparent', border: '1px solid rgba(201,168,76,0.3)', padding: '5px 12px', cursor: 'pointer', whiteSpace: 'nowrap', transition: 'all 0.15s' }} onMouseEnter={e => { e.currentTarget.style.borderColor = '#C9A84C'; e.currentTarget.style.backgroundColor = 'rgba(201,168,76,0.08)' }} onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(201,168,76,0.3)'; e.currentTarget.style.backgroundColor = 'transparent' }}>Hyväksyn →</button>
-                  )}
-                </div>
-              )
-            })}
-          </div>
-        )}
+                  )
+                })}
+              </div>
+            </div>
+          )
+        })()}
 
         <button
           onClick={() => voiSulkea && setVahvistaModal(true)}
@@ -4220,8 +4258,25 @@ function HoitoJaToimeenpanoOsio({ kuolinpesa, vahvistetutKirjaukset, varatRastit
   const [avattuKohde, setAvattuKohde] = useState(null)
   const [vahvistaValmis5, setVahvistaValmis5] = useState(false)
 
-  const togglePerintovero = (id) => setPerintoveroTehty(prev => ({ ...prev, [id]: !prev[id] }))
-  const togglePerinnonjako = (id) => setPerinnonjakoTehty(prev => ({ ...prev, [id]: !prev[id] }))
+  const togglePerintovero = async (id) => {
+    const uusi = !perintoveroTehty[id]
+    const updated = { ...perintoveroTehty, [id]: uusi }
+    setPerintoveroTehty(updated)
+    await supabase.from('kuolinpesat').update({ perintovero_tehty: updated }).eq('id', kuolinpesa.id)
+    const nimi = perintoveroTehtavat.find(t => t.id === id)?.nimi
+    const { data: { user } } = await supabase.auth.getUser()
+    await supabase.from('tapahtumat').insert({ kuolinpesa_id: kuolinpesa.id, teksti: `${uusi ? 'Merkitsi tehdyksi' : 'Poisti merkinnän'}: ${nimi}`, osio: 'perintovero', kirjoittaja_email: user?.email })
+  }
+
+  const togglePerinnonjako = async (id) => {
+    const uusi = !perinnonjakoTehty[id]
+    const updated = { ...perinnonjakoTehty, [id]: uusi }
+    setPerinnonjakoTehty(updated)
+    await supabase.from('kuolinpesat').update({ perinnonjako_tehty: updated }).eq('id', kuolinpesa.id)
+    const nimi = perinnonjakoTehtavat.find(t => t.id === id)?.nimi
+    const { data: { user } } = await supabase.auth.getUser()
+    await supabase.from('tapahtumat').insert({ kuolinpesa_id: kuolinpesa.id, teksti: `${uusi ? 'Merkitsi tehdyksi' : 'Poisti merkinnän'}: ${nimi}`, osio: 'perinnonjako', kirjoittaja_email: user?.email })
+  }
   const avattuPvOhje = perintoveroTehtavat.find(t => t.id === avattuTehtava)
   const avattuPjOhje = perinnonjakoTehtavat.find(t => t.id === avattuTehtava)
 
