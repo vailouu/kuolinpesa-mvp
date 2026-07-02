@@ -4096,6 +4096,18 @@ function PaatosOsio({ kuolinpesa, sopimusTilat, setAvattuSopimus, navigoiVaihe }
   return (
     <div style={{ maxWidth: '640px' }}>
 
+      {/* Yhteenveto-linkki */}
+      <div style={{ marginBottom: '32px' }}>
+        <a
+          href="/dashboard/yhteenveto"
+          style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', fontSize: '10px', letterSpacing: '0.14em', textTransform: 'uppercase', color: '#4E4840', border: '1px solid #2A2620', padding: '10px 18px', textDecoration: 'none', transition: 'all 0.15s', fontFamily: 'var(--font-body), sans-serif' }}
+          onMouseEnter={e => { e.currentTarget.style.color = '#C9A84C'; e.currentTarget.style.borderColor = 'rgba(201,168,76,0.35)' }}
+          onMouseLeave={e => { e.currentTarget.style.color = '#4E4840'; e.currentTarget.style.borderColor = '#2A2620' }}
+        >
+          Avaa pesän yhteenveto →
+        </a>
+      </div>
+
       {/* Tarkasta vielä nämä */}
       <div style={{ marginBottom: '48px' }}>
         <div style={{ marginBottom: '24px' }}>
