@@ -220,6 +220,7 @@ function DashboardInner() {
   const [perintoveroTehty, setPerintoveroTehty] = useState({})
   const [perinnonjakoTehty, setPerinnonjakoTehty] = useState({})
   const [kommenttiPopup, setKommenttiPopup] = useState(null)
+  const [ohitaOsioModalAuki, setOhitaOsioModalAuki] = useState(false)
   const selvitysKaikki = kategoriat.reduce((sum, k) => sum + k.sopimukset.length, 0)
   const vaiheet = [
     { numero: 1, nimi: 'Ensitoimet' },
@@ -1350,7 +1351,8 @@ const tallennaVahvistettuArvo = async (id, arvo) => {
             </div>
 
             <div className="rounded-lg p-6" style={{backgroundColor: '#1C1916', border: '1px solid rgba(240,235,227,0.08)'}}>
-  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '24px' }}>
+  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
+    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
     <h2 style={{ fontFamily: 'var(--font-body), sans-serif', fontSize: '16px', fontWeight: 700, color: '#F0EBE3', margin: 0 }}>
       {aktiivinenVaihe === 3 ? 'Sopimukset' : `Vaihe ${aktiivinenVaihe}: ${vaiheet[aktiivinenVaihe-1].nimi}`}
     </h2>
@@ -1386,7 +1388,54 @@ const tallennaVahvistettuArvo = async (id, arvo) => {
         >?</button>
       )
     })()}
+    </div>
+    {(aktiivinenVaihe === 4 || aktiivinenVaihe === 5) && (
+      <button
+        onClick={() => setOhitaOsioModalAuki(true)}
+        style={{ fontSize: '11px', color: '#5A5450', background: 'none', border: '1px solid rgba(201,168,76,0.45)', padding: '5px 12px', cursor: 'pointer', letterSpacing: '0.04em', fontFamily: 'var(--font-body)', transition: 'color 0.15s, border-color 0.15s' }}
+        onMouseEnter={e => { e.currentTarget.style.color = '#8A8278'; e.currentTarget.style.borderColor = 'rgba(201,168,76,0.8)' }}
+        onMouseLeave={e => { e.currentTarget.style.color = '#5A5450'; e.currentTarget.style.borderColor = 'rgba(201,168,76,0.45)' }}
+      >Ohita osio</button>
+    )}
   </div>
+
+  {ohitaOsioModalAuki && (
+    <div
+      style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.72)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}
+      onClick={e => { if (e.target === e.currentTarget) setOhitaOsioModalAuki(false) }}
+    >
+      <div style={{ backgroundColor: '#1C1916', border: '1px solid rgba(201,168,76,0.25)', padding: '32px', width: '400px', maxWidth: '90vw', boxShadow: '0 24px 64px rgba(0,0,0,0.6)' }}>
+        <h3 style={{ fontSize: '15px', color: '#F0EBE3', fontWeight: 600, marginBottom: '12px', letterSpacing: '-0.01em' }}>Ohitetaanko tämä osio?</h3>
+        <p style={{ fontSize: '13px', color: '#8A8278', lineHeight: 1.6, marginBottom: '28px' }}>
+          Kaikki tämän osion tehtävät merkitään valmiiksi ja siirryt seuraavaan vaiheeseen.
+        </p>
+        <div style={{ display: 'flex', gap: '8px' }}>
+          <button
+            onClick={() => setOhitaOsioModalAuki(false)}
+            style={{ flex: 1, padding: '10px', fontSize: '11px', letterSpacing: '0.1em', textTransform: 'uppercase', color: '#7A7268', backgroundColor: 'transparent', border: '1px solid rgba(240,235,227,0.1)', cursor: 'pointer', fontFamily: 'var(--font-body)', transition: 'color 0.15s' }}
+            onMouseEnter={e => e.currentTarget.style.color = '#F0EBE3'}
+            onMouseLeave={e => e.currentTarget.style.color = '#7A7268'}
+          >Peruuta</button>
+          <button
+            onClick={() => {
+              if (aktiivinenVaihe === 4) {
+                const upd = {}; perunkirjoitusTehtavat.forEach(t => { upd[t.id] = true }); setPerunkirjoitusTehty(prev => ({ ...prev, ...upd }))
+                navigoiVaihe(5)
+              } else if (aktiivinenVaihe === 5) {
+                const pvUpd = {}; perintoveroTehtavat.forEach(t => { pvUpd[t.id] = true }); setPerintoveroTehty(prev => ({ ...prev, ...pvUpd }))
+                const pjUpd = {}; perinnonjakoTehtavat.forEach(t => { pjUpd[t.id] = true }); setPerinnonjakoTehty(prev => ({ ...prev, ...pjUpd }))
+                navigoiVaihe(6)
+              }
+              setOhitaOsioModalAuki(false)
+            }}
+            style={{ flex: 1, padding: '10px', fontSize: '11px', letterSpacing: '0.1em', textTransform: 'uppercase', color: '#110E0B', backgroundColor: '#C9A84C', border: 'none', cursor: 'pointer', fontFamily: 'var(--font-body)', transition: 'background 0.15s' }}
+            onMouseEnter={e => e.currentTarget.style.backgroundColor = '#D4B560'}
+            onMouseLeave={e => e.currentTarget.style.backgroundColor = '#C9A84C'}
+          >Ohita osio</button>
+        </div>
+      </div>
+    </div>
+  )}
 
   {aktiivinenVaihe === 1 && nykyisetTehtavat.length > 0 && (() => {
     const tehtava = nykyisetTehtavat[wizardIndeksi] || nykyisetTehtavat[0]
@@ -3043,9 +3092,9 @@ function SelvitysOsio({ onValmis, onEdistyminen, avattuSopimus, setAvattuSopimus
                   >Peruuta ohitus</button>
                 : <button
                     onClick={() => { setOhitaValinta('hoidettu'); setOhitaModalAuki(true) }}
-                    style={{ fontSize: '11px', color: '#5A5450', background: 'none', border: '1px solid rgba(240,235,227,0.1)', padding: '5px 12px', cursor: 'pointer', letterSpacing: '0.04em', fontFamily: 'var(--font-body)', transition: 'color 0.15s, border-color 0.15s' }}
-                    onMouseEnter={e => { e.currentTarget.style.color = '#8A8278'; e.currentTarget.style.borderColor = 'rgba(240,235,227,0.22)' }}
-                    onMouseLeave={e => { e.currentTarget.style.color = '#5A5450'; e.currentTarget.style.borderColor = 'rgba(240,235,227,0.1)' }}
+                    style={{ fontSize: '11px', color: '#5A5450', background: 'none', border: '1px solid rgba(201,168,76,0.45)', padding: '5px 12px', cursor: 'pointer', letterSpacing: '0.04em', fontFamily: 'var(--font-body)', transition: 'color 0.15s, border-color 0.15s' }}
+                    onMouseEnter={e => { e.currentTarget.style.color = '#8A8278'; e.currentTarget.style.borderColor = 'rgba(201,168,76,0.8)' }}
+                    onMouseLeave={e => { e.currentTarget.style.color = '#5A5450'; e.currentTarget.style.borderColor = 'rgba(201,168,76,0.45)' }}
                   >Ohita osio</button>
               }
             </div>
@@ -3859,7 +3908,6 @@ function PerukirjaModal({ kuolinpesa, vahvistetutKirjaukset, onSulje }) {
 function PerunkirjoitusOsio({ kuolinpesa, vahvistetutKirjaukset, kayttajaEmail, kayttajaNimi, perunkirjoitusTehty, setPerunkirjoitusTehty }) {
   const [avattuTehtava, setAvattuTehtava] = useState(null)
   const [modalAuki, setModalAuki] = useState(false)
-  const [vahvistaValmis, setVahvistaValmis] = useState(false)
 
   const toggleTehty = (id, e) => { e.stopPropagation(); setPerunkirjoitusTehty(prev => ({ ...prev, [id]: !prev[id] })) }
 
@@ -3918,38 +3966,6 @@ function PerunkirjoitusOsio({ kuolinpesa, vahvistetutKirjaukset, kayttajaEmail, 
             </div>
           </div>
         ))}
-
-        {/* Merkitse valmis */}
-        <div style={{ marginTop: '8px', paddingTop: '24px', borderTop: '1px solid rgba(240,235,227,0.08)' }}>
-          {!vahvistaValmis ? (
-            <button
-              onClick={() => setVahvistaValmis(true)}
-              style={{ fontSize: '10px', letterSpacing: '0.16em', textTransform: 'uppercase', color: '#C9A84C', backgroundColor: 'transparent', border: '1px solid rgba(201,168,76,0.25)', padding: '11px 20px', cursor: 'pointer', fontFamily: 'var(--font-body), sans-serif', width: '100%', transition: 'background 0.2s, border-color 0.2s, box-shadow 0.2s' }}
-              onMouseEnter={e => { e.currentTarget.style.backgroundColor = 'rgba(201,168,76,0.07)'; e.currentTarget.style.borderColor = 'rgba(201,168,76,0.5)'; e.currentTarget.style.boxShadow = '0 0 16px rgba(201,168,76,0.12)' }}
-              onMouseLeave={e => { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.borderColor = 'rgba(201,168,76,0.25)'; e.currentTarget.style.boxShadow = 'none' }}
-            >
-              Hoidan asianajajan kanssa — ohita osio
-            </button>
-          ) : (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 16px', border: '1px solid rgba(201,168,76,0.2)', backgroundColor: 'rgba(201,168,76,0.04)' }}>
-              <span style={{ fontSize: '12px', color: '#8A8278', fontFamily: 'var(--font-body), sans-serif', flex: 1 }}>Merkitään kaikki tehtävät valmiiksi?</span>
-              <button
-                onClick={() => { const upd = {}; perunkirjoitusTehtavat.forEach(t => { upd[t.id] = true }); setPerunkirjoitusTehty(prev => ({ ...prev, ...upd })); setVahvistaValmis(false) }}
-                style={{ fontSize: '10px', letterSpacing: '0.14em', textTransform: 'uppercase', color: '#110E0B', backgroundColor: '#C9A84C', border: 'none', padding: '8px 16px', cursor: 'pointer', fontFamily: 'var(--font-body), sans-serif' }}
-              >
-                Vahvista
-              </button>
-              <button
-                onClick={() => setVahvistaValmis(false)}
-                style={{ fontSize: '10px', color: '#4E4840', backgroundColor: 'transparent', border: 'none', cursor: 'pointer', fontFamily: 'var(--font-body), sans-serif' }}
-                onMouseEnter={e => e.currentTarget.style.color = '#858685'}
-                onMouseLeave={e => e.currentTarget.style.color = '#4E4840'}
-              >
-                Peruuta
-              </button>
-            </div>
-          )}
-        </div>
       </div>
 
       {/* Sivupaneeli */}
@@ -4268,7 +4284,6 @@ function HoitoJaToimeenpanoOsio({ kuolinpesa, vahvistetutKirjaukset, varatRastit
   const [avattuTehtava, setAvattuTehtava] = useState(null)
   const [jakoTilat, setJakoTilat] = useState({})
   const [avattuKohde, setAvattuKohde] = useState(null)
-  const [vahvistaValmis5, setVahvistaValmis5] = useState(false)
 
   const togglePerintovero = async (id) => {
     const uusi = !perintoveroTehty[id]
@@ -4544,43 +4559,6 @@ function HoitoJaToimeenpanoOsio({ kuolinpesa, vahvistetutKirjaukset, varatRastit
           </div>
         </div>
       )}
-
-
-      {/* Merkitse valmis */}
-      <div style={{ marginTop: '24px', paddingTop: '24px', borderTop: '1px solid rgba(240,235,227,0.08)' }}>
-        {!vahvistaValmis5 ? (
-          <button
-            onClick={() => setVahvistaValmis5(true)}
-            style={{ fontSize: '10px', letterSpacing: '0.16em', textTransform: 'uppercase', color: '#C9A84C', backgroundColor: 'transparent', border: '1px solid rgba(201,168,76,0.25)', padding: '11px 20px', cursor: 'pointer', fontFamily: 'var(--font-body), sans-serif', width: '100%', transition: 'background 0.2s, border-color 0.2s, box-shadow 0.2s' }}
-            onMouseEnter={e => { e.currentTarget.style.backgroundColor = 'rgba(201,168,76,0.07)'; e.currentTarget.style.borderColor = 'rgba(201,168,76,0.5)'; e.currentTarget.style.boxShadow = '0 0 16px rgba(201,168,76,0.12)' }}
-            onMouseLeave={e => { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.borderColor = 'rgba(201,168,76,0.25)'; e.currentTarget.style.boxShadow = 'none' }}
-          >
-            Hoidan asianajajan kanssa — ohita osio
-          </button>
-        ) : (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 16px', border: '1px solid rgba(201,168,76,0.2)', backgroundColor: 'rgba(201,168,76,0.04)' }}>
-            <span style={{ fontSize: '12px', color: '#8A8278', fontFamily: 'var(--font-body), sans-serif', flex: 1 }}>Merkitään kaikki tehtävät valmiiksi?</span>
-            <button
-              onClick={() => {
-                const pvUpd = {}; perintoveroTehtavat.forEach(t => { pvUpd[t.id] = true }); setPerintoveroTehty(prev => ({ ...prev, ...pvUpd }))
-                const pjUpd = {}; perinnonjakoTehtavat.forEach(t => { pjUpd[t.id] = true }); setPerinnonjakoTehty(prev => ({ ...prev, ...pjUpd }))
-                setVahvistaValmis5(false)
-              }}
-              style={{ fontSize: '10px', letterSpacing: '0.14em', textTransform: 'uppercase', color: '#110E0B', backgroundColor: '#C9A84C', border: 'none', padding: '8px 16px', cursor: 'pointer', fontFamily: 'var(--font-body), sans-serif' }}
-            >
-              Vahvista
-            </button>
-            <button
-              onClick={() => setVahvistaValmis5(false)}
-              style={{ fontSize: '10px', color: '#4E4840', backgroundColor: 'transparent', border: 'none', cursor: 'pointer', fontFamily: 'var(--font-body), sans-serif' }}
-              onMouseEnter={e => e.currentTarget.style.color = '#858685'}
-              onMouseLeave={e => e.currentTarget.style.color = '#4E4840'}
-            >
-              Peruuta
-            </button>
-          </div>
-        )}
-      </div>
     </div>
   )
 }
