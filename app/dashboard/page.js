@@ -167,7 +167,7 @@ const varatJaVelatMuistilista = {
   ],
   velat: [
     { id: 'asuntolaina', teksti: 'Asuntolaina', ohje: 'Kysy pankista lainan jäljellä oleva saldo. Tarkista onko lainassa lainaturva.', esimerkki: 'Esim: asuntolaina OP:ssa' },
-    { id: 'kulutusluotot', teksti: 'Kulutusluotot ja pikavipit', ohje: 'Tarkista positiivirekisteri.fi — siellä näkyvät kaikki vainajan luotot.', esimerkki: 'Esim: Ferratum-luotto, Visa-luottokortti' },
+    { id: 'kulutusluotot', teksti: 'Kulutusluotot ja pikavipit', ohje: 'Tarkista vainajan posti ja sähköposti luottolaitosten viesteistä. Voit myös kysyä suoraan tiedossa olevilta luotonantajilta.', esimerkki: 'Esim: Ferratum-luotto, Visa-luottokortti' },
     { id: 'autolaina', teksti: 'Autolaina / rahoitussopimus', ohje: 'Kysy rahoitusyhtiöltä lainan jäljellä oleva saldo.', esimerkki: 'Esim: Toyota Financial Services rahoitus' },
     { id: 'opintolaina', teksti: 'Opintolaina', ohje: 'Tarkista Kelasta onko opintolainaa jäljellä.', esimerkki: 'Esim: opintolaina Kelasta' },
     { id: 'osamaksut', teksti: 'Osamaksusopimukset (puhelin, kodinkone)', ohje: 'Tarkista laskut ja sopimukset — osamaksut jatkuvat kunnes ne maksetaan pois.', esimerkki: 'Esim: iPhone osamaksu Elisalta' },
@@ -424,9 +424,12 @@ const haeVaratVelatKategoriaNimi = (id) => {
   const tiedot = isVelat ? varatJaVelatMuistilista.velat.find(k => k.id === puhtasId) : varatJaVelatMuistilista.varat.find(k => k.id === puhtasId)
   return tiedot?.teksti || puhtasId
 }
-const muotoileKirjausNimi = (arvo) => arvo !== null && typeof arvo === 'object'
-  ? (arvo.pankki != null ? `${arvo.pankki}${arvo.tyyppi ? ' — ' + arvo.tyyppi : ''}` : `${arvo.tyyppi || ''}${arvo.kuvaus ? ' — ' + arvo.kuvaus : ''}`)
-  : String(arvo ?? '')
+const muotoileKirjausNimi = (arvo) => {
+  if (arvo === null || typeof arvo !== 'object') return String(arvo ?? '')
+  if (arvo.pankki != null) return `${arvo.pankki}${arvo.tyyppi ? ' — ' + arvo.tyyppi : (arvo.kuvaus ? ' — ' + arvo.kuvaus : '')}`
+  if (arvo.tyyppi != null) return `${arvo.tyyppi}${arvo.kuvaus ? ' — ' + arvo.kuvaus : ''}`
+  return String(arvo.arvo ?? '')
+}
 
 const tallennaVahvistettu = async (id) => {
   const arvo = varatKirjaukset[id]
@@ -445,7 +448,11 @@ const poistaVahvistettu = async (id, index) => {
   kirjaaTapahtuma(`Poisti erän (${haeVaratVelatKategoriaNimi(id)}): ${muotoileKirjausNimi(poistettu)}`, 'varat_velat')
 }
 const tallennaVahvistettuArvo = async (id, arvo) => {
-  const uudet = { ...vahvistetutKirjaukset, [id]: [...(vahvistetutKirjaukset[id] || []), arvo] }
+  const { data: { user } } = await supabase.auth.getUser()
+  const merkitty = arvo !== null && typeof arvo === 'object'
+    ? { ...arvo, kirjaaja: user?.email, pvm: new Date().toISOString() }
+    : { arvo, kirjaaja: user?.email, pvm: new Date().toISOString() }
+  const uudet = { ...vahvistetutKirjaukset, [id]: [...(vahvistetutKirjaukset[id] || []), merkitty] }
   setVahvistetutKirjaukset(uudet)
   if (kuolinpesa?.id) await supabase.from('kuolinpesat').update({ varat_vahvistetut: uudet }).eq('id', kuolinpesa.id)
   kirjaaTapahtuma(`Vahvisti erän (${haeVaratVelatKategoriaNimi(id)}): ${muotoileKirjausNimi(arvo)}`, 'varat_velat')
@@ -468,11 +475,19 @@ const tallennaVahvistettuArvo = async (id, arvo) => {
     }
 
     const formatEntry = (v) => {
+      let teksti
       if (v !== null && typeof v === 'object') {
-        if (v.pankki != null) return `${v.pankki}${v.tyyppi ? ' — ' + v.tyyppi : ''}`
-        return `${v.tyyppi || ''}${v.kuvaus ? ' — ' + v.kuvaus : ''}`
+        if (v.pankki != null) teksti = `${v.pankki}${v.tyyppi ? ' — ' + v.tyyppi : ''}`
+        else if (v.tyyppi != null) teksti = `${v.tyyppi}${v.kuvaus ? ' — ' + v.kuvaus : ''}`
+        else teksti = String(v.arvo ?? '')
+      } else {
+        teksti = String(v ?? '')
       }
-      return String(v ?? '')
+      if (v !== null && typeof v === 'object' && v.kirjaaja) {
+        const pvmStr = v.pvm ? new Date(v.pvm).toLocaleDateString('fi-FI') : ''
+        teksti += ` (${v.kirjaaja.split('@')[0]}${pvmStr ? ', ' + pvmStr : ''})`
+      }
+      return teksti
     }
 
     doc.setFillColor(245, 242, 237)
@@ -1135,6 +1150,11 @@ const tallennaVahvistettuArvo = async (id, arvo) => {
               const ensiTila = v1Kaikki === 0 || v1Tehty === 0 ? 'Ei aloitettu' : v1Tehty === v1Kaikki ? 'Valmis' : 'Kesken'
               const varatTila = varatKasitelty === 0 ? 'Ei aloitettu' : varatKasitelty === varatKaikki ? 'Valmis' : 'Kesken'
               const sopimusTilaStr = sopimusKasitelty === 0 ? 'Ei aloitettu' : sopimusKasitelty === sopimusKaikki ? 'Valmis' : 'Kesken'
+              const perunkirjoitusTehtyMaara = Object.values(perunkirjoitusTehty).filter(Boolean).length
+              const perunkirjoitusTila = perunkirjoitusTehtyMaara === 0 ? 'Ei aloitettu' : perunkirjoitusTehtyMaara === perunkirjoitusTehtavat.length ? 'Valmis' : 'Kesken'
+              const jakoTehtyMaara = Object.values(perintoveroTehty).filter(Boolean).length + Object.values(perinnonjakoTehty).filter(Boolean).length
+              const jakoKaikkiMaara = perintoveroTehtavat.length + perinnonjakoTehtavat.length
+              const jakoTila = jakoTehtyMaara === 0 ? 'Ei aloitettu' : jakoTehtyMaara === jakoKaikkiMaara ? 'Valmis' : 'Kesken'
 
               const vaiheetData = [
                 {
@@ -1178,15 +1198,18 @@ const tallennaVahvistettuArvo = async (id, arvo) => {
                   kortit: [
                     { otsikko: 'Vaihe', arvo: '4 / 6', kuvaus: 'Perunkirjoitus' },
                     { otsikko: 'Tehtävät', arvo: `${Object.values(perunkirjoitusTehty).filter(Boolean).length}/${perunkirjoitusTehtavat.length}`, kuvaus: 'valmiina', pct: Math.round(Object.values(perunkirjoitusTehty).filter(Boolean).length / perunkirjoitusTehtavat.length * 100) },
-                    { otsikko: 'Deadline', arvo: kuolinpesa?.kuolinpaiva ? `${Math.max(0, Math.floor(((() => { const d = new Date(kuolinpesa.kuolinpaiva); d.setMonth(d.getMonth() + 3); return d })() - Date.now()) / 86400000))} pv` : '—', kuvaus: 'perunkirjoitusaikaa jäljellä' },
+                    { otsikko: 'Tila', arvo: perunkirjoitusTila, kuvaus: null },
                   ]
                 },
                 {
-                  numero: 5, nimi: 'Jako ja verot', tehty: Object.values(perintoveroTehty).filter(Boolean).length, kaikki: perintoveroTehtavat.length, kuvaus: null,
+                  numero: 5, nimi: 'Jako ja verot',
+                  tehty: Object.values(perintoveroTehty).filter(Boolean).length + Object.values(perinnonjakoTehty).filter(Boolean).length,
+                  kaikki: perintoveroTehtavat.length + perinnonjakoTehtavat.length,
+                  kuvaus: null,
                   kortit: [
                     { otsikko: 'Vaihe', arvo: '5 / 6', kuvaus: 'Jako ja verot' },
-                    { otsikko: 'Tehtävät', arvo: `${Object.values(perintoveroTehty).filter(Boolean).length}/${perintoveroTehtavat.length}`, kuvaus: 'valmiina', pct: Math.round(Object.values(perintoveroTehty).filter(Boolean).length / perintoveroTehtavat.length * 100) },
-                    { otsikko: 'Sisältää', arvo: '3 osiota', kuvaus: 'perintövero · perinnönjako · toimeenpano' },
+                    { otsikko: 'Tehtävät', arvo: `${Object.values(perintoveroTehty).filter(Boolean).length + Object.values(perinnonjakoTehty).filter(Boolean).length}/${perintoveroTehtavat.length + perinnonjakoTehtavat.length}`, kuvaus: 'valmiina', pct: Math.round((Object.values(perintoveroTehty).filter(Boolean).length + Object.values(perinnonjakoTehty).filter(Boolean).length) / (perintoveroTehtavat.length + perinnonjakoTehtavat.length) * 100) },
+                    { otsikko: 'Tila', arvo: jakoTila, kuvaus: null },
                   ]
                 },
                 {
@@ -1674,7 +1697,13 @@ const tallennaVahvistettuArvo = async (id, arvo) => {
                 <div key={k.id + i} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 0', borderBottom: '1px solid rgba(240,235,227,0.04)' }}>
                   <span style={{ fontSize: '11px', color: '#5A5248', flexShrink: 0 }}>{k.teksti}</span>
                   <span style={{ color: '#3A3630', fontSize: '11px', flexShrink: 0 }}>→</span>
-                  <span style={{ fontSize: '13px', color: '#D0C8BC', flex: 1 }}>{v !== null && typeof v === 'object' ? (v.pankki != null ? `${v.pankki}${v.tyyppi ? ' — ' + v.tyyppi : ''}` : `${v.tyyppi || ''}${v.kuvaus ? ' — ' + v.kuvaus : ''}`) : String(v ?? '')}</span>
+                  <span style={{ fontSize: '13px', color: '#D0C8BC', flex: 1 }}>{v !== null && typeof v === 'object' ? (v.pankki != null ? `${v.pankki}${v.tyyppi ? ' — ' + v.tyyppi : ''}` : v.tyyppi != null ? `${v.tyyppi}${v.kuvaus ? ' — ' + v.kuvaus : ''}` : String(v.arvo ?? '')) : String(v ?? '')}</span>
+                  {v !== null && typeof v === 'object' && v.kirjaaja && (
+                    <span style={{ fontSize: '12px', color: '#C9A84C', fontWeight: 500, flexShrink: 0 }}>{v.kirjaaja.split('@')[0]}</span>
+                  )}
+                  {v !== null && typeof v === 'object' && v.pvm && (
+                    <span style={{ fontSize: '11px', color: '#5A5248', fontStyle: 'italic', flexShrink: 0 }}>{new Date(v.pvm).toLocaleDateString('fi-FI')}</span>
+                  )}
                   {vahvistettava ? (
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
                       <span style={{ fontSize: '11px', color: '#8A8278' }}>Poistetaanko?</span>
@@ -2700,6 +2729,7 @@ function VaratJaVelat({ rastitattu, onToggle, kirjaukset, onKirjaus, vahvistetut
               </div>
             ) : avattuKohta ? (
               <VaratJaVelatPaneeli
+                key={avattuKohta}
                 kohta={avattuKohta}
                 kirjaukset={kirjaukset}
                 onKirjaus={onKirjaus}
@@ -2730,12 +2760,14 @@ function VaratJaVelat({ rastitattu, onToggle, kirjaukset, onKirjaus, vahvistetut
           <div style={{ fontSize: '9px', letterSpacing: '0.2em', textTransform: 'uppercase', color: '#C9A84C', marginBottom: '12px' }}>📊 Yhteenveto löydöistä</div>
           {varatJaVelatMuistilista.varat.filter(k => rastitattu[k.id] === 'kylla' && vahvistetut[k.id]?.length > 0).flatMap(k =>
             (vahvistetut[k.id] || []).map((v, i) => (
-              <p key={k.id + i} style={{ fontSize: '13px', color: '#F0EBE3', marginBottom: '4px' }}>— {k.teksti}: {v !== null && typeof v === 'object' ? (v.pankki != null ? `${v.pankki}${v.tyyppi ? ' — ' + v.tyyppi : ''}` : `${v.tyyppi || ''}${v.kuvaus ? ' — ' + v.kuvaus : ''}`) : String(v ?? '')}</p>
+              <p key={k.id + i} style={{ fontSize: '13px', color: '#F0EBE3', marginBottom: '4px' }}>— {k.teksti}: {v !== null && typeof v === 'object' ? (v.pankki != null ? `${v.pankki}${v.tyyppi ? ' — ' + v.tyyppi : ''}` : v.tyyppi != null ? `${v.tyyppi}${v.kuvaus ? ' — ' + v.kuvaus : ''}` : String(v.arvo ?? '')) : String(v ?? '')}</p>
             ))
           )}
-          {varatJaVelatMuistilista.velat.filter(k => rastitattu['velat_' + k.id] === 'kylla' && vahvistetut['velat_' + k.id]).map(k => (
-            <p key={k.id} style={{ fontSize: '13px', color: '#F0EBE3', marginBottom: '4px' }}>— {k.teksti}: {vahvistetut['velat_' + k.id]}</p>
-          ))}
+          {varatJaVelatMuistilista.velat.filter(k => rastitattu['velat_' + k.id] === 'kylla' && vahvistetut['velat_' + k.id]?.length > 0).flatMap(k =>
+            (vahvistetut['velat_' + k.id] || []).map((v, i) => (
+              <p key={k.id + i} style={{ fontSize: '13px', color: '#F0EBE3', marginBottom: '4px' }}>— {k.teksti}: {v !== null && typeof v === 'object' ? (v.pankki != null ? `${v.pankki}${v.tyyppi ? ' — ' + v.tyyppi : ''}` : v.tyyppi != null ? `${v.tyyppi}${v.kuvaus ? ' — ' + v.kuvaus : ''}` : String(v.arvo ?? '')) : String(v ?? '')}</p>
+            ))
+          )}
         </div>
       )}
 
@@ -4081,6 +4113,12 @@ function PaatosOsio({ kuolinpesa, sopimusTilat, setAvattuSopimus, navigoiVaihe }
     setHyvaksynnat(prev => [...prev, kayttajaEmail])
   }
 
+  const peruHyvaksynta = async () => {
+    if (!kayttajaEmail || !kuolinpesa?.id) return
+    await supabase.from('tapahtumat').delete().eq('kuolinpesa_id', kuolinpesa.id).eq('osio', 'paatos').eq('teksti', 'Hyväksyi pesän sulkemisen').eq('kirjoittaja_email', kayttajaEmail)
+    setHyvaksynnat(prev => prev.filter(e => e !== kayttajaEmail))
+  }
+
   const sulkePesa = async () => {
     if (!kuolinpesa?.id) return
     await supabase.from('tapahtumat').insert({ kuolinpesa_id: kuolinpesa.id, teksti: 'Sulki pesän', osio: 'paatos', kirjoittaja_email: kayttajaEmail })
@@ -4220,6 +4258,16 @@ function PaatosOsio({ kuolinpesa, sopimusTilat, setAvattuSopimus, navigoiVaihe }
                           {onHyvaksynyt ? 'hyväksynyt' : 'odottaa'}
                         </div>
                       </div>
+                      {onOma && onHyvaksynyt && (
+                        <button
+                          onClick={peruHyvaksynta}
+                          style={{ fontSize: '10px', letterSpacing: '0.04em', color: '#4E4840', backgroundColor: 'transparent', border: 'none', padding: 0, cursor: 'pointer', textDecoration: 'underline', fontFamily: 'var(--font-body), sans-serif' }}
+                          onMouseEnter={e => { e.currentTarget.style.color = '#7A7268' }}
+                          onMouseLeave={e => { e.currentTarget.style.color = '#4E4840' }}
+                        >
+                          Peruuta hyväksyntä
+                        </button>
+                      )}
                       {onOma && !onHyvaksynyt && (
                         <button
                           onClick={hyvaksy}
@@ -4569,10 +4617,23 @@ function VaratJaVelatPaneeli({ kohta, kirjaukset, onKirjaus, vahvistetut, onVahv
   const lista = isVelat ? varatJaVelatMuistilista.velat : varatJaVelatMuistilista.varat
   const kohtatiedot = lista.find(k => k.id === puhtaastiId)
 
-  const ajoneuvoTyypit = {
+  const tyyppiVaihtoehdot = {
     ajoneuvot: ['Auto', 'Moottoripyörä', 'Vene', 'Mönkijä', 'Matkailuauto', 'Muu'],
     peravaunu: ['Perävaunu', 'Asuntovaunu', 'Veneen perävaunu', 'Matkailuvaunu', 'Muu'],
     tyokone: ['Traktori', 'Kaivinkone', 'Mönkijä', 'Peräkärry', 'Lumilinkous', 'Muu'],
+    sijoitukset: ['Osakkeet', 'Rahastot', 'ETF', 'Muu'],
+    krypto: ['Bitcoin', 'Ethereum', 'Muu'],
+    korut: ['Sormus', 'Kello', 'Kaulakoru', 'Rannekoru', 'Muu'],
+    taide: ['Maalaus', 'Veistos', 'Grafiikka', 'Muu'],
+    antiikki: ['Huonekalu', 'Posliini', 'Hopeaesine', 'Keräilyesine', 'Muu'],
+    soittimet: ['Piano', 'Kitara', 'Viulu', 'Muu'],
+    jalometallit: ['Kulta', 'Hopea', 'Muu'],
+    asekokoelma: ['Metsästysase', 'Käsiase', 'Antiikkiase', 'Muu'],
+    viinikokoelma: ['Viini', 'Viski', 'Muu'],
+    asunnot: ['Kerrostaloasunto', 'Rivitaloasunto', 'Omakotitalo', 'Kiinteistö', 'Muu'],
+    mokki: ['Rantamökki', 'Metsämökki', 'Saarimökki', 'Muu'],
+    tontti: ['Asuintontti', 'Loma-asunnon tontti', 'Muu'],
+    autotalli: ['Autotalli', 'Osakemuotoinen parkkipaikka', 'Muu'],
   }
   const yksittaisetVaihtoehdot = {
     tallelokero: ['OP', 'Nordea', 'Danske Bank', 'S-Pankki', 'Handelsbanken', 'Ålandsbanken', 'Muu'],
@@ -4580,64 +4641,128 @@ function VaratJaVelatPaneeli({ kohta, kirjaukset, onKirjaus, vahvistetut, onVahv
   }
 
   const isPankkitilit = puhtaastiId === 'pankkitilit'
-  const isAjoneuvo = ['ajoneuvot', 'peravaunu', 'tyokone'].includes(puhtaastiId)
+  const isTyyppiKuvaus = Object.keys(tyyppiVaihtoehdot).includes(puhtaastiId)
   const isYksittainen = ['tallelokero', 'osuuskunnat'].includes(puhtaastiId)
+  const isPankkiLaina = ['asuntolaina', 'autolaina', 'muupankkilaina', 'takaukset', 'opintolaina'].includes(puhtaastiId)
 
   const [lisaaAuki, setLisaaAuki] = React.useState(false)
   const [valittuPankki, setValittuPankki] = React.useState('OP')
   const [muuPankki, setMuuPankki] = React.useState('')
   const [valittuTilityyppi, setValittuTilityyppi] = React.useState('Käyttötili')
-  const [valittuTyyppi, setValittuTyyppi] = React.useState(() => ajoneuvoTyypit[puhtaastiId]?.[0] || 'Auto')
+  const [valittuTyyppi, setValittuTyyppi] = React.useState(() => tyyppiVaihtoehdot[puhtaastiId]?.[0] || 'Auto')
   const [muuTyyppi, setMuuTyyppi] = React.useState('')
   const [tyyppiKuvaus, setTyyppiKuvaus] = React.useState('')
   const [valittuYksittainen, setValittuYksittainen] = React.useState(() => yksittaisetVaihtoehdot[puhtaastiId]?.[0] || '')
   const [muuYksittainen, setMuuYksittainen] = React.useState('')
+  const [lainaKuvaus, setLainaKuvaus] = React.useState('')
 
   if (!kohtatiedot) return null
 
   const pankit = ['OP', 'Nordea', 'Danske Bank', 'S-Pankki', 'Handelsbanken', 'Ålandsbanken', 'Muu']
   const tilityypit = ['Käyttötili', 'Säästötili', 'Sijoitustili', 'Määräaikaistili']
 
-  const ajoneuvoConfig = {
+  const tyyppiConfig = {
     ajoneuvot: { label: 'Ajoneuvotyyppi', lisaaLabel: '+ Lisää ajoneuvo' },
     peravaunu: { label: 'Tyyppi', lisaaLabel: '+ Lisää perävaunu' },
     tyokone: { label: 'Koneen tyyppi', lisaaLabel: '+ Lisää työkone' },
+    sijoitukset: { label: 'Tyyppi', lisaaLabel: '+ Lisää sijoitus' },
+    krypto: { label: 'Kryptovaluutta', lisaaLabel: '+ Lisää krypto' },
+    korut: { label: 'Tyyppi', lisaaLabel: '+ Lisää koru' },
+    taide: { label: 'Tyyppi', lisaaLabel: '+ Lisää teos' },
+    antiikki: { label: 'Tyyppi', lisaaLabel: '+ Lisää esine' },
+    soittimet: { label: 'Soitin', lisaaLabel: '+ Lisää soitin' },
+    jalometallit: { label: 'Metalli', lisaaLabel: '+ Lisää jalometalli' },
+    asekokoelma: { label: 'Tyyppi', lisaaLabel: '+ Lisää ase' },
+    viinikokoelma: { label: 'Tyyppi', lisaaLabel: '+ Lisää pullo' },
+    asunnot: { label: 'Tyyppi', lisaaLabel: '+ Lisää asunto tai kiinteistö' },
+    mokki: { label: 'Tyyppi', lisaaLabel: '+ Lisää mökki' },
+    tontti: { label: 'Tyyppi', lisaaLabel: '+ Lisää tontti' },
+    autotalli: { label: 'Tyyppi', lisaaLabel: '+ Lisää autotalli tai paikka' },
   }
   const yksittainenConfig = {
     tallelokero: { label: 'Pankki', lisaaLabel: '+ Lisää tallelokero', muuPlaceholder: 'Mikä pankki?' },
     osuuskunnat: { label: 'Osuuskunta', lisaaLabel: '+ Lisää osuuskunta', muuPlaceholder: 'Mikä osuuskunta?' },
   }
-  const ajoneuvoEmojiMap = {
+  const tyyppiEmojiMap = {
     ajoneuvot: { Auto: '🚗', Moottoripyörä: '🏍️', Vene: '⛵', Mönkijä: '🛻', Matkailuauto: '🚐', Muu: '🚘' },
     peravaunu: { Perävaunu: '🚛', Asuntovaunu: '🏕️', 'Veneen perävaunu': '⛵', Matkailuvaunu: '🛖', Muu: '🚗' },
     tyokone: { Traktori: '🚜', Kaivinkone: '🏗️', Mönkijä: '🛻', Peräkärry: '🚛', Lumilinkous: '❄️', Muu: '⚙️' },
+    sijoitukset: { Osakkeet: '📈', Rahastot: '📊', ETF: '📉', Muu: '💹' },
+    krypto: { Bitcoin: '₿', Ethereum: 'Ξ', Muu: '🪙' },
+    korut: { Sormus: '💍', Kello: '⌚', Kaulakoru: '📿', Rannekoru: '💎', Muu: '💍' },
+    taide: { Maalaus: '🖼️', Veistos: '🗿', Grafiikka: '🎨', Muu: '🖌️' },
+    antiikki: { Huonekalu: '🪑', Posliini: '🏺', Hopeaesine: '🥈', Keräilyesine: '🗃️', Muu: '📦' },
+    soittimet: { Piano: '🎹', Kitara: '🎸', Viulu: '🎻', Muu: '🎵' },
+    jalometallit: { Kulta: '🥇', Hopea: '🥈', Muu: '💰' },
+    asekokoelma: { Metsästysase: '🔒', Käsiase: '🔒', Antiikkiase: '🔒', Muu: '🔒' },
+    viinikokoelma: { Viini: '🍷', Viski: '🥃', Muu: '🍾' },
+    asunnot: { Kerrostaloasunto: '🏢', Rivitaloasunto: '🏘️', Omakotitalo: '🏠', Kiinteistö: '🏡', Muu: '🏠' },
+    mokki: { Rantamökki: '🏖️', Metsämökki: '🌲', Saarimökki: '🏝️', Muu: '🛖' },
+    tontti: { Asuintontti: '🏗️', 'Loma-asunnon tontti': '🌳', Muu: '📐' },
+    autotalli: { Autotalli: '🚗', 'Osakemuotoinen parkkipaikka': '🅿️', Muu: '🚙' },
   }
-  const ajoneuvoPlaceholderMap = {
+  const tyyppiPlaceholderMap = {
     ajoneuvot: { Auto: 'Esim. Toyota Corolla 2015', Moottoripyörä: 'Esim. Honda CB500F 2020', Vene: 'Esim. Buster XL 2019', Mönkijä: 'Esim. Can-Am Outlander 570 2017', Matkailuauto: 'Esim. Hobby Optima 540 2015', Muu: 'Esim. merkki ja malli' },
     peravaunu: { Perävaunu: 'Esim. Humbaur 750kg 2018', Asuntovaunu: 'Esim. Hobby De Luxe 540 2016', 'Veneen perävaunu': 'Esim. Brenderup 1831S 2015', Matkailuvaunu: 'Esim. Knaus Sudwind 2019', Muu: 'Esim. merkki ja malli' },
     tyokone: { Traktori: 'Esim. Valmet 705 1980', Kaivinkone: 'Esim. Volvo EC140 2005', Mönkijä: 'Esim. Yamaha Grizzly 700 2018', Peräkärry: 'Esim. Jymy 750kg 2010', Lumilinkous: 'Esim. Honda HS970 2015', Muu: 'Esim. merkki ja malli' },
+    sijoitukset: { Osakkeet: 'Esim. Nordea-osakkeet Nordnetissä', Rahastot: 'Esim. OP-rahasto', ETF: 'Esim. iShares Core ETF', Muu: 'Esim. sijoituskohde ja palveluntarjoaja' },
+    krypto: { Bitcoin: 'Esim. Coinbase-lompakossa', Ethereum: 'Esim. MetaMask-lompakossa', Muu: 'Esim. valuutta ja pörssi tai lompakko' },
+    korut: { Sormus: 'Esim. kultasormus timantilla', Kello: 'Esim. Rolex Datejust', Kaulakoru: 'Esim. kultakaulakoru', Rannekoru: 'Esim. hopearannekoru', Muu: 'Esim. korun kuvaus' },
+    taide: { Maalaus: 'Esim. öljymaalaus, tuntematon taiteilija', Veistos: 'Esim. pronssiveistos', Grafiikka: 'Esim. numeroitu vedos', Muu: 'Esim. teoksen kuvaus' },
+    antiikki: { Huonekalu: 'Esim. antiikkikaappi 1800-luvulta', Posliini: 'Esim. posliiniastiasto', Hopeaesine: 'Esim. hopeakannu', Keräilyesine: 'Esim. postimerkkikokoelma', Muu: 'Esim. esineen kuvaus' },
+    soittimet: { Piano: 'Esim. Yamaha U1 pystypiano', Kitara: 'Esim. akustinen Martin-kitara', Viulu: 'Esim. vanha mestariviulu', Muu: 'Esim. soittimen merkki ja malli' },
+    jalometallit: { Kulta: 'Esim. kultaharkko 50g', Hopea: 'Esim. hopeakolikoita', Muu: 'Esim. metalli ja määrä' },
+    asekokoelma: { Metsästysase: 'Esim. haulikko, luvat kunnossa', Käsiase: 'Esim. pistooli, luvat kunnossa', Antiikkiase: 'Esim. antiikkimiekka', Muu: 'Esim. aseen kuvaus' },
+    viinikokoelma: { Viini: 'Esim. vintage-viinejä kellarissa', Viski: 'Esim. single malt -kokoelma', Muu: 'Esim. kokoelman kuvaus' },
+    asunnot: { Kerrostaloasunto: 'Esim. 2h+k 65m² Helsinki Kallio', Rivitaloasunto: 'Esim. 3h+k 80m² Espoo', Omakotitalo: 'Esim. 120m² tontilla Vantaa', Kiinteistö: 'Esim. liikehuoneisto Tampere', Muu: 'Esim. koko ja sijainti' },
+    mokki: { Rantamökki: 'Esim. 40m² Savonlinna, rantatontti', Metsämökki: 'Esim. 30m² Ilomantsi', Saarimökki: 'Esim. saarimökki Turun saaristossa', Muu: 'Esim. koko ja sijainti' },
+    tontti: { Asuintontti: 'Esim. 800m² Espoo', 'Loma-asunnon tontti': 'Esim. 3000m² rantatontti', Muu: 'Esim. koko ja sijainti' },
+    autotalli: { Autotalli: 'Esim. autotalli As Oy Kalliossa', 'Osakemuotoinen parkkipaikka': 'Esim. parkkipaikkaosake', Muu: 'Esim. kuvaus' },
   }
   const yksittainenEmojiMap = {
     tallelokero: { OP: '🏦', Nordea: '🏦', 'Danske Bank': '🏦', 'S-Pankki': '🏦', Handelsbanken: '🏦', Ålandsbanken: '🏦', Muu: '🏦' },
     osuuskunnat: { 'S-osuus': '🛒', 'OP-osuus': '🏦', HOK: '🛒', 'Fazer-osuus': '🍞', Muu: '🤝' },
   }
+  const lainaConfig = {
+    asuntolaina: { lisaaLabel: '+ Lisää asuntolaina', kuvausPlaceholder: 'Esim. jäljellä oleva määrä tai lainanumero' },
+    autolaina: { lisaaLabel: '+ Lisää autolaina', kuvausPlaceholder: 'Esim. Toyota Corolla -rahoitus' },
+    muupankkilaina: { lisaaLabel: '+ Lisää laina', kuvausPlaceholder: 'Esim. henkilökohtainen laina' },
+    takaukset: { lisaaLabel: '+ Lisää takaus', kuvausPlaceholder: 'Esim. taannut pojan asuntolainan' },
+    opintolaina: { lisaaLabel: '+ Lisää opintolaina', kuvausPlaceholder: 'Esim. valtiontakauksella, jäljellä oleva määrä' },
+  }
+
+  const isoAlkukirjain = (teksti) => teksti ? teksti.charAt(0).toUpperCase() + teksti.slice(1) : teksti
 
   const lisaaPankki = () => {
-    const pankkiNimi = valittuPankki === 'Muu' ? (muuPankki.trim() || 'Muu') : valittuPankki
+    const pankkiNimi = valittuPankki === 'Muu' ? isoAlkukirjain(muuPankki.trim() || 'Muu') : valittuPankki
     if (onVahvistaArvo) onVahvistaArvo(kohta, { pankki: pankkiNimi, tyyppi: valittuTilityyppi })
     setLisaaAuki(false); setValittuPankki('OP'); setMuuPankki(''); setValittuTilityyppi('Käyttötili')
   }
   const lisaaAjoneuvo = () => {
-    const tyypit = ajoneuvoTyypit[puhtaastiId] || []
-    const tyyppiNimi = valittuTyyppi === 'Muu' ? (muuTyyppi.trim() || 'Muu') : valittuTyyppi
-    if (onVahvistaArvo) onVahvistaArvo(kohta, { tyyppi: tyyppiNimi, kuvaus: tyyppiKuvaus.trim() })
+    const tyypit = tyyppiVaihtoehdot[puhtaastiId] || []
+    const tyyppiNimi = valittuTyyppi === 'Muu' ? isoAlkukirjain(muuTyyppi.trim() || 'Muu') : valittuTyyppi
+    if (onVahvistaArvo) onVahvistaArvo(kohta, { tyyppi: tyyppiNimi, kuvaus: isoAlkukirjain(tyyppiKuvaus.trim()) })
     setLisaaAuki(false); setValittuTyyppi(tyypit[0] || ''); setMuuTyyppi(''); setTyyppiKuvaus('')
   }
   const lisaaYksittainen = () => {
     const vaihtoehdot = yksittaisetVaihtoehdot[puhtaastiId] || []
-    const nimi = valittuYksittainen === 'Muu' ? (muuYksittainen.trim() || 'Muu') : valittuYksittainen
+    const nimi = valittuYksittainen === 'Muu' ? isoAlkukirjain(muuYksittainen.trim() || 'Muu') : valittuYksittainen
     if (onVahvistaArvo) onVahvistaArvo(kohta, nimi)
     setLisaaAuki(false); setValittuYksittainen(vaihtoehdot[0] || ''); setMuuYksittainen('')
+  }
+  const lisaaPankkiLaina = () => {
+    const pankkiNimi = valittuPankki === 'Muu' ? isoAlkukirjain(muuPankki.trim() || 'Muu') : valittuPankki
+    if (onVahvistaArvo) onVahvistaArvo(kohta, { pankki: pankkiNimi, kuvaus: isoAlkukirjain(lainaKuvaus.trim()) })
+    setLisaaAuki(false); setValittuPankki('OP'); setMuuPankki(''); setLainaKuvaus('')
+  }
+  const lisaaVapaateksti = () => {
+    if (onVahvistaArvo) onVahvistaArvo(kohta, isoAlkukirjain((kirjaukset[kohta] || '').trim()))
+    onKirjaus(kohta, '')
+    setLisaaAuki(false)
+  }
+  const peruutaVapaateksti = () => {
+    onKirjaus(kohta, '')
+    setLisaaAuki(false)
   }
 
   const vahvistetutLista = Array.isArray(vahvistetut[kohta])
@@ -4726,12 +4851,12 @@ function VaratJaVelatPaneeli({ kohta, kirjaukset, onKirjaus, vahvistetut, onVahv
             )}
           </>
 
-        ) : isAjoneuvo ? (() => {
-          const cfg = ajoneuvoConfig[puhtaastiId]
-          const tyypit = ajoneuvoTyypit[puhtaastiId] || []
+        ) : isTyyppiKuvaus ? (() => {
+          const cfg = tyyppiConfig[puhtaastiId]
+          const tyypit = tyyppiVaihtoehdot[puhtaastiId] || []
           return (
             <>
-              <TagiLista items={vahvistetutLista} getLabel={v => { const tyyppi = v !== null && typeof v === 'object' ? (v.tyyppi || '') : String(v ?? ''); const emoji = ajoneuvoEmojiMap[puhtaastiId]?.[tyyppi] || '🚗'; const kuvaus = v !== null && typeof v === 'object' ? (v.kuvaus || '') : ''; return `${emoji} ${tyyppi}${kuvaus ? ' — ' + kuvaus : ''}` }} />
+              <TagiLista items={vahvistetutLista} getLabel={v => { const tyyppi = v !== null && typeof v === 'object' ? (v.tyyppi || '') : String(v ?? ''); const emoji = tyyppiEmojiMap[puhtaastiId]?.[tyyppi] || '📦'; const kuvaus = v !== null && typeof v === 'object' ? (v.kuvaus || '') : ''; return `${emoji} ${tyyppi}${kuvaus ? ' — ' + kuvaus : ''}` }} />
               {!lisaaAuki && <LisaaNappi label={cfg.lisaaLabel} onClick={() => setLisaaAuki(true)} />}
               {lisaaAuki && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
@@ -4744,9 +4869,33 @@ function VaratJaVelatPaneeli({ kohta, kirjaukset, onKirjaus, vahvistetut, onVahv
                   {valittuTyyppi === 'Muu' && <input type="text" value={muuTyyppi} onChange={e => setMuuTyyppi(e.target.value)} placeholder="Mikä tyyppi?" style={muuInputStyle} />}
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                     <span style={{ fontSize: '10px', letterSpacing: '0.14em', textTransform: 'uppercase', color: '#7A7268' }}>Lisätiedot</span>
-                    <input type="text" value={tyyppiKuvaus} onChange={e => setTyyppiKuvaus(e.target.value)} placeholder={ajoneuvoPlaceholderMap[puhtaastiId]?.[valittuTyyppi] || 'Esim. merkki ja malli'} style={muuInputStyle} />
+                    <input type="text" value={tyyppiKuvaus} onChange={e => setTyyppiKuvaus(e.target.value)} placeholder={tyyppiPlaceholderMap[puhtaastiId]?.[valittuTyyppi] || 'Esim. merkki ja malli'} style={muuInputStyle} />
                   </div>
                   <ToimintoNapit onLisaa={lisaaAjoneuvo} onPeruuta={() => { setLisaaAuki(false); setValittuTyyppi(tyypit[0] || ''); setMuuTyyppi(''); setTyyppiKuvaus('') }} />
+                </div>
+              )}
+            </>
+          )
+        })() : isPankkiLaina ? (() => {
+          const cfg = lainaConfig[puhtaastiId]
+          return (
+            <>
+              <TagiLista items={vahvistetutLista} getLabel={v => { const pankki = v !== null && typeof v === 'object' ? (v.pankki || '') : String(v ?? ''); const kuvaus = v !== null && typeof v === 'object' ? (v.kuvaus || '') : ''; return `🏦 ${pankki}${kuvaus ? ' — ' + kuvaus : ''}` }} />
+              {!lisaaAuki && <LisaaNappi label={cfg.lisaaLabel} onClick={() => setLisaaAuki(true)} />}
+              {lisaaAuki && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                    <span style={{ fontSize: '10px', letterSpacing: '0.14em', textTransform: 'uppercase', color: '#7A7268' }}>Pankki tai rahoittaja</span>
+                    <select value={valittuPankki} onChange={e => { setValittuPankki(e.target.value); setMuuPankki('') }} style={dropdownStyle}>
+                      {pankit.map(p => <option key={p} value={p}>{p}</option>)}
+                    </select>
+                  </div>
+                  {valittuPankki === 'Muu' && <input type="text" value={muuPankki} onChange={e => setMuuPankki(e.target.value)} placeholder="Mikä pankki tai rahoittaja?" style={muuInputStyle} />}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                    <span style={{ fontSize: '10px', letterSpacing: '0.14em', textTransform: 'uppercase', color: '#7A7268' }}>Lisätiedot</span>
+                    <input type="text" value={lainaKuvaus} onChange={e => setLainaKuvaus(e.target.value)} placeholder={cfg.kuvausPlaceholder} style={muuInputStyle} />
+                  </div>
+                  <ToimintoNapit onLisaa={lisaaPankkiLaina} onPeruuta={() => { setLisaaAuki(false); setValittuPankki('OP'); setMuuPankki(''); setLainaKuvaus('') }} />
                 </div>
               )}
             </>
@@ -4756,7 +4905,7 @@ function VaratJaVelatPaneeli({ kohta, kirjaukset, onKirjaus, vahvistetut, onVahv
           const vaihtoehdot = yksittaisetVaihtoehdot[puhtaastiId] || []
           return (
             <>
-              <TagiLista items={vahvistetutLista} getLabel={v => { const s = typeof v === 'string' ? v : String(v); const emoji = yksittainenEmojiMap[puhtaastiId]?.[s] || '🏦'; return `${emoji} ${s}` }} />
+              <TagiLista items={vahvistetutLista} getLabel={v => { const s = v !== null && typeof v === 'object' ? String(v.arvo ?? '') : String(v ?? ''); const emoji = yksittainenEmojiMap[puhtaastiId]?.[s] || '🏦'; return `${emoji} ${s}` }} />
               {!lisaaAuki && <LisaaNappi label={cfg.lisaaLabel} onClick={() => setLisaaAuki(true)} />}
               {lisaaAuki && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
@@ -4774,26 +4923,17 @@ function VaratJaVelatPaneeli({ kohta, kirjaukset, onKirjaus, vahvistetut, onVahv
           )
         })() : (
           <>
-            <div className="flex flex-col gap-1 mb-3">
-              {vahvistetutLista.map((v, i) => (
-                <div key={i} className="flex items-center justify-between">
-                  <p className="text-white text-sm">- {v !== null && typeof v === 'object'
-                    ? (v.pankki != null ? `${v.pankki}${v.tyyppi ? ' — ' + v.tyyppi : ''}` : `${v.tyyppi || ''}${v.kuvaus ? ' — ' + v.kuvaus : ''}`)
-                    : String(v ?? '')}</p>
-                  <button onClick={() => onPoista(kohta, i)} style={{color: 'rgba(240,100,100,0.85)'}} className="text-xs hover:opacity-75 flex-shrink-0 ml-2">Poista</button>
-                </div>
-              ))}
-            </div>
-            <div className="flex gap-2">
-              <input value={kirjaukset[kohta] || ''} onChange={(e) => onKirjaus(kohta, e.target.value)}
-                placeholder={kohtatiedot.esimerkki || "Esim: kirjaa löytö..."}
-                className="flex-1 px-3 py-1 rounded text-xs text-white placeholder-gray-500 outline-none"
-                style={{backgroundColor: '#110E0B', border: '1px solid rgba(240,235,227,0.08)'}} />
-              <button onClick={() => onVahvista(kohta)} className="text-xs px-3 py-1 rounded font-bold"
-                style={{backgroundColor: '#C9A84C', color: '#110E0B'}}>
-                Kirjaa
-              </button>
-            </div>
+            <TagiLista items={vahvistetutLista} getLabel={v => v !== null && typeof v === 'object'
+              ? (v.pankki != null ? `${v.pankki}${v.tyyppi ? ' — ' + v.tyyppi : ''}` : v.tyyppi != null ? `${v.tyyppi}${v.kuvaus ? ' — ' + v.kuvaus : ''}` : String(v.arvo ?? ''))
+              : String(v ?? '')} />
+            {!lisaaAuki && <LisaaNappi label="+ Lisää merkintä" onClick={() => setLisaaAuki(true)} />}
+            {lisaaAuki && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <input type="text" value={kirjaukset[kohta] || ''} onChange={e => onKirjaus(kohta, e.target.value)}
+                  placeholder={kohtatiedot.esimerkki || 'Esim: kirjaa löytö...'} style={muuInputStyle} />
+                <ToimintoNapit onLisaa={lisaaVapaateksti} onPeruuta={peruutaVapaateksti} />
+              </div>
+            )}
           </>
         )}
       </div>
