@@ -73,6 +73,10 @@ export default function YhteenvetoPage() {
   const sopimusKesken = Object.values(sopimus_tilat).filter(v => v === 'kesken').length
   const sopimusEiKoske = Object.values(sopimus_tilat).filter(v => v === 'ei').length
 
+  const perunkirjoitus_tehty = kuolinpesa?.perunkirjoitus_tehty || {}
+  const perunkirjoitusTehtyMaara = Object.values(perunkirjoitus_tehty).filter(Boolean).length
+  const perunkirjoitusKaikki = 9
+
   const perintoveroTehtyMaara = Object.values(perintovero_tehty).filter(Boolean).length
   const perintoveroKaikki = 4
   const perinnonjakoTehtyMaara = Object.values(perinnonjako_tehty).filter(Boolean).length
@@ -106,6 +110,12 @@ export default function YhteenvetoPage() {
         { label: 'Hoidettu', arvo: String(sopimusHoidettu) },
         { label: 'Kesken', arvo: String(sopimusKesken) },
         { label: 'Ei koske', arvo: String(sopimusEiKoske) },
+      ]
+    },
+    {
+      numero: 4, nimi: 'Perunkirjoitus',
+      rivit: [
+        { label: 'Tehty', arvo: `${perunkirjoitusTehtyMaara} / ${perunkirjoitusKaikki}` },
       ]
     },
     {
@@ -186,11 +196,15 @@ export default function YhteenvetoPage() {
         </div>
 
         {/* Vaihekortit */}
-        <div style={{ marginBottom: '64px' }}>
-          <div style={{ fontSize: '9px', letterSpacing: '0.2em', textTransform: 'uppercase', color: '#3A3630', marginBottom: '20px' }}>Vaiheiden tila</div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '2px' }}>
+        <div style={{ marginBottom: '48px' }}>
+          <div style={{ fontSize: '9px', letterSpacing: '0.2em', textTransform: 'uppercase', color: '#C9A84C', marginBottom: '20px' }}>Vaiheiden tila</div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px' }}>
             {vaiheKortit.map((vaihe, i) => (
-              <div key={i} style={{ backgroundColor: '#110E0B', border: '1px solid rgba(240,235,227,0.06)', padding: '20px' }}>
+              <div key={i}
+                style={{ backgroundColor: '#110E0B', border: '1px solid rgba(201,168,76,0.35)', padding: '20px', cursor: 'pointer', transition: 'background 0.2s, border-color 0.2s, box-shadow 0.2s' }}
+                onMouseEnter={e => { e.currentTarget.style.backgroundColor = 'rgba(201,168,76,0.07)'; e.currentTarget.style.borderColor = 'rgba(201,168,76,0.7)'; e.currentTarget.style.boxShadow = '0 0 16px rgba(201,168,76,0.15)' }}
+                onMouseLeave={e => { e.currentTarget.style.backgroundColor = '#110E0B'; e.currentTarget.style.borderColor = 'rgba(201,168,76,0.35)'; e.currentTarget.style.boxShadow = 'none' }}
+              >
                 <div style={{ fontSize: '9px', letterSpacing: '0.16em', textTransform: 'uppercase', color: '#3A3630', marginBottom: '12px' }}>{vaihe.nimi}</div>
                 {vaihe.rivit.map((rivi, j) => (
                   <div key={j} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: '8px', marginBottom: '4px' }}>
@@ -205,7 +219,7 @@ export default function YhteenvetoPage() {
 
         {/* Tapahtumaloki */}
         <div>
-          <div style={{ fontSize: '9px', letterSpacing: '0.2em', textTransform: 'uppercase', color: '#3A3630', marginBottom: '20px' }}>Tapahtumaloki</div>
+          <div style={{ fontSize: '9px', letterSpacing: '0.2em', textTransform: 'uppercase', color: '#C9A84C', marginBottom: '20px' }}>Tapahtumaloki</div>
           {tapahtumat.length === 0 ? (
             <p style={{ fontSize: '13px', color: '#3A3630' }}>Ei kirjattuja tapahtumia.</p>
           ) : (

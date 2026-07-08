@@ -206,6 +206,7 @@ function DashboardInner() {
  const [avattuKohta, setAvattuKohta] = useState(null)
  const [avattuSopimus, setAvattuSopimus] = useState(null)
   const [yhteenvetoKeskenAvattu, setYhteenvetoKeskenAvattu] = useState(null)
+  const [pesaniTapahtumalokiAuki, setPesaniTapahtumalokiAuki] = useState(false)
   const [poistoVahvistus, setPoistoVahvistus] = useState(null)
   const [varatRastitattu, setVaratRastitattu] = useState({})
   const [varatVelatTeksti, setVaratVelatTeksti] = useState('')
@@ -293,6 +294,7 @@ useEffect(() => {
         if (pesaData.varat_vahvistetut) setVahvistetutKirjaukset(pesaData.varat_vahvistetut)
         if (pesaData.perintovero_tehty) setPerintoveroTehty(pesaData.perintovero_tehty)
         if (pesaData.perinnonjako_tehty) setPerinnonjakoTehty(pesaData.perinnonjako_tehty)
+        if (pesaData.perunkirjoitus_tehty) setPerunkirjoitusTehty(pesaData.perunkirjoitus_tehty)
         if (pesaData.sopimus_tilat) {
           const raw = pesaData.sopimus_tilat
           const meta = {}, tilat = {}
@@ -410,6 +412,16 @@ useEffect(() => {
   const pesaId = kuolinpesa?.id
   console.log('Tallennetaan:', pesaId, uudet)
   if (pesaId) await supabase.from('kuolinpesat').update({ varat_rastitattu: uudet }).eq('id', pesaId)
+}
+const toggleVaraRastiBulk = async (mapObj) => {
+  const uudet = { ...varatRastitattu }
+  Object.entries(mapObj).forEach(([id, arvo]) => { if (arvo == null) delete uudet[id]; else uudet[id] = arvo })
+  setVaratRastitattu(uudet)
+  if (kuolinpesa?.id) await supabase.from('kuolinpesat').update({ varat_rastitattu: uudet }).eq('id', kuolinpesa.id)
+  const idit = Object.keys(mapObj)
+  const ensimmainenArvo = mapObj[idit[0]]
+  if (ensimmainenArvo == null) kirjaaTapahtuma(`Peruutti ohituksen (${idit.length} kohdetta)`, 'varat_velat')
+  else kirjaaTapahtuma(`Merkitsi ${idit.length} kohdetta: Ei ollut`, 'varat_velat')
 }
 const tallennaKirjaus = async (id, arvo) => {
   const uudet = { ...varatKirjaukset, [id]: arvo }
@@ -1327,6 +1339,22 @@ const tallennaVahvistettuArvo = async (id, arvo) => {
               </>)
             })()}
 
+            {/* Tapahtumaloki — auki vain klikkaamalla, koska vie paljon tilaa */}
+            <div style={{ marginTop: '32px', borderTop: '1px solid rgba(240,235,227,0.06)', paddingTop: '24px' }}>
+              <button
+                onClick={() => setPesaniTapahtumalokiAuki(p => !p)}
+                style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontFamily: 'var(--font-body), sans-serif' }}
+              >
+                <span style={{ fontSize: '9px', letterSpacing: '0.2em', textTransform: 'uppercase', color: '#C9A84C' }}>Tapahtumaloki</span>
+                <span style={{ fontSize: '11px', color: '#7A7268', transition: 'transform 0.2s', transform: pesaniTapahtumalokiAuki ? 'rotate(180deg)' : 'none', display: 'inline-block' }}>▾</span>
+              </button>
+              {pesaniTapahtumalokiAuki && (
+                <div style={{ marginTop: '20px' }}>
+                  <Tapahtumaloki kuolinpesaId={kuolinpesa?.id} />
+                </div>
+              )}
+            </div>
+
           </div>
         )}
 
@@ -1451,9 +1479,9 @@ const tallennaVahvistettuArvo = async (id, arvo) => {
               }
               setOhitaOsioModalAuki(false)
             }}
-            style={{ flex: 1, padding: '10px', fontSize: '11px', letterSpacing: '0.1em', textTransform: 'uppercase', color: '#110E0B', backgroundColor: '#C9A84C', border: 'none', cursor: 'pointer', fontFamily: 'var(--font-body)', transition: 'background 0.15s' }}
-            onMouseEnter={e => e.currentTarget.style.backgroundColor = '#D4B560'}
-            onMouseLeave={e => e.currentTarget.style.backgroundColor = '#C9A84C'}
+            style={{ flex: 1, padding: '10px', fontSize: '11px', letterSpacing: '0.1em', textTransform: 'uppercase', color: '#C9A84C', backgroundColor: 'transparent', border: '1px solid rgba(201,168,76,0.4)', cursor: 'pointer', fontFamily: 'var(--font-body)', transition: 'background 0.2s, border-color 0.2s, box-shadow 0.2s' }}
+            onMouseEnter={e => { e.currentTarget.style.backgroundColor = 'rgba(201,168,76,0.07)'; e.currentTarget.style.borderColor = 'rgba(201,168,76,0.7)'; e.currentTarget.style.boxShadow = '0 0 16px rgba(201,168,76,0.15)' }}
+            onMouseLeave={e => { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.borderColor = 'rgba(201,168,76,0.4)'; e.currentTarget.style.boxShadow = 'none' }}
           >Ohita osio</button>
         </div>
       </div>
@@ -1680,7 +1708,7 @@ const tallennaVahvistettuArvo = async (id, arvo) => {
     </div>
     <div className="flex gap-6">
       <div className="flex-1 min-w-0">
-        {aktiivinenAlivaihe === 1 && <VaratJaVelat rastitattu={varatRastitattu} onToggle={toggleVaraRasti} kirjaukset={varatKirjaukset} onKirjaus={tallennaKirjaus} vahvistetut={vahvistetutKirjaukset} onVahvista={tallennaVahvistettu} onVahvistaArvo={tallennaVahvistettuArvo} onPoista={poistaVahvistettu} avattuKohta={avattuKohta} setAvattuKohta={setAvattuKohta} kommenttiMaara={kommenttiMaara} onAvaPopup={setKommenttiPopup} kuolinpesaId={kuolinpesa?.id} kayttajaEmail={kuolinpesa?.kayttaja_email} onKommenttiLisatty={(k) => setKaikkiKommentit(prev => [k, ...prev])} onValmis={() => navigoiVaihe(3)} />}
+        {aktiivinenAlivaihe === 1 && <VaratJaVelat rastitattu={varatRastitattu} onToggle={toggleVaraRasti} onToggleBulk={toggleVaraRastiBulk} kirjaukset={varatKirjaukset} onKirjaus={tallennaKirjaus} vahvistetut={vahvistetutKirjaukset} onVahvista={tallennaVahvistettu} onVahvistaArvo={tallennaVahvistettuArvo} onPoista={poistaVahvistettu} avattuKohta={avattuKohta} setAvattuKohta={setAvattuKohta} kommenttiMaara={kommenttiMaara} onAvaPopup={setKommenttiPopup} kuolinpesaId={kuolinpesa?.id} kayttajaEmail={kuolinpesa?.kayttaja_email} onKommenttiLisatty={(k) => setKaikkiKommentit(prev => [k, ...prev])} onValmis={() => navigoiVaihe(3)} />}
         {aktiivinenAlivaihe === 2 && (() => {
           const varatLoydetyt = varatJaVelatMuistilista.varat.filter(k => vahvistetutKirjaukset?.[k.id]?.length > 0)
           const velatLoydetyt = varatJaVelatMuistilista.velat.filter(k => vahvistetutKirjaukset?.['velat_' + k.id]?.length > 0)
@@ -2455,12 +2483,14 @@ function Tapahtumaloki({ kuolinpesaId }) {
   )
 }
 
-function VaratJaVelat({ rastitattu, onToggle, kirjaukset, onKirjaus, vahvistetut, onVahvista, onVahvistaArvo, onPoista, avattuKohta, setAvattuKohta, kommenttiMaara, onAvaPopup, kuolinpesaId, kayttajaEmail, onKommenttiLisatty, onValmis }) {
+function VaratJaVelat({ rastitattu, onToggle, onToggleBulk, kirjaukset, onKirjaus, vahvistetut, onVahvista, onVahvistaArvo, onPoista, avattuKohta, setAvattuKohta, kommenttiMaara, onAvaPopup, kuolinpesaId, kayttajaEmail, onKommenttiLisatty, onValmis }) {
   const [valittuKategoria, setValittuKategoria] = useState(null)
   const [muutKohteet, setMuutKohteet] = useState({})
   const [lisaysAuki, setLisaysAuki] = useState(null) // katId tai null
   const [lisaysTeksti, setLisaysTeksti] = useState('')
   const [lisaysId, setLisaysId] = useState(null)
+  const [ohitaVaratModalAuki, setOhitaVaratModalAuki] = useState(false)
+  const [ohitetutVaratKategoriat, setOhitetutVaratKategoriat] = useState({})
 
   const lsKey = kuolinpesaId ? `muut_varat_${kuolinpesaId}` : null
 
@@ -2507,6 +2537,28 @@ function VaratJaVelat({ rastitattu, onToggle, kirjaukset, onKirjaus, vahvistetut
     const uudet = { ...muutKohteet, [katId]: (muutKohteet[katId] || []).filter(k => k.id !== kohdeId) }
     setMuutKohteet(uudet)
     if (lsKey) localStorage.setItem(lsKey, JSON.stringify(uudet))
+  }
+
+  const vahvistaVaratOhitus = () => {
+    if (!valittuKategoria) return
+    const { etuliite = '', kohteet: kohdeIdt, id: katId } = valittuKategoria
+    const idit = kohdeIdt.map(kid => etuliite + kid)
+    const prevStates = {}
+    const uudetTilat = {}
+    idit.forEach(id => { prevStates[id] = rastitattu[id] ?? null; uudetTilat[id] = 'ei' })
+    onToggleBulk(uudetTilat)
+    setOhitetutVaratKategoriat(prev => ({ ...prev, [katId]: prevStates }))
+    setOhitaVaratModalAuki(false)
+    setAvattuKohta(null)
+  }
+
+  const peruutaVaratOhitus = () => {
+    if (!valittuKategoria) return
+    const ohitus = ohitetutVaratKategoriat[valittuKategoria.id]
+    if (!ohitus) return
+    onToggleBulk(ohitus)
+    setOhitetutVaratKategoriat(prev => { const u = { ...prev }; delete u[valittuKategoria.id]; return u })
+    setAvattuKohta(null)
   }
 
   const varatKategoriat = [
@@ -2580,43 +2632,58 @@ function VaratJaVelat({ rastitattu, onToggle, kirjaukset, onKirjaus, vahvistetut
           Takaisin
         </button>
 
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <div style={{ fontSize: '15px', color: '#F0EBE3', fontWeight: 500 }}>{otsikko}</div>
-            <div style={{ position: 'relative', display: 'inline-flex' }}
-              onMouseEnter={e => e.currentTarget.querySelector('[data-tooltip]').style.opacity = '1'}
-              onMouseLeave={e => e.currentTarget.querySelector('[data-tooltip]').style.opacity = '0'}
-            >
-              <div style={{
-                width: '18px', height: '18px', borderRadius: '50%',
-                border: '1px solid rgba(201,168,76,0.4)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                cursor: 'default', flexShrink: 0,
-                color: '#C9A84C', fontSize: '11px', fontWeight: 600,
-                fontFamily: 'var(--font-body), sans-serif',
-              }}>?</div>
-              <div data-tooltip style={{
-                position: 'absolute', left: '26px', top: '50%', transform: 'translateY(-50%)',
-                width: '340px',
-                backgroundColor: '#0D0B09',
-                border: '1px solid rgba(201,168,76,0.2)',
-                padding: '14px 18px',
-                pointerEvents: 'none',
-                opacity: 0,
-                transition: 'opacity 0.15s ease',
-                zIndex: 50,
-                boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
-              }}>
-                <p style={{ fontSize: '12px', color: '#A09890', lineHeight: 1.7, margin: 0 }}>
-                  Merkitse Kyllä jos kohde koskee vainajaa, Ei jos ei koske. Klikkaa nimeä nähdäksesi ohjeet ja kirjauskentän. Löydöt siirtyvät yhteenvetoon.
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-
         <div style={{ display: 'flex', gap: '24px' }}>
           <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div style={{ fontSize: '15px', color: '#F0EBE3', fontWeight: 500 }}>{otsikko}</div>
+                <div style={{ position: 'relative', display: 'inline-flex' }}
+                  onMouseEnter={e => e.currentTarget.querySelector('[data-tooltip]').style.opacity = '1'}
+                  onMouseLeave={e => e.currentTarget.querySelector('[data-tooltip]').style.opacity = '0'}
+                >
+                  <div style={{
+                    width: '18px', height: '18px', borderRadius: '50%',
+                    border: '1px solid rgba(201,168,76,0.4)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    cursor: 'default', flexShrink: 0,
+                    color: '#C9A84C', fontSize: '11px', fontWeight: 600,
+                    fontFamily: 'var(--font-body), sans-serif',
+                  }}>?</div>
+                  <div data-tooltip style={{
+                    position: 'absolute', left: '26px', top: '50%', transform: 'translateY(-50%)',
+                    width: '340px',
+                    backgroundColor: '#0D0B09',
+                    border: '1px solid rgba(201,168,76,0.2)',
+                    padding: '14px 18px',
+                    pointerEvents: 'none',
+                    opacity: 0,
+                    transition: 'opacity 0.15s ease',
+                    zIndex: 50,
+                    boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
+                  }}>
+                    <p style={{ fontSize: '12px', color: '#A09890', lineHeight: 1.7, margin: 0 }}>
+                      Merkitse Kyllä jos kohde koskee vainajaa, Ei jos ei koske. Klikkaa nimeä nähdäksesi ohjeet ja kirjauskentän. Löydöt siirtyvät yhteenvetoon.
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                {ohitetutVaratKategoriat[katId]
+                  ? <button
+                      onClick={peruutaVaratOhitus}
+                      style={{ fontSize: '11px', color: '#4E4840', background: 'none', border: '1px solid rgba(240,235,227,0.06)', padding: '5px 12px', cursor: 'pointer', letterSpacing: '0.04em', fontFamily: 'var(--font-body)', transition: 'color 0.15s, border-color 0.15s' }}
+                      onMouseEnter={e => { e.currentTarget.style.color = '#7A7268'; e.currentTarget.style.borderColor = 'rgba(240,235,227,0.15)' }}
+                      onMouseLeave={e => { e.currentTarget.style.color = '#4E4840'; e.currentTarget.style.borderColor = 'rgba(240,235,227,0.06)' }}
+                    >Peruuta ohitus</button>
+                  : <button
+                      onClick={() => setOhitaVaratModalAuki(true)}
+                      style={{ fontSize: '11px', color: '#5A5450', background: 'none', border: '1px solid rgba(201,168,76,0.45)', padding: '5px 12px', cursor: 'pointer', letterSpacing: '0.04em', fontFamily: 'var(--font-body)', transition: 'color 0.15s, border-color 0.15s' }}
+                      onMouseEnter={e => { e.currentTarget.style.color = '#8A8278'; e.currentTarget.style.borderColor = 'rgba(201,168,76,0.8)' }}
+                      onMouseLeave={e => { e.currentTarget.style.color = '#5A5450'; e.currentTarget.style.borderColor = 'rgba(201,168,76,0.45)' }}
+                    >Ohita osio</button>
+                }
+              </div>
+            </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
               {kohteet.map(kohta => {
                 const id = etuliite + kohta.id
@@ -2691,7 +2758,7 @@ function VaratJaVelat({ rastitattu, onToggle, kirjaukset, onKirjaus, vahvistetut
             </div>
           </div>
 
-          <div style={{ width: '300px', flexShrink: 0, position: 'sticky', top: '24px', alignSelf: 'flex-start' }}>
+          <div style={{ width: '300px', flexShrink: 0, marginTop: '41px', position: 'sticky', top: '24px', alignSelf: 'flex-start' }}>
             {lisaysAuki === katId ? (
               <div className="rounded-lg p-5 flex flex-col gap-4" style={{ backgroundColor: '#1C1916', border: '1px solid #C9A84C', position: 'sticky', top: '24px' }}>
                 <div className="flex items-start justify-between">
@@ -2744,6 +2811,34 @@ function VaratJaVelat({ rastitattu, onToggle, kirjaukset, onKirjaus, vahvistetut
             ) : null}
           </div>
         </div>
+
+        {ohitaVaratModalAuki && (
+          <div
+            style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.72)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}
+            onClick={e => { if (e.target === e.currentTarget) setOhitaVaratModalAuki(false) }}
+          >
+            <div style={{ backgroundColor: '#1C1916', border: '1px solid rgba(201,168,76,0.25)', padding: '32px', width: '400px', maxWidth: '90vw', boxShadow: '0 24px 64px rgba(0,0,0,0.6)' }}>
+              <h3 style={{ fontSize: '15px', color: '#F0EBE3', fontWeight: 600, marginBottom: '12px', letterSpacing: '-0.01em' }}>Ohitetaanko tämä osio?</h3>
+              <p style={{ fontSize: '13px', color: '#8A8278', lineHeight: 1.6, marginBottom: '28px' }}>
+                Kaikki tämän ryhmän kohdat merkitään "Ei ollut" -tilaan.
+              </p>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <button
+                  onClick={() => setOhitaVaratModalAuki(false)}
+                  style={{ flex: 1, padding: '10px', fontSize: '11px', letterSpacing: '0.1em', textTransform: 'uppercase', color: '#7A7268', backgroundColor: 'transparent', border: '1px solid rgba(240,235,227,0.1)', cursor: 'pointer', fontFamily: 'var(--font-body)', transition: 'color 0.15s' }}
+                  onMouseEnter={e => e.currentTarget.style.color = '#F0EBE3'}
+                  onMouseLeave={e => e.currentTarget.style.color = '#7A7268'}
+                >Peruuta</button>
+                <button
+                  onClick={vahvistaVaratOhitus}
+                  style={{ flex: 1, padding: '10px', fontSize: '11px', letterSpacing: '0.1em', textTransform: 'uppercase', color: '#C9A84C', backgroundColor: 'transparent', border: '1px solid rgba(201,168,76,0.4)', cursor: 'pointer', fontFamily: 'var(--font-body)', transition: 'background 0.2s, border-color 0.2s, box-shadow 0.2s' }}
+                  onMouseEnter={e => { e.currentTarget.style.backgroundColor = 'rgba(201,168,76,0.07)'; e.currentTarget.style.borderColor = 'rgba(201,168,76,0.7)'; e.currentTarget.style.boxShadow = '0 0 16px rgba(201,168,76,0.15)' }}
+                  onMouseLeave={e => { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.borderColor = 'rgba(201,168,76,0.4)'; e.currentTarget.style.boxShadow = 'none' }}
+                >Ohita osio</button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     )
   }
@@ -3227,7 +3322,7 @@ function SelvitysOsio({ onValmis, onEdistyminen, avattuSopimus, setAvattuSopimus
           </div>
         </div>
 
-        <div className="lg:w-80 flex-shrink-0 flex flex-col gap-4" style={{position: 'sticky', top: '24px', alignSelf: 'flex-start'}}>
+        <div className="lg:w-80 flex-shrink-0 flex flex-col gap-4" style={{marginTop: '41px', position: 'sticky', top: '24px', alignSelf: 'flex-start'}}>
           {sopLisaysAuki === kategoria.id ? (
             <div className="rounded-lg p-5 flex flex-col gap-4" style={{ backgroundColor: '#1C1916', border: '1px solid #C9A84C', position: 'sticky', top: '24px' }}>
               <div className="flex items-start justify-between">
@@ -3296,9 +3391,9 @@ function SelvitysOsio({ onValmis, onEdistyminen, avattuSopimus, setAvattuSopimus
               >Peruuta</button>
               <button
                 onClick={vahvistaOhitus}
-                style={{ flex: 1, padding: '10px', fontSize: '11px', letterSpacing: '0.1em', textTransform: 'uppercase', color: '#110E0B', backgroundColor: '#C9A84C', border: 'none', cursor: 'pointer', fontFamily: 'var(--font-body)', transition: 'background 0.15s' }}
-                onMouseEnter={e => e.currentTarget.style.backgroundColor = '#D4B560'}
-                onMouseLeave={e => e.currentTarget.style.backgroundColor = '#C9A84C'}
+                style={{ flex: 1, padding: '10px', fontSize: '11px', letterSpacing: '0.1em', textTransform: 'uppercase', color: '#C9A84C', backgroundColor: 'transparent', border: '1px solid rgba(201,168,76,0.4)', cursor: 'pointer', fontFamily: 'var(--font-body)', transition: 'background 0.2s, border-color 0.2s, box-shadow 0.2s' }}
+                onMouseEnter={e => { e.currentTarget.style.backgroundColor = 'rgba(201,168,76,0.07)'; e.currentTarget.style.borderColor = 'rgba(201,168,76,0.7)'; e.currentTarget.style.boxShadow = '0 0 16px rgba(201,168,76,0.15)' }}
+                onMouseLeave={e => { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.borderColor = 'rgba(201,168,76,0.4)'; e.currentTarget.style.boxShadow = 'none' }}
               >Ohita osio</button>
             </div>
           </div>
@@ -3941,7 +4036,16 @@ function PerunkirjoitusOsio({ kuolinpesa, vahvistetutKirjaukset, kayttajaEmail, 
   const [avattuTehtava, setAvattuTehtava] = useState(null)
   const [modalAuki, setModalAuki] = useState(false)
 
-  const toggleTehty = (id, e) => { e.stopPropagation(); setPerunkirjoitusTehty(prev => ({ ...prev, [id]: !prev[id] })) }
+  const toggleTehty = async (id, e) => {
+    e.stopPropagation()
+    const uusi = !perunkirjoitusTehty[id]
+    const updated = { ...perunkirjoitusTehty, [id]: uusi }
+    setPerunkirjoitusTehty(updated)
+    await supabase.from('kuolinpesat').update({ perunkirjoitus_tehty: updated }).eq('id', kuolinpesa.id)
+    const nimi = perunkirjoitusTehtavat.find(t => t.id === id)?.nimi
+    const { data: { user } } = await supabase.auth.getUser()
+    await supabase.from('tapahtumat').insert({ kuolinpesa_id: kuolinpesa.id, teksti: `${uusi ? 'Merkitsi tehdyksi' : 'Poisti merkinnän'}: ${nimi}`, osio: 'perunkirjoitus', kirjoittaja_email: user?.email })
+  }
 
   const ryhmat = [
     { otsikko: 'Ennen tapaamista', kuvaus: 'Kerää ja varmista nämä', tehtavat: perunkirjoitusTehtavat.slice(0, 5) },
