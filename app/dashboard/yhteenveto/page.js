@@ -132,20 +132,6 @@ export default function YhteenvetoPage() {
     },
   ]
 
-  const paivaMuoto = (iso) => new Date(iso).toLocaleDateString('fi-FI', { day: 'numeric', month: 'long', year: 'numeric' })
-  const aikaMusto = (iso) => new Date(iso).toLocaleTimeString('fi-FI', { hour: '2-digit', minute: '2-digit' })
-
-  const tapahtumatRyhmat = []
-  tapahtumat.forEach(t => {
-    const pvm = paivaMuoto(t.created_at)
-    const viimein = tapahtumatRyhmat[tapahtumatRyhmat.length - 1]
-    if (viimein && viimein.pvm === pvm) {
-      viimein.tapahtumat.push(t)
-    } else {
-      tapahtumatRyhmat.push({ pvm, tapahtumat: [t] })
-    }
-  })
-
   const kayttaja = [kuolinpesa?.kayttaja_email, ...jasenet.map(j => j.email)].filter(Boolean)
 
   return (
@@ -215,31 +201,6 @@ export default function YhteenvetoPage() {
               </div>
             ))}
           </div>
-        </div>
-
-        {/* Tapahtumaloki */}
-        <div>
-          <div style={{ fontSize: '9px', letterSpacing: '0.2em', textTransform: 'uppercase', color: '#C9A84C', marginBottom: '20px' }}>Tapahtumaloki</div>
-          {tapahtumat.length === 0 ? (
-            <p style={{ fontSize: '13px', color: '#3A3630' }}>Ei kirjattuja tapahtumia.</p>
-          ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-              {tapahtumatRyhmat.map((ryhma, i) => (
-                <div key={i}>
-                  <div style={{ fontSize: '9px', letterSpacing: '0.16em', textTransform: 'uppercase', color: '#2A2620', marginBottom: '8px', paddingLeft: '4px' }}>{ryhma.pvm}</div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '1px' }}>
-                    {ryhma.tapahtumat.map((t, j) => (
-                      <div key={j} style={{ display: 'flex', gap: '16px', padding: '10px 14px', backgroundColor: '#0D0B09', border: '1px solid rgba(240,235,227,0.04)' }}>
-                        <span style={{ fontSize: '10px', color: '#2A2620', flexShrink: 0, width: '38px', paddingTop: '1px' }}>{aikaMusto(t.created_at)}</span>
-                        <span style={{ fontSize: '12px', color: '#5A5248', flex: 1 }}>{t.teksti}</span>
-                        <span style={{ fontSize: '10px', color: '#2A2620', flexShrink: 0 }}>{t.kirjoittaja_email?.split('@')[0]}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
         </div>
 
       </div>

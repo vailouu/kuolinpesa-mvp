@@ -206,7 +206,6 @@ function DashboardInner() {
  const [avattuKohta, setAvattuKohta] = useState(null)
  const [avattuSopimus, setAvattuSopimus] = useState(null)
   const [yhteenvetoKeskenAvattu, setYhteenvetoKeskenAvattu] = useState(null)
-  const [pesaniTapahtumalokiAuki, setPesaniTapahtumalokiAuki] = useState(false)
   const [poistoVahvistus, setPoistoVahvistus] = useState(null)
   const [varatRastitattu, setVaratRastitattu] = useState({})
   const [varatVelatTeksti, setVaratVelatTeksti] = useState('')
@@ -1338,22 +1337,6 @@ const tallennaVahvistettuArvo = async (id, arvo) => {
                 </div>
               </>)
             })()}
-
-            {/* Tapahtumaloki — auki vain klikkaamalla, koska vie paljon tilaa */}
-            <div style={{ marginTop: '32px', borderTop: '1px solid rgba(240,235,227,0.06)', paddingTop: '24px' }}>
-              <button
-                onClick={() => setPesaniTapahtumalokiAuki(p => !p)}
-                style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontFamily: 'var(--font-body), sans-serif' }}
-              >
-                <span style={{ fontSize: '9px', letterSpacing: '0.2em', textTransform: 'uppercase', color: '#C9A84C' }}>Tapahtumaloki</span>
-                <span style={{ fontSize: '11px', color: '#7A7268', transition: 'transform 0.2s', transform: pesaniTapahtumalokiAuki ? 'rotate(180deg)' : 'none', display: 'inline-block' }}>▾</span>
-              </button>
-              {pesaniTapahtumalokiAuki && (
-                <div style={{ marginTop: '20px' }}>
-                  <Tapahtumaloki kuolinpesaId={kuolinpesa?.id} />
-                </div>
-              )}
-            </div>
 
           </div>
         )}

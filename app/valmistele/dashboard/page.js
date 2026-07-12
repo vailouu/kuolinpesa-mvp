@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, Fragment, cloneElement } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '../../supabase'
 import TopBar from '../../components/TopBar'
@@ -138,6 +138,11 @@ const css = `
     color: ${C.secondary}; background: ${C.surface};
     padding: 3px 8px; border: 1px solid ${C.border};
   }
+  .badge-lisatty {
+    font-size: 9px; letter-spacing: 0.15em; text-transform: uppercase;
+    color: ${C.accent}; background: rgba(201,168,76,0.08);
+    padding: 3px 8px; border: 1px solid rgba(201,168,76,0.2);
+  }
 
   .section-title {
     font-family: var(--font-display), Georgia, serif;
@@ -224,7 +229,7 @@ const omaisuusKategoriat = [
     kentat: [
       { id: 'pankki', label: 'Pankki', placeholder: 'Esim. OP, Nordea, S-Pankki' },
       { id: 'tilinumero', label: 'Tilinumero (IBAN)', placeholder: 'FI12 3456 7890 1234 56' },
-      { id: 'lisatieto', label: 'Lisätietoja', placeholder: 'Esim. käyttötili, säästötili, yritystili' },
+      { id: 'lisatieto', label: 'Muuta tietoa', placeholder: 'Esim. tilityyppi, PIN-koodin säilytyspaikka' },
     ]
   },
   {
@@ -233,7 +238,7 @@ const omaisuusKategoriat = [
     kentat: [
       { id: 'palvelu', label: 'Palvelu tai välittäjä', placeholder: 'Esim. Nordnet, OP, Danske Bank' },
       { id: 'sisalto', label: 'Mitä sijoituksia', placeholder: 'Esim. Nokian osakkeita, S&P500-rahasto' },
-      { id: 'lisatieto', label: 'Lisätietoja', placeholder: 'Esim. tilinumero, käyttäjätunnus' },
+      { id: 'lisatieto', label: 'Muuta tietoa', placeholder: 'Esim. tilinumero, käyttäjätunnus' },
     ]
   },
   {
@@ -242,7 +247,7 @@ const omaisuusKategoriat = [
     kentat: [
       { id: 'osoite', label: 'Osoite tai sijaintitieto', placeholder: 'Esim. Mannerheimintie 1, Helsinki' },
       { id: 'tyyppi', label: 'Tyyppi', placeholder: 'Esim. omakotitalo, asunto-osake, metsätila, mökki' },
-      { id: 'avaimet', label: 'Avainten sijainti', placeholder: 'Esim. keittiön laatikossa, naapurilla Matti Virtasella' },
+      { id: 'lisatieto', label: 'Muuta tietoa', placeholder: 'Esim. avainten sijainti, taloyhtiön nimi, kiinnitys' },
     ]
   },
   {
@@ -251,7 +256,7 @@ const omaisuusKategoriat = [
     kentat: [
       { id: 'tyyppi', label: 'Ajoneuvo', placeholder: 'Esim. Toyota Corolla 2018' },
       { id: 'rekisteri', label: 'Rekisteritunnus', placeholder: 'Esim. ABC-123' },
-      { id: 'sijainti', label: 'Sijainti', placeholder: 'Esim. kotitallin autotalli, Mikkelin keskusta' },
+      { id: 'lisatieto', label: 'Muuta tietoa', placeholder: 'Esim. sijainti, avainten paikka' },
     ]
   },
   {
@@ -260,7 +265,7 @@ const omaisuusKategoriat = [
     kentat: [
       { id: 'yhtio', label: 'Vakuutusyhtiö', placeholder: 'Esim. LähiTapiola, OP, If, Pohjola' },
       { id: 'tyyppi', label: 'Vakuutuksen tyyppi', placeholder: 'Esim. henkivakuutus, kotivakuutus' },
-      { id: 'sopimusnumero', label: 'Sopimusnumero', placeholder: 'Esim. 1234567' },
+      { id: 'lisatieto', label: 'Muuta tietoa', placeholder: 'Esim. sopimusnumero' },
     ]
   },
   {
@@ -269,10 +274,90 @@ const omaisuusKategoriat = [
     kentat: [
       { id: 'kuvaus', label: 'Kuvaus', placeholder: 'Esim. kultakello, 1950-luvun öljymaalaus' },
       { id: 'sijainti', label: 'Sijainti', placeholder: 'Esim. makuuhuoneen lipastossa, tallelokerossa OP:ssa' },
-      { id: 'arvo', label: 'Arvioitu arvo', placeholder: 'Esim. n. 2000 €' },
+      { id: 'lisatieto', label: 'Muuta tietoa', placeholder: 'Esim. arvioitu arvo' },
     ]
   },
 ]
+
+const sopimusKategoriat = [
+  {
+    id: 'asuminen-liikenne', nimi: 'Asuminen ja liikenne', ikoni: '🏠',
+    kuvaus: 'Sähkö, vesi, vuokra, internet, autolaina — sopimukset joita omaisesi pitää irtisanoa tai siirtää.',
+    ehdotukset: ['Sähkösopimus', 'Vuokrasopimus', 'Internet / laajakaista', 'Vesisopimus', 'Autolaina', 'Leasingsopimus'],
+    kentat: [
+      { id: 'yritys', label: 'Palvelu tai yritys', placeholder: 'Esim. Helen Oy, DNA, vuokranantaja' },
+      { id: 'asiakasnumero', label: 'Asiakas- tai sopimusnumero', placeholder: 'Valinnainen' },
+      { id: 'lisatieto', label: 'Lisätietoja', placeholder: 'Esim. irtisanomisaika, mihin tiliin liittyy' },
+    ],
+    kenttaYliajot: {
+      'autolaina': { asiakasnumero: { label: 'Lainanumero', placeholder: 'Löytyy lainasopimuksesta' } },
+      'leasingsopimus': { asiakasnumero: { label: 'Sopimusnumero', placeholder: 'Löytyy leasingsopimuksesta' } },
+      'vuokrasopimus': { asiakasnumero: { label: 'Vuokranantaja', placeholder: 'Esim. isännöitsijän tai vuokranantajan nimi' } },
+    }
+  },
+  {
+    id: 'vakuutukset', nimi: 'Vakuutukset', ikoni: '🛡️',
+    kuvaus: 'Henki-, koti-, auto- ja muut vakuutukset. Yhtiö ja sopimusnumero riittävät.',
+    ehdotukset: ['Henkivakuutus', 'Kotivakuutus', 'Autovakuutus', 'Kiinteistövakuutus', 'Matkavakuutus', 'Oikeusturvavakuutus'],
+    kentat: [
+      { id: 'yhtio', label: 'Vakuutusyhtiö', placeholder: 'Esim. LähiTapiola, OP, If, Pohjola' },
+      { id: 'sopimusnumero', label: 'Sopimusnumero', placeholder: 'Valinnainen' },
+      { id: 'lisatieto', label: 'Lisätietoja', placeholder: 'Esim. vakuutuksen tyyppi' },
+    ]
+  },
+  {
+    id: 'tilaukset-media', nimi: 'Tilaukset ja media', ikoni: '📺',
+    kuvaus: 'Puhelinliittymä, striimauspalvelut, lehtitilaukset — kuukausittain laskutettavat tilaukset.',
+    ehdotukset: ['Puhelinliittymä', 'Netflix', 'Spotify', 'Lehtitilaus', 'Disney+ / Viaplay', 'Äänikirjapalvelu'],
+    kentat: [
+      { id: 'palvelu', label: 'Palvelu', placeholder: 'Esim. Netflix, Elisa, Spotify' },
+      { id: 'tunnus', label: 'Käyttäjätunnus tai sähköposti', placeholder: 'Millä tunnuksella kirjaudut sisään' },
+      { id: 'lisatieto', label: 'Lisätietoja', placeholder: 'Esim. maksutapa, mistä peruutetaan' },
+    ],
+    kenttaYliajot: {
+      'puhelinliittymä': { tunnus: { label: 'Liittymänumero', placeholder: 'Puhelinnumero, jota liittymä koskee' } },
+      'lehtitilaus': { tunnus: { label: 'Tilausnumero', placeholder: 'Valinnainen — löytyy laskusta' } },
+    }
+  },
+  {
+    id: 'jasenydet', nimi: 'Jäsenyydet', ikoni: '🤝',
+    kuvaus: 'Ammattiliitto, kuntosali, urheiluseura tai järjestö johon maksat jäsenmaksua.',
+    ehdotukset: ['Ammattiliitto', 'Kuntosali', 'Urheiluseura', 'Järjestö (esim. SPR, Lions)', 'Eläkeläisjärjestö', 'Uimahalli'],
+    kentat: [
+      { id: 'yhdistys', label: 'Yhdistys tai seura', placeholder: 'Esim. ammattiliitto, kuntosali, urheiluseura' },
+      { id: 'jasennumero', label: 'Jäsennumero', placeholder: 'Valinnainen' },
+      { id: 'lisatieto', label: 'Lisätietoja', placeholder: 'Esim. jäsenmaksun eräpäivä' },
+    ]
+  },
+  {
+    id: 'hoiva-terveys', nimi: 'Hoiva ja terveys', ikoni: '🏥',
+    kuvaus: 'Kotihoito, ateriapalvelu, yksityislääkäri tai muu säännöllinen hoiva- tai terveyspalvelu.',
+    ehdotukset: ['Kotihoito', 'Ateriapalvelu', 'Yksityislääkäri', 'Hammaslääkäri', 'Hierontapalvelu', 'Lemmikin hoitopalvelu'],
+    kentat: [
+      { id: 'palveluntarjoaja', label: 'Palveluntarjoaja', placeholder: 'Esim. kotihoito, hammaslääkäri' },
+      { id: 'asiakasnumero', label: 'Asiakasnumero', placeholder: 'Valinnainen' },
+      { id: 'lisatieto', label: 'Lisätietoja', placeholder: 'Esim. käyntien tiheys, yhteyshenkilö' },
+    ]
+  },
+  {
+    id: 'digitaaliset', nimi: 'Digitaaliset tilit', ikoni: '💻',
+    kuvaus: 'Sähköposti, some ja pilvipalvelut — kirjaa vain tilin nimi, ei salasanoja.',
+    ehdotukset: ['Sähköposti (Gmail/Outlook)', 'Facebook', 'Instagram', 'Google-tili', 'Apple ID / iCloud', 'Dropbox / pilvipalvelu'],
+    kentat: [
+      { id: 'palvelu', label: 'Palvelu', placeholder: 'Esim. Gmail, Facebook, Apple ID' },
+      { id: 'tunnus', label: 'Käyttäjätunnus tai sähköposti', placeholder: 'Millä tunnuksella kirjaudut sisään' },
+      { id: 'lisatieto', label: 'Lisätietoja', placeholder: 'Esim. missä salasanat säilytetään — ei itse salasanaa' },
+    ]
+  },
+]
+
+// Palauttaa kategorian kentat siten, että keskimmäinen kenttä on räätälöity
+// valitun ehdotuksen (esim. "Puhelinliittymä") mukaan, jos räätälöinti on määritelty.
+function kentatKohteelle(kat, ehdotusArvo) {
+  const yliajo = kat.kenttaYliajot?.[(ehdotusArvo || '').trim().toLowerCase()]
+  if (!yliajo) return kat.kentat
+  return kat.kentat.map(k => yliajo[k.id] ? { ...k, ...yliajo[k.id] } : k)
+}
 
 function TooltipOhje({ teksti }) {
   return (
@@ -334,28 +419,20 @@ export default function ValmisteleDashboard() {
   const [valittuKategoria, setValittuKategoria] = useState(null)
 
   const navPush = useCallback((vaihe, kategoria = null) => {
-    window.history.pushState({ vaihe, kategoria }, '')
     setAktiivinenVaihe(vaihe)
     setValittuKategoria(kategoria)
-  }, [])
-
-  useEffect(() => {
-    window.history.replaceState({ vaihe: 0, kategoria: null }, '')
-    const handlePop = (e) => {
-      const s = e.state
-      if (!s) return
-      setAktiivinenVaihe(s.vaihe ?? 0)
-      setValittuKategoria(s.kategoria ?? null)
-    }
-    window.addEventListener('popstate', handlePop)
-    return () => window.removeEventListener('popstate', handlePop)
   }, [])
 
   const [omaisuusItems, setOmaisuusItems] = useState({}) // { kategoriaId: [{kentat}] }
   const [uusiItem, setUusiItem] = useState({})
 
   // Sopimukset
-  const [sopimukset, setSopimukset] = useState('')
+  const [valittuSopimusKategoria, setValittuSopimusKategoria] = useState(null)
+  const [sopimusItems, setSopimusItems] = useState({}) // { kategoriaId: [{kentat}] }
+  const [uusiSopimusItem, setUusiSopimusItem] = useState({})
+
+  // Yhteenveto
+  const [valittuYhteenvetoOsio, setValittuYhteenvetoOsio] = useState(null)
 
   // Dokumentit
   const [dokumentit, setDokumentit] = useState({
@@ -396,6 +473,24 @@ export default function ValmisteleDashboard() {
     }))
   }
 
+  const sopimusLukumaara = (katId) => (sopimusItems[katId] || []).length
+
+  const lisaaSopimus = (katId) => {
+    if (Object.values(uusiSopimusItem).every(v => !v.trim())) return
+    setSopimusItems(prev => ({
+      ...prev,
+      [katId]: [...(prev[katId] || []), { ...uusiSopimusItem, id: Date.now() }]
+    }))
+    setUusiSopimusItem({})
+  }
+
+  const poistaSopimus = (katId, itemId) => {
+    setSopimusItems(prev => ({
+      ...prev,
+      [katId]: (prev[katId] || []).filter(i => i.id !== itemId)
+    }))
+  }
+
   const tallennaTiedot = () => setOmatTiedotTallennettu(true)
 
   if (ladataan) return (
@@ -406,8 +501,10 @@ export default function ValmisteleDashboard() {
   )
 
   const kat = valittuKategoria ? omaisuusKategoriat.find(k => k.id === valittuKategoria) : null
+  const sopimusKat = valittuSopimusKategoria ? sopimusKategoriat.find(k => k.id === valittuSopimusKategoria) : null
 
-  const sopimuksetTaytetty = Object.values(JSON.parse(sopimukset || '{}')).some(v => v && v.trim())
+  const sopimusMaaraSidebar = Object.values(sopimusItems).reduce((s, arr) => s + arr.length, 0)
+  const sopimuksetTaytetty = sopimusMaaraSidebar > 0
   const dokumentitTaytetty = Object.values(dokumentit).some(v => v && v.trim())
   const viestiKirjoitettu = !!(tahto.viesti && tahto.viesti.trim())
   const omaisuusMaaraSidebar = Object.values(omaisuusItems).reduce((s, arr) => s + arr.length, 0)
@@ -444,16 +541,25 @@ export default function ValmisteleDashboard() {
           {/* Progress-kaari */}
           {(() => {
             const pct = valmisCount / 5
-            const aktiivinen = aktiivinenVaihe === 0
+            const aktiivinen = aktiivinenVaihe === 7
             const r = 28, cx = 32, cy = 32
             const circumference = 2 * Math.PI * r
             const dashOffset = circumference * (1 - pct)
             return (
-              <div style={{
-                display: 'flex', alignItems: 'center', gap: '14px',
-                width: '100%', padding: '16px 18px',
-                borderBottom: `1px solid ${C.border}`,
-              }}>
+              <button
+                onClick={() => navPush(7, null)}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: '14px',
+                  width: '100%', padding: '16px 18px',
+                  background: aktiivinen ? 'rgba(201,168,76,0.07)' : 'none',
+                  outline: 'none', border: 'none',
+                  borderBottom: `1px solid ${C.border}`,
+                  cursor: 'pointer', textAlign: 'left',
+                  transition: 'background 0.2s',
+                }}
+                onMouseEnter={e => { if (!aktiivinen) e.currentTarget.style.background = 'rgba(201,168,76,0.05)' }}
+                onMouseLeave={e => { if (!aktiivinen) e.currentTarget.style.background = 'none' }}
+              >
                 <div style={{ flexShrink: 0 }}>
                   <svg width="64" height="64" viewBox="0 0 64 64">
                     <circle cx={cx} cy={cy} r={r} fill="none" stroke="rgba(240,235,227,0.06)" strokeWidth="3" />
@@ -480,7 +586,7 @@ export default function ValmisteleDashboard() {
                     {valmisCount} / 5 osiota
                   </div>
                 </div>
-              </div>
+              </button>
             )
           })()}
 
@@ -538,32 +644,41 @@ export default function ValmisteleDashboard() {
               </h1>
 
               <p style={{ fontSize: '14px', color: '#A09890', lineHeight: 1.9, margin: '0 0 16px' }}>
-                Tämä osio on tarkoitettu oman elämän tietojen järjestämiseen etukäteen — jotta omaisesi löytävät kaiken oleellisen nopeasti, kun sitä tarvitaan.
+                Kuolema ei kysy lupaa saapumisajankohdastaan, mutta voit itse päättää millaisen jäljen jätät. Kun kirjaat tärkeät tietosi etukäteen, omaisesi löytävät kaiken oleellisen nopeasti — eivätkä joudu arvailemaan juuri silloin kun heillä on vähiten voimia siihen.
               </p>
-              <p style={{ fontSize: '14px', color: '#A09890', lineHeight: 1.9, margin: '0 0 48px' }}>
-                Aloita{' '}
-                <button onClick={() => navPush(1, null)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontSize: '14px', color: C.accent, fontFamily: 'var(--font-body), sans-serif', textDecoration: 'underline', textUnderlineOffset: '3px', textDecorationColor: 'rgba(201,168,76,0.4)' }}>Omat tiedot</button>
-                {' '}-osiosta ja etene järjestyksessä.
+              <p style={{ fontSize: '14px', color: '#A09890', lineHeight: 1.9, margin: '0 0 40px' }}>
+                Viisi osiota, tässä järjestyksessä:
               </p>
 
-              <div style={{ height: '1px', background: 'linear-gradient(to right, rgba(201,168,76,0.3), transparent)', marginBottom: '40px' }} />
-
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '28px', marginBottom: '48px' }}>
+              <div style={{ border: `1px solid ${C.border}`, marginBottom: '16px' }}>
                 {[
-                  { label: 'Omat tiedot', teksti: 'Henkilötietosi, yhteystietosi ja tärkeät yhteyshenkilöt kuten lääkäri ja lakimies.' },
-                  { label: 'Omaisuus', teksti: 'Kaikki omaisuutesi kategorioittain — kiinteistöt, ajoneuvot, säästöt, arvo-esineet.' },
-                  { label: 'Sopimukset', teksti: 'Palvelut ja sopimukset joihin sinulla on tili tai jatkuva maksu — jotta omaisesi tietävät mitä irtisanoa.' },
-                  { label: 'Dokumentit', teksti: 'Missä tärkeät paperit fyysisesti sijaitsevat — testamentti, avioehto, vakuutuskirjat.' },
-                  { label: 'Viimeinen tahto', teksti: 'Hautaustoiveet, musiikki, jakotoiveet ja saateviesti läheisille.' },
-                ].map(osio => (
-                  <div key={osio.label}>
-                    <div style={{ fontSize: '9px', letterSpacing: '0.2em', textTransform: 'uppercase', color: C.accent, marginBottom: '6px', fontFamily: 'var(--font-body), sans-serif' }}>{osio.label}</div>
-                    <p style={{ fontSize: '13px', color: '#6A6258', lineHeight: 1.8, margin: 0 }}>{osio.teksti}</p>
+                  { num: '01', label: 'Omat tiedot', teksti: 'Henkilötietosi, yhteystietosi ja tärkeät yhteyshenkilöt kuten lääkäri ja lakimies.' },
+                  { num: '02', label: 'Omaisuus', teksti: 'Kaikki omaisuutesi kategorioittain — kiinteistöt, ajoneuvot, säästöt, arvo-esineet.' },
+                  { num: '03', label: 'Sopimukset', teksti: 'Palvelut ja sopimukset joihin sinulla on tili tai jatkuva maksu — jotta omaisesi tietävät mitä irtisanoa.' },
+                  { num: '04', label: 'Dokumentit', teksti: 'Missä tärkeät paperit fyysisesti sijaitsevat — testamentti, avioehto, vakuutuskirjat.' },
+                  { num: '05', label: 'Viimeinen tahto', teksti: 'Hautaustoiveet, musiikki, jakotoiveet ja saateviesti läheisille.' },
+                ].map((osio, i, arr) => (
+                  <div key={osio.label} style={{
+                    display: 'grid', gridTemplateColumns: '36px 1fr', gap: '20px',
+                    padding: '20px 24px',
+                    borderBottom: i < arr.length - 1 ? `1px solid ${C.border}` : 'none',
+                  }}>
+                    <span style={{ fontSize: '11px', color: C.accent, opacity: 0.5, fontFamily: 'var(--font-body), sans-serif', paddingTop: '2px' }}>{osio.num}</span>
+                    <div>
+                      <div style={{ fontSize: '13px', fontWeight: 500, color: C.text, marginBottom: '5px', letterSpacing: '0.01em' }}>{osio.label}</div>
+                      <p style={{ fontSize: '12px', color: C.secondary, lineHeight: 1.7, margin: 0 }}>{osio.teksti}</p>
+                    </div>
                   </div>
                 ))}
               </div>
 
-              <div style={{ height: '1px', background: 'linear-gradient(to right, rgba(201,168,76,0.3), transparent)', marginBottom: '40px' }} />
+              <p style={{ fontSize: '12px', color: C.secondary, fontStyle: 'italic', lineHeight: 1.7, margin: '0 0 32px' }}>
+                Kaikki kohdat eivät koske kaikkia — käy läpi vain ne osiot jotka ovat sinulle relevantteja.
+              </p>
+
+              <p style={{ fontSize: '14px', color: '#A09890', lineHeight: 1.9, margin: '0 0 40px' }}>
+                Ei tarvitse tehdä kerralla valmiiksi — voit tallentaa kesken ja jatkaa myöhemmin. Mitään ei näytetä omaisillesi ennen kuin itse niin haluat.
+              </p>
 
               <button
                 onClick={() => navPush(1, null)}
@@ -584,6 +699,195 @@ export default function ValmisteleDashboard() {
               </button>
             </div>
           )}
+
+          {/* ── YHTEENVETO ── */}
+          {aktiivinenVaihe === 7 && (() => {
+            const omaisuusKohteet = omaisuusKategoriat
+              .map(k => ({ kat: k, items: omaisuusItems[k.id] || [] }))
+              .filter(x => x.items.length > 0)
+            const sopimusKohteet = sopimusKategoriat
+              .map(k => ({ kat: k, items: sopimusItems[k.id] || [] }))
+              .filter(x => x.items.length > 0)
+            const dokumenttiKentat = [
+              { id: 'testamentti', label: 'Testamentti' },
+              { id: 'avioehto', label: 'Avioehto' },
+              { id: 'vakuutuskirjat', label: 'Vakuutuskirjat' },
+              { id: 'passit', label: 'Passit ja henkilöllisyystodistukset' },
+              { id: 'muut', label: 'Muut tärkeät dokumentit' },
+            ].filter(k => dokumentit[k.id] && dokumentit[k.id].trim())
+            const tahtoKentat = [
+              { id: 'saateviesti', label: 'Saateviesti pesään' },
+              { id: 'hautaus', label: 'Hautaustoiveet' },
+              { id: 'musiikki', label: 'Musiikki- ja muistotilaisuustoiveet' },
+              { id: 'jakotoiveet', label: 'Toiveet omaisuuden jaosta' },
+              { id: 'viesti', label: 'Henkilökohtainen viesti omaisille' },
+            ].filter(k => tahto[k.id] && tahto[k.id].trim())
+
+            const osiot = [
+              { id: 1, nimi: 'Omat tiedot', tayta: omatTiedotTallennettu },
+              { id: 2, nimi: 'Omaisuus', tayta: omaisuusKohteet.length > 0 },
+              { id: 3, nimi: 'Sopimukset', tayta: sopimusKohteet.length > 0 },
+              { id: 4, nimi: 'Dokumentit', tayta: dokumenttiKentat.length > 0 },
+              { id: 5, nimi: 'Viimeinen tahto', tayta: tahtoKentat.length > 0 },
+            ]
+
+            const valittuOsio = osiot.find(o => o.id === valittuYhteenvetoOsio)
+
+            const omatTiedotRivit = [
+              { label: 'Nimi', arvo: omatTiedot.nimi },
+              { label: 'Puhelin', arvo: omatTiedot.puhelin },
+              { label: 'Sähköposti', arvo: omatTiedot.sahkoposti },
+              { label: 'Lähiomainen', arvo: lahiomainen.nimi ? `${lahiomainen.nimi}${lahiomainen.suhde ? ' (' + lahiomainen.suhde + ')' : ''}` : '' },
+            ].filter(r => r.arvo)
+
+            return (
+              <div className="fade-up">
+                <p style={{ fontSize: '10px', letterSpacing: '0.24em', textTransform: 'uppercase', color: C.accent, marginBottom: '12px' }}>Yhteenveto</p>
+                <h1 className="section-title" style={{ marginBottom: '6px' }}>
+                  Mitä olet <em style={{ fontStyle: 'italic', color: C.accent }}>valmistellut.</em>
+                </h1>
+                <p className="section-sub" style={{ marginBottom: '36px' }}>
+                  Klikkaa osiota nähdäksesi mitä olet siihen jo kirjannut.
+                </p>
+
+                {/* Prosessin eteneminen -tyylinen kortti */}
+                <div style={{ backgroundColor: '#0D0B09', border: '1px solid rgba(201,168,76,0.25)', padding: '32px 28px', marginBottom: '24px' }}>
+                  <div style={{ fontSize: '9px', letterSpacing: '0.2em', textTransform: 'uppercase', color: C.accent, marginBottom: '32px' }}>
+                    Osioiden tila
+                  </div>
+                  <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
+                    {osiot.map((o, i) => {
+                      const valittu = valittuYhteenvetoOsio === o.id
+                      const r = 30, cx = 34, cy = 34
+                      const circumference = 2 * Math.PI * r
+                      const nimiVari = valittu ? C.accent : o.tayta ? '#5A5248' : '#3A3630'
+                      const glow = 'drop-shadow(0 0 14px rgba(201,168,76,0.9)) drop-shadow(0 0 28px rgba(201,168,76,0.5))'
+                      return (
+                        <Fragment key={o.id}>
+                          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px', cursor: 'pointer', position: 'relative' }}
+                            onClick={() => setValittuYhteenvetoOsio(valittu ? null : o.id)}
+                            onMouseEnter={e => { e.currentTarget.querySelector('svg').style.filter = glow }}
+                            onMouseLeave={e => { e.currentTarget.querySelector('svg').style.filter = valittu ? glow : 'none' }}
+                          >
+                            <svg width="68" height="68" viewBox="0 0 68 68" style={{ filter: valittu ? glow : 'none', transition: 'filter 0.2s' }}>
+                              <circle cx={cx} cy={cy} r={r} fill="none" stroke="rgba(240,235,227,0.06)" strokeWidth="3" />
+                              {o.tayta && (
+                                <circle cx={cx} cy={cy} r={r} fill="none"
+                                  stroke={valittu ? C.accent : 'rgba(201,168,76,0.6)'}
+                                  strokeWidth="3" strokeLinecap="round"
+                                  strokeDasharray={circumference}
+                                  transform={`rotate(-90 ${cx} ${cy})`}
+                                />
+                              )}
+                              {o.tayta ? (
+                                <text x={cx} y={cy} textAnchor="middle" dominantBaseline="central"
+                                  fill={C.accent} fontSize="16" fontFamily="var(--font-body), sans-serif" fontWeight="500">
+                                  ✓
+                                </text>
+                              ) : (
+                                cloneElement(vaiheet.find(v => v.id === o.id).icon, {
+                                  width: 22, height: 22, x: cx - 11, y: cy - 11, stroke: valittu ? C.accent : '#3A3630',
+                                })
+                              )}
+                            </svg>
+                            <span style={{ fontSize: '10px', letterSpacing: '0.06em', textAlign: 'center', lineHeight: 1.4, color: nimiVari, transition: 'color 0.2s' }}>
+                              {o.nimi}
+                            </span>
+                          </div>
+                          {i < osiot.length - 1 && (
+                            <div style={{ flexShrink: 0, width: '20px', height: '1px', backgroundColor: 'rgba(240,235,227,0.08)', marginTop: '34px' }} />
+                          )}
+                        </Fragment>
+                      )
+                    })}
+                  </div>
+
+                  {/* Valitun osion sisältö */}
+                  {valittuOsio && (
+                  <div style={{ marginTop: '28px', paddingTop: '24px', borderTop: '1px solid rgba(240,235,227,0.06)' }}>
+                    <div style={{ fontSize: '10px', letterSpacing: '0.2em', textTransform: 'uppercase', color: C.secondary, marginBottom: '10px' }}>
+                      {valittuOsio.nimi}
+                    </div>
+
+                    <div style={{ border: `1px solid ${C.border}`, marginBottom: '16px' }}>
+                      {valittuYhteenvetoOsio === 1 && (
+                        omatTiedotRivit.length > 0 ? omatTiedotRivit.map((r, i) => (
+                          <div key={i} style={{ padding: '14px 18px', borderBottom: i < omatTiedotRivit.length - 1 ? `1px solid ${C.border}` : 'none' }}>
+                            <div style={{ fontSize: '11px', color: C.secondary, marginBottom: '4px' }}>{r.label}</div>
+                            <div style={{ fontSize: '13px', color: C.text }}>{r.arvo}</div>
+                          </div>
+                        )) : (
+                          <div style={{ padding: '14px 18px', fontSize: '13px', color: C.secondary }}>Ei vielä täytetty</div>
+                        )
+                      )}
+
+                      {valittuYhteenvetoOsio === 2 && (
+                        omaisuusKohteet.length > 0 ? omaisuusKohteet.map(({ kat, items }, i) => (
+                          <div key={kat.id} style={{ padding: '14px 18px', borderBottom: i < omaisuusKohteet.length - 1 ? `1px solid ${C.border}` : 'none', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '16px' }}>
+                            <div>
+                              <div style={{ fontSize: '11px', color: C.secondary, marginBottom: '4px' }}>{kat.ikoni} {kat.nimi}</div>
+                              <div style={{ fontSize: '13px', color: C.text }}>
+                                {items.map(item => item[kat.kentat[0].id]).filter(Boolean).join(' · ')}
+                              </div>
+                            </div>
+                            <span style={{ fontSize: '11px', color: C.secondary, flexShrink: 0 }}>{items.length} kpl</span>
+                          </div>
+                        )) : (
+                          <div style={{ padding: '14px 18px', fontSize: '13px', color: C.secondary }}>Ei vielä lisätty</div>
+                        )
+                      )}
+
+                      {valittuYhteenvetoOsio === 3 && (
+                        sopimusKohteet.length > 0 ? sopimusKohteet.map(({ kat, items }, i) => (
+                          <div key={kat.id} style={{ padding: '14px 18px', borderBottom: i < sopimusKohteet.length - 1 ? `1px solid ${C.border}` : 'none', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '16px' }}>
+                            <div>
+                              <div style={{ fontSize: '11px', color: C.secondary, marginBottom: '4px' }}>{kat.ikoni} {kat.nimi}</div>
+                              <div style={{ fontSize: '13px', color: C.text }}>
+                                {items.map(item => item[kat.kentat[0].id]).filter(Boolean).join(' · ')}
+                              </div>
+                            </div>
+                            <span style={{ fontSize: '11px', color: C.secondary, flexShrink: 0 }}>{items.length} kpl</span>
+                          </div>
+                        )) : (
+                          <div style={{ padding: '14px 18px', fontSize: '13px', color: C.secondary }}>Ei vielä lisätty</div>
+                        )
+                      )}
+
+                      {valittuYhteenvetoOsio === 4 && (
+                        dokumenttiKentat.length > 0 ? dokumenttiKentat.map((k, i) => (
+                          <div key={k.id} style={{ padding: '14px 18px', borderBottom: i < dokumenttiKentat.length - 1 ? `1px solid ${C.border}` : 'none' }}>
+                            <div style={{ fontSize: '11px', color: C.secondary, marginBottom: '4px' }}>{k.label}</div>
+                            <div style={{ fontSize: '13px', color: C.text, lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{dokumentit[k.id]}</div>
+                          </div>
+                        )) : (
+                          <div style={{ padding: '14px 18px', fontSize: '13px', color: C.secondary }}>Ei vielä täytetty</div>
+                        )
+                      )}
+
+                      {valittuYhteenvetoOsio === 5 && (
+                        tahtoKentat.length > 0 ? tahtoKentat.map((k, i) => (
+                          <div key={k.id} style={{ padding: '14px 18px', borderBottom: i < tahtoKentat.length - 1 ? `1px solid ${C.border}` : 'none' }}>
+                            <div style={{ fontSize: '11px', color: C.secondary, marginBottom: '4px' }}>{k.label}</div>
+                            <div style={{ fontSize: '13px', color: C.text, lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{tahto[k.id]}</div>
+                          </div>
+                        )) : (
+                          <div style={{ padding: '14px 18px', fontSize: '13px', color: C.secondary }}>Ei vielä täytetty</div>
+                        )
+                      )}
+                    </div>
+
+                    <button className="btn-gold" onClick={() => navPush(valittuOsio.id, null)}>
+                      {valittuOsio.tayta ? 'Muokkaa osiota' : 'Täytä osio nyt'}
+                      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                        <path d="M5 12h14M12 5l7 7-7 7"/>
+                      </svg>
+                    </button>
+                  </div>
+                  )}
+                </div>
+              </div>
+            )
+          })()}
 
           {/* ── 1. OMAT TIEDOT ── */}
           {aktiivinenVaihe === 1 && (
@@ -724,7 +1028,7 @@ export default function ValmisteleDashboard() {
           {/* ── 2b. OMAISUUS — KATEGORIA AUKI ── */}
           {aktiivinenVaihe === 2 && valittuKategoria && kat && (
             <div className="fade-up">
-              <button className="btn-ghost" onClick={() => window.history.back()} style={{ marginBottom: '28px' }}>
+              <button className="btn-ghost" onClick={() => setValittuKategoria(null)} style={{ marginBottom: '28px' }}>
                 <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                   <path d="M19 12H5M12 5l-7 7 7 7"/>
                 </svg>
@@ -786,46 +1090,149 @@ export default function ValmisteleDashboard() {
           )}
 
           {/* ── 3. SOPIMUKSET ── */}
-          {aktiivinenVaihe === 3 && (
+          {aktiivinenVaihe === 3 && !valittuSopimusKategoria && (
             <div className="fade-up">
               <p style={{ fontSize: '10px', letterSpacing: '0.24em', textTransform: 'uppercase', color: C.accent, marginBottom: '12px' }}>03 — Sopimukset</p>
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
                 <h1 className="section-title" style={{ margin: 0 }}>Sopimukset ja tilaukset</h1>
-                <TooltipOhje teksti="Lista palveluista ja sopimuksista joihin sinulla on tili tai jatkuva maksu. Omaisesi tietävät mitä pitää irtisanoa ja missä sinulla on tilejä — säästää heiltä merkittävästi aikaa ja vaivaa." />
+                <TooltipOhje teksti="Kirjaa sopimuksesi kategorioittain. Tarkkoja tietoja ei tarvita — palvelun nimi riittää alkuun. Omaisesi tietävät mitä pitää irtisanoa ja missä sinulla on tilejä." />
               </div>
               <p className="section-sub" style={{ marginBottom: '36px' }}>
-                Lista palveluista joihin sinulla on tili tai sopimus. Omaisesi tietävät mitä pitää irtisanoa.
+                Kirjaa sopimuksesi kategorioittain. Omaisesi tietävät mitä pitää irtisanoa.
               </p>
 
-              {[
-                { id: 'puhelin', label: 'Puhelinliittymä', placeholder: 'Esim. Elisa, liittymänumero 040 123 4567' },
-                { id: 'internet', label: 'Internet / laajakaista', placeholder: 'Esim. DNA Laajakaista, sopimus 12kk' },
-                { id: 'sahko', label: 'Sähkösopimus', placeholder: 'Esim. Helen Oy, asiakastunnus 12345' },
-                { id: 'vuokra', label: 'Vuokrasopimus', placeholder: 'Esim. vuokra 800 €/kk, irtisanomisaika 1kk' },
-                { id: 'vakuutusyhtiö', label: 'Vakuutusyhtiö', placeholder: 'Esim. LähiTapiola, asiakastunnus 67890' },
-                { id: 'pankki', label: 'Pankki', placeholder: 'Esim. Nordea, verkkopankkitunnus' },
-                { id: 'muut', label: 'Muut sopimukset ja tilaukset', placeholder: 'Esim. Netflix, Spotify, kuntosali, lehtitilaukset...' },
-              ].map(k => (
-                <div key={k.id} style={{ marginBottom: '20px' }}>
-                  <label className="form-label">{k.label}</label>
-                  <textarea className="form-input" rows={2} placeholder={k.placeholder}
-                    value={(JSON.parse(sopimukset || '{}'))[k.id] || ''}
-                    onChange={e => {
-                      const obj = JSON.parse(sopimukset || '{}')
-                      obj[k.id] = e.target.value
-                      setSopimukset(JSON.stringify(obj))
-                    }} />
-                </div>
-              ))}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1px', background: C.border }}>
+                {sopimusKategoriat.map(k => {
+                  const maara = sopimusLukumaara(k.id)
+                  return (
+                    <div key={k.id} className="omaisuus-card" onClick={() => setValittuSopimusKategoria(k.id)}>
+                      <div style={{ fontSize: '22px', marginBottom: '12px' }}>{k.ikoni}</div>
+                      <div style={{
+                        fontFamily: 'var(--font-body), sans-serif',
+                        fontSize: '13px', fontWeight: 500, color: C.text,
+                        marginBottom: '6px', letterSpacing: '0.02em',
+                      }}>
+                        {k.nimi}
+                      </div>
+                      <div style={{ fontSize: '12px', color: C.secondary, lineHeight: 1.6, marginBottom: '16px' }}>
+                        {k.kuvaus}
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <span className={maara > 0 ? 'badge-lisatty' : 'badge-empty'}>
+                          {maara > 0 ? `${maara} lisätty` : 'Tyhjä'}
+                        </span>
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke={C.accent} strokeWidth="1.5" style={{ opacity: 0.6 }}>
+                          <path d="M5 12h14M12 5l7 7-7 7"/>
+                        </svg>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          )}
 
-              <div style={{ marginTop: '8px' }}>
-                <button className="btn-gold">
-                  Tallenna
+          {/* ── 3b. SOPIMUKSET — KATEGORIA AUKI ── */}
+          {aktiivinenVaihe === 3 && valittuSopimusKategoria && sopimusKat && (
+            <div className="fade-up">
+              <button className="btn-ghost" onClick={() => setValittuSopimusKategoria(null)} style={{ marginBottom: '28px' }}>
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                  <path d="M19 12H5M12 5l-7 7 7 7"/>
+                </svg>
+                Takaisin
+              </button>
+
+              <p style={{ fontSize: '10px', letterSpacing: '0.24em', textTransform: 'uppercase', color: C.accent, marginBottom: '10px' }}>
+                {sopimusKat.ikoni} {sopimusKat.nimi}
+              </p>
+              <h1 className="section-title" style={{ marginBottom: '6px' }}>{sopimusKat.nimi}</h1>
+              <p className="section-sub" style={{ marginBottom: '32px' }}>{sopimusKat.kuvaus}</p>
+
+              {/* Lisää uusi */}
+              <div style={{
+                border: `1px solid ${C.borderWarm}`,
+                padding: '24px',
+                background: 'rgba(201,168,76,0.02)',
+              }}>
+                <div style={{ fontSize: '10px', letterSpacing: '0.2em', textTransform: 'uppercase', color: C.accent, marginBottom: '18px' }}>
+                  Lisää kohde
+                </div>
+
+                {/* Ehdotus-chipit — muistin virkistäjä, ei pakollinen checklist */}
+                {sopimusKat.ehdotukset?.length > 0 && (
+                  <div style={{ marginBottom: '22px' }}>
+                    <div style={{ fontSize: '10px', color: C.secondary, letterSpacing: '0.05em', marginBottom: '10px' }}>
+                      Yleisimmät tässä kategoriassa
+                    </div>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                      {sopimusKat.ehdotukset.map(nimi => {
+                        const ensimmainenKentta = sopimusKat.kentat[0].id
+                        const lisattyMaara = (sopimusItems[sopimusKat.id] || []).filter(i => (i[ensimmainenKentta] || '').trim().toLowerCase() === nimi.toLowerCase()).length
+                        const valittu = uusiSopimusItem[ensimmainenKentta] === nimi
+                        return (
+                          <button
+                            key={nimi}
+                            type="button"
+                            onClick={() => setUusiSopimusItem(prev => ({ ...prev, [ensimmainenKentta]: nimi }))}
+                            style={{
+                              fontFamily: 'var(--font-body), sans-serif',
+                              fontSize: '11px', letterSpacing: '0.02em',
+                              color: valittu ? '#0A0806' : C.accent,
+                              background: valittu ? C.accent : 'transparent',
+                              border: '1px solid rgba(201,168,76,0.35)',
+                              padding: '6px 14px', cursor: 'pointer',
+                              transition: 'background 0.15s, border-color 0.15s, color 0.15s',
+                            }}
+                          >
+                            {nimi}{lisattyMaara > 0 ? ` · ✓${lisattyMaara > 1 ? ` ×${lisattyMaara}` : ''}` : ''}
+                          </button>
+                        )
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '20px' }}>
+                  {kentatKohteelle(sopimusKat, uusiSopimusItem[sopimusKat.kentat[0].id]).map(k => (
+                    <div key={k.id}>
+                      <label className="form-label">{k.label}</label>
+                      <input className="form-input" type="text" placeholder={k.placeholder}
+                        value={uusiSopimusItem[k.id] || ''}
+                        onChange={e => setUusiSopimusItem({ ...uusiSopimusItem, [k.id]: e.target.value })} />
+                    </div>
+                  ))}
+                </div>
+                <button className="btn-gold" onClick={() => lisaaSopimus(sopimusKat.id)}>
+                  Lisää
                   <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                    <path d="M5 12h14M12 5l7 7-7 7"/>
+                    <path d="M12 5v14M5 12h14"/>
                   </svg>
                 </button>
               </div>
+
+              {/* Lisätyt kohteet */}
+              {(sopimusItems[sopimusKat.id] || []).length > 0 && (
+                <div style={{ marginTop: '40px' }}>
+                  <div style={{ fontSize: '10px', letterSpacing: '0.2em', textTransform: 'uppercase', color: C.secondary, marginBottom: '10px' }}>
+                    Lisätyt kohteet ({(sopimusItems[sopimusKat.id] || []).length})
+                  </div>
+                  <div style={{ border: `1px solid ${C.border}` }}>
+                  {(sopimusItems[sopimusKat.id] || []).map(item => (
+                    <div key={item.id} className="item-row">
+                      <div style={{ lineHeight: 1.6 }}>
+                        {kentatKohteelle(sopimusKat, item[sopimusKat.kentat[0].id]).map(k => item[k.id] ? (
+                          <div key={k.id} style={{ fontSize: '13px' }}>
+                            <span style={{ color: C.secondary, fontSize: '11px' }}>{k.label}: </span>
+                            {item[k.id]}
+                          </div>
+                        ) : null)}
+                      </div>
+                      <button className="delete-btn" onClick={() => poistaSopimus(sopimusKat.id, item.id)}>×</button>
+                    </div>
+                  ))}
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
@@ -919,7 +1326,8 @@ export default function ValmisteleDashboard() {
           {/* ── 6. AKTIVOI KUOLINPESÄTILA ── */}
           {aktiivinenVaihe === 6 && (() => {
             const omaisuusMaara = Object.values(omaisuusItems).reduce((s, arr) => s + arr.length, 0)
-            const sopimuksetTaytetty = Object.values(JSON.parse(sopimukset || '{}')).some(v => v && v.trim())
+            const sopimusMaara = Object.values(sopimusItems).reduce((s, arr) => s + arr.length, 0)
+            const sopimuksetTaytetty = sopimusMaara > 0
             const dokumentitTaytetty = Object.values(dokumentit).some(v => v && v.trim())
             const viestiKirjoitettu = !!(tahto.viesti && tahto.viesti.trim())
             const valmisCount = [omatTiedotTallennettu, omaisuusMaara > 0, sopimuksetTaytetty, dokumentitTaytetty, viestiKirjoitettu].filter(Boolean).length
@@ -927,7 +1335,7 @@ export default function ValmisteleDashboard() {
             const tarkistuslista = [
               { label: 'Omat tiedot', done: omatTiedotTallennettu, info: omatTiedotTallennettu ? omatTiedot.nimi || 'Tallennettu' : 'Ei täytetty' },
               { label: 'Omaisuus', done: omaisuusMaara > 0, info: omaisuusMaara > 0 ? `${omaisuusMaara} kohdetta lisätty` : 'Ei kohdetta' },
-              { label: 'Sopimukset', done: sopimuksetTaytetty, info: sopimuksetTaytetty ? 'Täytetty' : 'Ei täytetty' },
+              { label: 'Sopimukset', done: sopimuksetTaytetty, info: sopimuksetTaytetty ? `${sopimusMaara} kohdetta lisätty` : 'Ei kohdetta' },
               { label: 'Dokumentit', done: dokumentitTaytetty, info: dokumentitTaytetty ? 'Täytetty' : 'Ei täytetty' },
               { label: 'Viesti omaisille', done: viestiKirjoitettu, info: viestiKirjoitettu ? 'Kirjoitettu' : 'Ei kirjoitettu' },
             ]

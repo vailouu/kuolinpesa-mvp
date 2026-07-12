@@ -448,7 +448,7 @@ export default function Home() {
           color: C.text, userSelect: 'none', marginBottom: '28px',
           maxWidth: '820px',
         }}>
-          Et voi poistaa surua.{' '}
+          Et voi poistaa surua.<br />
           <em style={{ fontStyle: 'italic', color: C.accent }}>Voit poistaa kaaoksen.</em>
         </h1>
 
