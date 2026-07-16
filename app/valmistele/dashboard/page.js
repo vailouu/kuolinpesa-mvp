@@ -351,6 +351,38 @@ const sopimusKategoriat = [
   },
 ]
 
+const yhteyshenkiloKategoriat = [
+  {
+    id: 'terveys', nimi: 'Terveys', ikoni: '⚕️',
+    kuvaus: 'Oma lääkäri, hammaslääkäri tai muu hoitava taho jonka omaisten voi olla tarpeen tavoittaa.',
+    ehdotukset: ['Oma lääkäri', 'Hammaslääkäri', 'Erikoislääkäri', 'Kotihoito'],
+    kentat: [
+      { id: 'nimi', label: 'Nimi tai vastaanotto', placeholder: 'Esim. Tri Virtanen, Terveystalo Kamppi' },
+      { id: 'yhteystieto', label: 'Puhelin tai osoite', placeholder: 'Jotta omaiset tavoittavat juuri oikean paikan' },
+      { id: 'lisatieto', label: 'Lisätietoa', placeholder: 'Valinnainen' },
+    ]
+  },
+  {
+    id: 'juridiikka-talous', nimi: 'Juridiikka ja talous', ikoni: '⚖️',
+    kuvaus: 'Lakimies, tilitoimisto tai edunvalvoja — vain jos sinulla on sellainen.',
+    ehdotukset: ['Lakimies / asianajaja', 'Tilitoimisto', 'Edunvalvoja', 'Pankin yhteyshenkilö'],
+    kentat: [
+      { id: 'nimi', label: 'Nimi tai toimisto', placeholder: 'Esim. Asianajotoimisto Korhonen' },
+      { id: 'yhteystieto', label: 'Puhelin tai osoite', placeholder: 'Jotta omaiset tavoittavat juuri oikean tahon' },
+      { id: 'lisatieto', label: 'Lisätietoa', placeholder: 'Valinnainen' },
+    ]
+  },
+  {
+    id: 'muu', nimi: 'Muu yhteyshenkilö', ikoni: '👤',
+    kuvaus: 'Kuka tahansa muu henkilö, jonka olemassaolosta omaisten olisi hyvä tietää.',
+    kentat: [
+      { id: 'nimi', label: 'Nimi', placeholder: 'Etunimi Sukunimi' },
+      { id: 'rooli', label: 'Kuka hän on', placeholder: 'Esim. naapuri jolla on avain, työnantaja' },
+      { id: 'yhteystieto', label: 'Puhelin tai osoite', placeholder: 'Valinnainen' },
+    ]
+  },
+]
+
 // Palauttaa kategorian kentat siten, että keskimmäinen kenttä on räätälöity
 // valitun ehdotuksen (esim. "Puhelinliittymä") mukaan, jos räätälöinti on määritelty.
 function kentatKohteelle(kat, ehdotusArvo) {
@@ -409,11 +441,15 @@ export default function ValmisteleDashboard() {
 
   // Omat tiedot
   const [omatTiedot, setOmatTiedot] = useState({
-    nimi: '', syntymaaika: '', osoite: '', puhelin: '', sahkoposti: '',
-    laakari: '', lakimies: '', tilitoimisto: '', lisatieto: '',
+    nimi: '', syntymaaika: '', osoite: '', puhelin: '', sahkoposti: '', lisatieto: '',
   })
   const [lahiomainen, setLahiomainen] = useState({ nimi: '', suhde: '', puhelin: '', sahkoposti: '' })
   const [omatTiedotTallennettu, setOmatTiedotTallennettu] = useState(false)
+
+  // Tärkeät yhteyshenkilöt (osa Omat tiedot -vaihetta)
+  const [valittuYhteyshenkiloKategoria, setValittuYhteyshenkiloKategoria] = useState(null)
+  const [yhteyshenkiloItems, setYhteyshenkiloItems] = useState({})
+  const [uusiYhteyshenkilo, setUusiYhteyshenkilo] = useState({})
 
   // Omaisuus
   const [valittuKategoria, setValittuKategoria] = useState(null)
@@ -447,9 +483,15 @@ export default function ValmisteleDashboard() {
   useEffect(() => {
     const tarkista = async () => {
       const { data: { user } } = await supabase.auth.getUser()
-      if (!user) { router.push('/kirjaudu'); return }
+      if (!user) { router.replace('/kirjaudu'); return }
       if (user.user_metadata?.tili_tyyppi !== 'valmistelu') { router.replace('/dashboard'); return }
       setUser(user)
+      setOmatTiedot(prev => ({
+        ...prev,
+        nimi: prev.nimi || user.user_metadata?.full_name || '',
+        sahkoposti: prev.sahkoposti || user.email || '',
+        puhelin: prev.puhelin || user.user_metadata?.puhelin || '',
+      }))
       setLadataan(false)
     }
     tarkista()
@@ -491,6 +533,24 @@ export default function ValmisteleDashboard() {
     }))
   }
 
+  const yhteyshenkiloLukumaara = (katId) => (yhteyshenkiloItems[katId] || []).length
+
+  const lisaaYhteyshenkilo = (katId) => {
+    if (Object.values(uusiYhteyshenkilo).every(v => !v.trim())) return
+    setYhteyshenkiloItems(prev => ({
+      ...prev,
+      [katId]: [...(prev[katId] || []), { ...uusiYhteyshenkilo, id: Date.now() }]
+    }))
+    setUusiYhteyshenkilo({})
+  }
+
+  const poistaYhteyshenkilo = (katId, itemId) => {
+    setYhteyshenkiloItems(prev => ({
+      ...prev,
+      [katId]: (prev[katId] || []).filter(i => i.id !== itemId)
+    }))
+  }
+
   const tallennaTiedot = () => setOmatTiedotTallennettu(true)
 
   if (ladataan) return (
@@ -502,6 +562,7 @@ export default function ValmisteleDashboard() {
 
   const kat = valittuKategoria ? omaisuusKategoriat.find(k => k.id === valittuKategoria) : null
   const sopimusKat = valittuSopimusKategoria ? sopimusKategoriat.find(k => k.id === valittuSopimusKategoria) : null
+  const yhteyshenkiloKat = valittuYhteyshenkiloKategoria ? yhteyshenkiloKategoriat.find(k => k.id === valittuYhteyshenkiloKategoria) : null
 
   const sopimusMaaraSidebar = Object.values(sopimusItems).reduce((s, arr) => s + arr.length, 0)
   const sopimuksetTaytetty = sopimusMaaraSidebar > 0
@@ -890,7 +951,7 @@ export default function ValmisteleDashboard() {
           })()}
 
           {/* ── 1. OMAT TIEDOT ── */}
-          {aktiivinenVaihe === 1 && (
+          {aktiivinenVaihe === 1 && !valittuYhteyshenkiloKategoria && (
             <div className="fade-up">
               <p style={{ fontSize: '10px', letterSpacing: '0.24em', textTransform: 'uppercase', color: C.accent, marginBottom: '12px' }}>01 — Omat tiedot</p>
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
@@ -918,30 +979,51 @@ export default function ValmisteleDashboard() {
                 ))}
               </div>
 
-              <div className="divider" />
-              <p style={{ fontSize: '10px', letterSpacing: '0.2em', textTransform: 'uppercase', color: C.secondary, marginBottom: '20px' }}>Tärkeät yhteystiedot</p>
-
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
-                {[
-                  { id: 'laakari', label: 'Oma lääkäri', placeholder: 'Nimi ja vastaanotto' },
-                  { id: 'lakimies', label: 'Lakimies / asianajaja', placeholder: 'Nimi ja toimisto' },
-                  { id: 'tilitoimisto', label: 'Tilitoimisto', placeholder: 'Nimi ja yhteystieto' },
-                ].map(k => (
-                  <div key={k.id}>
-                    <label className="form-label">{k.label}</label>
-                    <input className="form-input" type="text" placeholder={k.placeholder}
-                      value={omatTiedot[k.id]}
-                      onChange={e => setOmatTiedot({ ...omatTiedot, [k.id]: e.target.value })} />
-                  </div>
-                ))}
-              </div>
-
               <div style={{ marginTop: '20px' }}>
                 <label className="form-label">Muuta tärkeää</label>
                 <textarea className="form-input" rows={3}
                   placeholder="Esim. allergiat, lääkitys, erikoistoiveet"
                   value={omatTiedot.lisatieto}
                   onChange={e => setOmatTiedot({ ...omatTiedot, lisatieto: e.target.value })} />
+              </div>
+
+              <div className="divider" />
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '6px' }}>
+                <p style={{ fontSize: '10px', letterSpacing: '0.2em', textTransform: 'uppercase', color: C.secondary, margin: 0 }}>Tärkeät yhteyshenkilöt</p>
+                <TooltipOhje teksti="Lisää tarvittaessa lääkäri, lakimies, tilitoimisto tai muu tärkeä yhteyshenkilö. Ei ole pakollista — lisää vain ne jotka ovat sinulle relevantteja, ja niin monta kuin tarvitset." />
+              </div>
+              <p style={{ fontSize: '13px', color: '#6A6258', lineHeight: 1.7, marginBottom: '20px' }}>
+                Ei pakollista. Lisää vain ne henkilöt joiden olemassaolosta omaisten olisi hyvä tietää.
+              </p>
+
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1px', background: C.border, marginBottom: '24px' }}>
+                {yhteyshenkiloKategoriat.map(k => {
+                  const maara = yhteyshenkiloLukumaara(k.id)
+                  return (
+                    <div key={k.id} className="omaisuus-card" onClick={() => setValittuYhteyshenkiloKategoria(k.id)}>
+                      <div style={{ fontSize: '22px', marginBottom: '12px' }}>{k.ikoni}</div>
+                      <div style={{
+                        fontFamily: 'var(--font-body), sans-serif',
+                        fontSize: '13px', fontWeight: 500, color: C.text,
+                        marginBottom: '6px', letterSpacing: '0.02em',
+                      }}>
+                        {k.nimi}
+                      </div>
+                      <div style={{ fontSize: '12px', color: C.secondary, lineHeight: 1.6, marginBottom: '16px' }}>
+                        {k.kuvaus}
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <span className={maara > 0 ? 'badge-done' : 'badge-empty'}>
+                          {maara > 0 ? `${maara} lisätty` : 'Ei lisätty'}
+                        </span>
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke={C.accent} strokeWidth="1.5" style={{ opacity: 0.6 }}>
+                          <path d="M5 12h14M12 5l7 7-7 7"/>
+                        </svg>
+                      </div>
+                    </div>
+                  )
+                })}
               </div>
 
               <div className="divider" />
@@ -975,6 +1057,103 @@ export default function ValmisteleDashboard() {
                 {omatTiedotTallennettu && (
                   <span style={{ fontSize: '11px', color: '#4ADE80', letterSpacing: '0.1em' }}>✓ Tallennettu</span>
                 )}
+              </div>
+            </div>
+          )}
+
+          {/* ── 1b. OMAT TIEDOT — YHTEYSHENKILÖKATEGORIA AUKI ── */}
+          {aktiivinenVaihe === 1 && valittuYhteyshenkiloKategoria && yhteyshenkiloKat && (
+            <div className="fade-up">
+              <button className="btn-ghost" onClick={() => setValittuYhteyshenkiloKategoria(null)} style={{ marginBottom: '28px' }}>
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                  <path d="M19 12H5M12 5l-7 7 7 7"/>
+                </svg>
+                Takaisin
+              </button>
+
+              <p style={{ fontSize: '10px', letterSpacing: '0.24em', textTransform: 'uppercase', color: C.accent, marginBottom: '10px' }}>
+                {yhteyshenkiloKat.ikoni} {yhteyshenkiloKat.nimi}
+              </p>
+              <h1 className="section-title" style={{ marginBottom: '6px' }}>{yhteyshenkiloKat.nimi}</h1>
+              <p className="section-sub" style={{ marginBottom: '32px' }}>{yhteyshenkiloKat.kuvaus}</p>
+
+              {/* Lisätyt henkilöt */}
+              {(yhteyshenkiloItems[yhteyshenkiloKat.id] || []).length > 0 && (
+                <div style={{ border: `1px solid ${C.border}`, background: C.surface, marginBottom: '28px' }}>
+                  {(yhteyshenkiloItems[yhteyshenkiloKat.id] || []).map(item => (
+                    <div key={item.id} className="item-row">
+                      <div style={{ lineHeight: 1.6 }}>
+                        {yhteyshenkiloKat.kentat.map(k => item[k.id] ? (
+                          <div key={k.id} style={{ fontSize: '13px' }}>
+                            <span style={{ color: C.secondary, fontSize: '11px' }}>{k.label}: </span>
+                            {item[k.id]}
+                          </div>
+                        ) : null)}
+                      </div>
+                      <button className="delete-btn" onClick={() => poistaYhteyshenkilo(yhteyshenkiloKat.id, item.id)}>×</button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Lisää uusi */}
+              <div style={{
+                border: `1px solid ${C.borderWarm}`,
+                padding: '24px',
+                background: 'rgba(201,168,76,0.02)',
+              }}>
+                <div style={{ fontSize: '10px', letterSpacing: '0.2em', textTransform: 'uppercase', color: C.accent, marginBottom: '18px' }}>
+                  Lisää yhteyshenkilö
+                </div>
+
+                {yhteyshenkiloKat.ehdotukset?.length > 0 && (
+                  <div style={{ marginBottom: '22px' }}>
+                    <div style={{ fontSize: '10px', color: C.secondary, letterSpacing: '0.05em', marginBottom: '10px' }}>
+                      Yleisimmät tässä kategoriassa
+                    </div>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                      {yhteyshenkiloKat.ehdotukset.map(nimi => {
+                        const ensimmainenKentta = yhteyshenkiloKat.kentat[0].id
+                        const valittu = uusiYhteyshenkilo[ensimmainenKentta] === nimi
+                        return (
+                          <button
+                            key={nimi}
+                            type="button"
+                            onClick={() => setUusiYhteyshenkilo(prev => ({ ...prev, [ensimmainenKentta]: nimi }))}
+                            style={{
+                              fontFamily: 'var(--font-body), sans-serif',
+                              fontSize: '11px', letterSpacing: '0.02em',
+                              color: valittu ? '#0A0806' : C.accent,
+                              background: valittu ? C.accent : 'transparent',
+                              border: '1px solid rgba(201,168,76,0.35)',
+                              padding: '6px 14px', cursor: 'pointer',
+                              transition: 'background 0.15s, border-color 0.15s, color 0.15s',
+                            }}
+                          >
+                            {nimi}
+                          </button>
+                        )
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '20px' }}>
+                  {yhteyshenkiloKat.kentat.map(k => (
+                    <div key={k.id}>
+                      <label className="form-label">{k.label}</label>
+                      <input className="form-input" type="text" placeholder={k.placeholder}
+                        value={uusiYhteyshenkilo[k.id] || ''}
+                        onChange={e => setUusiYhteyshenkilo({ ...uusiYhteyshenkilo, [k.id]: e.target.value })} />
+                    </div>
+                  ))}
+                </div>
+                <button className="btn-gold" onClick={() => lisaaYhteyshenkilo(yhteyshenkiloKat.id)}>
+                  Lisää
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                    <path d="M12 5v14M5 12h14"/>
+                  </svg>
+                </button>
               </div>
             </div>
           )}
@@ -1043,7 +1222,7 @@ export default function ValmisteleDashboard() {
 
               {/* Lisätyt kohteet */}
               {(omaisuusItems[kat.id] || []).length > 0 && (
-                <div style={{ border: `1px solid ${C.border}`, marginBottom: '28px' }}>
+                <div style={{ border: `1px solid ${C.border}`, background: C.surface, marginBottom: '28px' }}>
                   {(omaisuusItems[kat.id] || []).map(item => (
                     <div key={item.id} className="item-row">
                       <div style={{ lineHeight: 1.6 }}>
@@ -1216,7 +1395,7 @@ export default function ValmisteleDashboard() {
                   <div style={{ fontSize: '10px', letterSpacing: '0.2em', textTransform: 'uppercase', color: C.secondary, marginBottom: '10px' }}>
                     Lisätyt kohteet ({(sopimusItems[sopimusKat.id] || []).length})
                   </div>
-                  <div style={{ border: `1px solid ${C.border}` }}>
+                  <div style={{ border: `1px solid ${C.border}`, background: C.surface }}>
                   {(sopimusItems[sopimusKat.id] || []).map(item => (
                     <div key={item.id} className="item-row">
                       <div style={{ lineHeight: 1.6 }}>

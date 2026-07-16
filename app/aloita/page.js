@@ -1,5 +1,5 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '../supabase'
 
@@ -88,6 +88,19 @@ export default function Aloita() {
 
   const paivita = (kentta, arvo) => setTiedot({ ...tiedot, [kentta]: arvo })
 
+  // Jos käyttäjällä on jo voimassa oleva istunto (esim. selaimen Takaisin-nappia
+  // painettu rekisteröitymisen jälkeen), ohjaa suoraan sovellukseen sen sijaan että
+  // näytetään harhaanjohtavasti tyhjä rekisteröitymislomake.
+  useEffect(() => {
+    const tarkistaIstunto = async () => {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
+      const tiliTyyppi = user.user_metadata?.tili_tyyppi
+      router.replace(tiliTyyppi === 'valmistelu' ? '/valmistele/dashboard' : '/dashboard')
+    }
+    tarkistaIstunto()
+  }, [])
+
   const laheta = async () => {
     setLataa(true)
     setVirhe('')
@@ -170,7 +183,7 @@ export default function Aloita() {
 
           {onSessio ? (
             <>
-              <button className="btn-submit" onClick={() => router.push('/dashboard')} style={{ marginTop: 0 }}>
+              <button className="btn-submit" onClick={() => router.replace('/dashboard')} style={{ marginTop: 0 }}>
                 Siirry sovellukseen
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                   <path d="M5 12h14M12 5l7 7-7 7"/>

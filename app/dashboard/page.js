@@ -263,7 +263,7 @@ useEffect(() => {
   useEffect(() => {
     const haeData = async () => {
       const { data: { user } } = await supabase.auth.getUser()
-      if (!user) { router.push('/kirjaudu'); setLadataan(false); return }
+      if (!user) { router.replace('/kirjaudu'); setLadataan(false); return }
       if (user.user_metadata?.tili_tyyppi === 'valmistelu') { router.replace('/valmistele/dashboard'); return }
       const nimi = [user.user_metadata?.etunimi, user.user_metadata?.sukunimi].filter(Boolean).join(' ')
       if (nimi) setKayttajaNimiTeksti(nimi)

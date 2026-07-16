@@ -1,5 +1,5 @@
 'use client'
-import { useState, Suspense } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { supabase } from '../supabase'
 
@@ -86,6 +86,19 @@ function KirjauduInner() {
 
   const paivita = (kentta, arvo) => setTiedot({ ...tiedot, [kentta]: arvo })
 
+  // Jos käyttäjällä on jo voimassa oleva istunto (esim. selaimen Takaisin-nappia
+  // painettu kirjautumisen jälkeen), ohjaa suoraan sovellukseen sen sijaan että
+  // näytetään harhaanjohtavasti tyhjä kirjautumislomake.
+  useEffect(() => {
+    const tarkistaIstunto = async () => {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
+      const tiliTyyppi = user.user_metadata?.tili_tyyppi
+      router.replace(tiliTyyppi === 'valmistelu' ? '/valmistele/dashboard' : '/dashboard')
+    }
+    tarkistaIstunto()
+  }, [])
+
   const kirjauduSisaan = async () => {
     setLataa(true)
     setVirhe('')
@@ -98,10 +111,10 @@ function KirjauduInner() {
       const { data: { user } } = await supabase.auth.getUser()
       const tiliTyyppi = user?.user_metadata?.tili_tyyppi
       if (tiliTyyppi === 'valmistelu') {
-        router.push('/valmistele/dashboard')
+        router.replace('/valmistele/dashboard')
       } else {
         localStorage.setItem('tervetuloa_takaisin', 'true')
-        router.push('/dashboard')
+        router.replace('/dashboard')
       }
     }
   }

@@ -1,5 +1,5 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '../supabase'
 
@@ -78,16 +78,36 @@ const css = `
 
 export default function Valmistele() {
   const router = useRouter()
-  const [tiedot, setTiedot] = useState({ nimi: '', sahkoposti: '', salasana: '' })
+  const [tiedot, setTiedot] = useState({ nimi: '', puhelin: '', sahkoposti: '', salasana: '', salasanaVahvistus: '' })
   const [lataa, setLataa] = useState(false)
   const [virhe, setVirhe] = useState('')
   const [tarkistaEmail, setTarkistaEmail] = useState(false)
+  const [onSessio, setOnSessio] = useState(false)
+  const [uudelleenLataa, setUudelleenLataa] = useState(false)
+  const [uudelleenViesti, setUudelleenViesti] = useState('')
 
   const paivita = (kentta, arvo) => setTiedot({ ...tiedot, [kentta]: arvo })
 
+  // Jos käyttäjällä on jo voimassa oleva istunto (esim. selaimen Takaisin-nappia
+  // painettu rekisteröitymisen jälkeen), ohjaa suoraan sovellukseen sen sijaan että
+  // näytetään harhaanjohtavasti tyhjä rekisteröitymislomake.
+  useEffect(() => {
+    const tarkistaIstunto = async () => {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
+      const tiliTyyppi = user.user_metadata?.tili_tyyppi
+      router.replace(tiliTyyppi === 'valmistelu' ? '/valmistele/dashboard' : '/dashboard')
+    }
+    tarkistaIstunto()
+  }, [])
+
   const laheta = async () => {
-    if (!tiedot.nimi || !tiedot.sahkoposti || !tiedot.salasana) {
-      setVirhe('Täytä kaikki kentät.')
+    if (!tiedot.nimi || !tiedot.sahkoposti || !tiedot.salasana || !tiedot.salasanaVahvistus) {
+      setVirhe('Täytä kaikki pakolliset kentät.')
+      return
+    }
+    if (tiedot.salasana !== tiedot.salasanaVahvistus) {
+      setVirhe('Salasanat eivät täsmää.')
       return
     }
     setLataa(true)
@@ -100,6 +120,7 @@ export default function Valmistele() {
         data: {
           tili_tyyppi: 'valmistelu',
           full_name: tiedot.nimi,
+          puhelin: tiedot.puhelin || null,
         },
       },
     })
@@ -111,14 +132,20 @@ export default function Valmistele() {
       return
     }
 
-    // Jos sessio on heti olemassa (email-vahvistus pois päältä) → ohjaa dashboardille
-    // Jos ei sessiota (email-vahvistus päällä) → näytä viesti
-    if (authData.session) {
-      router.push('/valmistele/dashboard')
-    } else {
-      setVirhe('')
-      setTarkistaEmail(true)
-    }
+    // Näytä sähköpostin vahvistusruutu aina — jos sessio syntyi jo heti,
+    // ruudulla tarjotaan lisäksi suora jatkonappi sovellukseen.
+    setOnSessio(!!authData.session)
+    setVirhe('')
+    setTarkistaEmail(true)
+    setLataa(false)
+  }
+
+  const lahetaUudelleen = async () => {
+    setUudelleenLataa(true)
+    setUudelleenViesti('')
+    const { error } = await supabase.auth.resend({ type: 'signup', email: tiedot.sahkoposti })
+    setUudelleenLataa(false)
+    setUudelleenViesti(error ? 'Virhe lähetyksessä.' : 'Uusi viesti lähetetty.')
   }
 
   const handleKeyDown = (e) => {
@@ -155,12 +182,68 @@ export default function Valmistele() {
         <p style={{ color: C.secondary, fontSize: '14px', lineHeight: 1.8, marginBottom: '32px' }}>
           Lähetimme vahvistuslinkin osoitteeseen <strong style={{ color: C.text }}>{tiedot.sahkoposti}</strong>. Klikkaa linkkiä ja pääset kirjautumaan sisään.
         </p>
-        <button className="btn-submit" onClick={() => router.push('/kirjaudu')}>
-          Kirjaudu sisään
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-            <path d="M5 12h14M12 5l7 7-7 7"/>
-          </svg>
-        </button>
+
+        <div style={{ height: '1px', background: C.border, marginBottom: '32px' }} />
+
+        {onSessio ? (
+          <>
+            <button className="btn-submit" onClick={() => router.replace('/valmistele/dashboard')} style={{ marginTop: 0 }}>
+              Siirry sovellukseen
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                <path d="M5 12h14M12 5l7 7-7 7"/>
+              </svg>
+            </button>
+
+            <div style={{ marginTop: '28px' }}>
+              <p style={{ fontSize: '12px', color: C.secondary, marginBottom: '12px' }}>
+                Eikö viesti saapunut?
+              </p>
+              <button onClick={lahetaUudelleen} disabled={uudelleenLataa} style={{
+                background: 'none', border: 'none', cursor: 'pointer',
+                fontSize: '11px', letterSpacing: '0.14em', textTransform: 'uppercase',
+                color: C.secondary, fontFamily: 'var(--font-body)', transition: 'color 0.2s',
+                opacity: uudelleenLataa ? 0.5 : 1,
+              }}
+                onMouseEnter={e => e.target.style.color = C.accent}
+                onMouseLeave={e => e.target.style.color = C.secondary}
+              >
+                {uudelleenLataa ? 'Lähetetään...' : 'Lähetä uudelleen'}
+              </button>
+            </div>
+          </>
+        ) : (
+          <>
+            <button className="btn-submit" onClick={() => router.push('/kirjaudu')} style={{ marginTop: 0 }}>
+              Kirjaudu sisään
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                <path d="M5 12h14M12 5l7 7-7 7"/>
+              </svg>
+            </button>
+
+            <div style={{ marginTop: '28px' }}>
+              <p style={{ fontSize: '12px', color: C.secondary, marginBottom: '12px' }}>
+                Eikö viesti saapunut?
+              </p>
+              <button onClick={lahetaUudelleen} disabled={uudelleenLataa} style={{
+                background: 'none', border: 'none', cursor: 'pointer',
+                fontSize: '11px', letterSpacing: '0.14em', textTransform: 'uppercase',
+                color: C.secondary, fontFamily: 'var(--font-body)', transition: 'color 0.2s',
+                opacity: uudelleenLataa ? 0.5 : 1,
+              }}
+                onMouseEnter={e => e.target.style.color = C.accent}
+                onMouseLeave={e => e.target.style.color = C.secondary}
+              >
+                {uudelleenLataa ? 'Lähetetään...' : 'Lähetä uudelleen'}
+              </button>
+            </div>
+          </>
+        )}
+
+        {uudelleenViesti && (
+          <p style={{ fontSize: '12px', color: uudelleenViesti.includes('Virhe') ? '#e07070' : C.accent, marginTop: '16px' }}>
+            {uudelleenViesti}
+          </p>
+        )}
       </div>
     </div>
   )
@@ -213,9 +296,21 @@ export default function Valmistele() {
         <div className="a2" style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
 
           <div>
-            <label className="form-label">Nimesi *</label>
+            <label className="form-label">Koko nimesi *</label>
             <input className="form-input" type="text" placeholder="Etunimi Sukunimi"
+              autoComplete="name"
               value={tiedot.nimi} onChange={e => paivita('nimi', e.target.value)}
+              onKeyDown={handleKeyDown} />
+          </div>
+
+          <div>
+            <label className="form-label">
+              Puhelinnumero{' '}
+              <span style={{ opacity: 0.5, letterSpacing: '0.1em' }}>(valinnainen)</span>
+            </label>
+            <input className="form-input" type="tel" placeholder="+358 40 123 4567"
+              autoComplete="tel"
+              value={tiedot.puhelin} onChange={e => paivita('puhelin', e.target.value)}
               onKeyDown={handleKeyDown} />
           </div>
 
@@ -224,6 +319,7 @@ export default function Valmistele() {
           <div>
             <label className="form-label">Sähköpostiosoite *</label>
             <input className="form-input" type="email" placeholder="sinun@email.fi"
+              autoComplete="email"
               value={tiedot.sahkoposti} onChange={e => paivita('sahkoposti', e.target.value)}
               onKeyDown={handleKeyDown} />
           </div>
@@ -231,7 +327,16 @@ export default function Valmistele() {
           <div>
             <label className="form-label">Salasana *</label>
             <input className="form-input" type="password" placeholder="Vähintään 8 merkkiä"
+              autoComplete="new-password"
               value={tiedot.salasana} onChange={e => paivita('salasana', e.target.value)}
+              onKeyDown={handleKeyDown} />
+          </div>
+
+          <div>
+            <label className="form-label">Vahvista salasana *</label>
+            <input className="form-input" type="password" placeholder="Kirjoita salasana uudelleen"
+              autoComplete="new-password"
+              value={tiedot.salasanaVahvistus} onChange={e => paivita('salasanaVahvistus', e.target.value)}
               onKeyDown={handleKeyDown} />
           </div>
 
